@@ -6,6 +6,7 @@ import News from './components/News/News'
 import NewsActi from './components/News/NewsActi'
 import OurSystem from './components/OurSystem/OurSystem'
 import Allnews from './components/News/Allnews/Allnews' 
+import RoomBooking from './components/OurSystem/RoomBooking'; 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
           </>
         } />
         <Route path="/allnews" element={<Allnews />} /> 
+        <Route path="/roombooking" element={<RoomBooking />} /> {/* เพิ่มเส้นทางสำหรับการจองห้อง */}
       </Routes>
       <Footer />
     </Router>

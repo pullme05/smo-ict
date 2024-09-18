@@ -31,7 +31,7 @@ const Footer = () => {
             </p>
             <div className="space-y-2"> {/* เพิ่มระยะห่างระหว่างบรรทัด */}
               <p>
-                <strong>โทร:</strong> 0X-XXX-XXXX
+                <strong>โทร:</strong> 09-XXX-XXXX
               </p>
               <p>
                 <strong>อีเมล:</strong> smoict@up.ac.th

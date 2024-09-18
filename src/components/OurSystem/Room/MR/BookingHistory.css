@@ -1,0 +1,63 @@
+/* สไตล์สำหรับประวัติการจอง */
+.historyContainer {
+    overflow: auto; /* ป้องกันไม่ให้ข้อมูลล้นออกจากกรอบ */
+  }
+  
+  .historyContainer ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .bookingItem {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    word-wrap: break-word; /* ห่อข้อความให้เข้ากับขนาดคอลัมน์ */
+  }
+  
+  .bookingItem h3 {
+    margin: 0 0 10px 0;
+  }
+  
+  .buttonContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* CSS สำหรับ BookingHistory */
+.historyContainer {
+  width: 100%;
+  padding: 20px;
+  background-color: #f9f9f9; /* สีพื้นหลังที่เหมือนกับการ์ดอื่นๆ */
+  border-radius: 8px; /* มุมโค้ง */
+  border: 1px solid #ccc;
+  overflow-y: auto; /* เลื่อนแนวตั้งหากเนื้อหามาก */
+}
+
+
+.MuiCard-root {
+  border-radius: 8px; /* มุมโค้งของการ์ด */
+  overflow: hidden; /* ซ่อนเนื้อหาที่เกินกรอบการ์ด */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* เงาเบา */
+}
+
+.MuiCardContent-root {
+  padding: 16px; /* ระยะห่างภายในของเนื้อหาการ์ด */
+}
+
+.MuiCardMedia-root {
+  object-fit: cover; /* ทำให้ภาพในกรอบสวยงาม */
+}
+
+.MuiTypography-h6 {
+  color: #333; /* สีข้อความของหัวข้อภายในการ์ด */
+  font-weight: bold; /* ตัวหนาสำหรับหัวข้อ */
+}
+
+.MuiTypography-body1 {
+  color: #555; /* สีข้อความที่เหลือในการ์ด */
+}

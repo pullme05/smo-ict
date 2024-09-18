@@ -1,0 +1,267 @@
+/* CSS สำหรับ body */
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f4f4f4;
+}
+
+/* CSS สำหรับ Container */
+.container {
+  display: flex;
+  flex-direction: column; /* เพื่อให้แนวตั้ง */
+  align-items: center; /* จัดกลางแนวขวาง */
+  max-width: 1200px; /* ขนาดที่ต้องการ */
+  width: 100%;
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  gap: 20px;
+}
+
+  
+  .leftColumn {
+    flex: 1;
+    margin-right: 20px;
+  }
+  
+  .image {
+    width: 100%;
+    height: auto;
+  }
+  
+  .status {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 16px;
+  }
+  
+  .statusIndicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: green;
+    display: inline-block;
+    margin-right: 10px;
+  }
+  
+  .rightColumn {
+    flex: 1;
+  }
+  
+  .input {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  .button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .confirmationMessage {
+    color: blue;
+    margin-top: 20px;
+  }
+  
+
+  .inputError {
+    border: 2px solid red; /* เปลี่ยนสีกรอบฟิลด์เป็นสีแดง */
+  }
+  
+  .errorMessage {
+    color: red; /* สีข้อความแสดงข้อผิดพลาด */
+    font-size: 0.875rem; /* ขนาดข้อความข้อผิดพลาด */
+    margin-top: 0.25rem; /* ระยะห่างระหว่างฟิลด์และข้อความ */
+  }
+
+  /* เพิ่มระยะห่างรอบ ๆ ฟิลด์ input */
+.input {
+    width: 100%; /* ให้ฟิลด์ input ขยายเต็มความกว้างของคอนเทนเนอร์ */
+    padding: 0.5rem; /* เพิ่มระยะห่างภายในฟิลด์ input */
+    margin-bottom: 1rem; /* เพิ่มระยะห่างด้านล่างของฟิลด์ input */
+    box-sizing: border-box; /* ทำให้ padding และ border ถูกนับรวมในความกว้างทั้งหมดของฟิลด์ input */
+  }
+  
+  .inputError {
+    border: 2px solid red; /* เปลี่ยนสีกรอบฟิลด์เป็นสีแดง */
+  }
+  
+  .errorMessage {
+    color: red; /* สีข้อความแสดงข้อผิดพลาด */
+    font-size: 0.875rem; /* ขนาดข้อความข้อผิดพลาด */
+    margin-top: 0.25rem; /* ระยะห่างระหว่างฟิลด์และข้อความ */
+  }
+  
+  .status {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 16px;
+  }
+  
+  .statusIndicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 10px;
+  }
+  
+  .status.available .statusIndicator {
+    background-color: green;
+  }
+  
+  .status.notAvailable .statusIndicator {
+    background-color: red;
+  }
+    
+  /* Meeting.css */
+
+/* กำหนดให้ container ใช้ Flexbox */
+.container {
+    display: flex;
+    gap: 20px; /* ช่องว่างระหว่างคอลัมน์ */
+    flex-wrap: wrap; /* ให้คอลัมน์สามารถห่อเพื่อรองรับขนาดหน้าจอที่เล็กกว่า */
+  }
+  
+  /* กำหนดขนาดและการจัดเรียงคอลัมน์ */
+  .leftColumn, .middleColumn, .rightColumn {
+    flex: 1; /* ให้คอลัมน์แต่ละคอลัมน์มีขนาดเท่ากัน */
+    min-width: 300px; /* กำหนดขนาดขั้นต่ำของคอลัมน์ */
+  }
+  
+  /* รูปภาพห้องประชุม */
+  .image {
+    width: 100%; /* ให้รูปภาพเต็มขนาดของคอลัมน์ */
+    height: auto; /* รักษาสัดส่วนของรูปภาพ */
+  }
+  
+  /* สไตล์สำหรับฟอร์มและข้อมูล */
+  .formContainer, .historyContainer {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
+  
+  /* สไตล์สำหรับห้องประชุม */
+  .room {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  /* สไตล์สำหรับสถานะห้องประชุม */
+  .status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .statusIndicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  
+  .available .statusIndicator {
+    background-color: green;
+  }
+  
+  .notAvailable .statusIndicator {
+    background-color: red;
+  }
+  
+  .status p {
+    margin: 0;
+  }
+  
+  /* สไตล์สำหรับฟิลด์ข้อมูล */
+  .input, .button {
+    width: 100%; /* ขยายฟิลด์ให้เต็มขนาดของคอลัมน์ */
+    padding: 10px;
+    margin-bottom: 10px;
+    box-sizing: border-box; /* ทำให้ padding และ border ถูกนับรวมในความกว้างทั้งหมดของฟิลด์ */
+  }
+  
+  .inputError {
+    border-color: red;
+  }
+  
+  .errorMessage {
+    color: red;
+    font-size: 0.875em;
+  }
+  
+  .button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* สไตล์สำหรับข้อความยืนยัน */
+  .confirmationMessage {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #e6ffe6;
+  }
+  
+  /* สไตล์สำหรับรายการประวัติการจอง */
+  .historyContainer {
+    overflow: auto; /* ป้องกันไม่ให้ข้อมูลล้นออกจากกรอบ */
+  }
+  
+  .historyContainer ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .bookingItem {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    word-wrap: break-word; /* ห่อข้อความให้เข้ากับขนาดคอลัมน์ */
+  }
+  
+  .bookingItem h3 {
+    margin: 0 0 10px 0;
+  }
+  
+  .buttonContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+
+  

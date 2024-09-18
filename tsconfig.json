@@ -3,5 +3,21 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
-}
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    "jsx": "react",
+    "baseUrl": "./src",   // กำหนดให้ 'src' เป็นฐานของ path
+    "paths": {
+      "Meeting": ["components/OurSystem/Room/Old/Meeting"]
+    },
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false
+  }
+  }
+  
+  
+
+
+

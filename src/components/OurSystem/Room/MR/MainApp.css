@@ -1,0 +1,94 @@
+/* CSS สำหรับ body */
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f4f4f4;
+}
+
+/* CSS สำหรับการจัดการ container หลัก */
+.mainContainer {
+  display: flex;
+  flex-direction: column; /* จัดเรียงในแนวตั้ง */
+  align-items: center; /* จัดกลางแนวขวาง */
+  max-width: 2000px; /* ขนาดที่ต้องการ */
+  width: 100%;
+  padding: 100px 100px;
+  padding-left: 100px;
+  border: 1px solid #ddd;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  gap: 20px;
+}
+
+/* สไตล์สำหรับปุ่มหลัก */
+.mainButton {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  background-color: #007BFF;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.mainButton:hover {
+  background-color: #0056b3;
+}
+
+/* สไตล์สำหรับกล่องข้อความหลัก */
+.mainMessage {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #e6ffe6;
+  color: blue;
+}
+
+.gridContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center; /* จัดกลางแนวนอน */
+  align-items: flex-start; /* จัดเริ่มต้นในแนวตั้ง */
+}
+
+
+.roomSelectionContainer,
+.bookingFormContainer,
+.bookingHistoryContainer {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  min-height: 400px;
+  flex: 1 1 calc(33.33% - 20px); /* ขนาดคอมโพเนนต์ให้เท่ากันในกริด */
+  display: flex; 
+}
+
+/* สำหรับหน้าจอขนาดกลาง (Tablet) */
+@media (max-width: 1199px) {
+  .roomSelectionContainer,
+  .bookingFormContainer,
+  .bookingHistoryContainer {
+    flex: 1 1 calc(50% - 20px); /* ขนาดคอมโพเนนต์ให้เต็มความกว้างของแถว */
+    max-width: calc(50% - 20px); /* ขนาดสูงสุดของแต่ละคอลัมน์ */
+  }
+}
+
+/* สำหรับหน้าจอขนาดเล็ก (Mobile) */
+@media (max-width: 599px) {
+  .roomSelectionContainer,
+  .bookingFormContainer,
+  .bookingHistoryContainer {
+    min-height: 300px;
+    padding: 10px;
+    max-width: 100%; /* ปรับความกว้างให้เต็มที่ */
+  }
+}

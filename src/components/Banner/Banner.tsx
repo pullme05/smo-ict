@@ -2,8 +2,9 @@ import React, { useState, useRef } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import slide1 from '../../assets/p1.jpg';
-import slide2 from '../../assets/p2.jpg';
+import slide1 from '../../assets/sc1.png';
+import slide2 from '../../assets/sc2.png';
+import slide3 from '../../assets/sc3.jpg';
 
 const Banner: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -22,7 +23,7 @@ const Banner: React.FC = () => {
     afterChange: (index: number) => setCurrentSlide(index), // เก็บค่า index ของสไลด์ปัจจุบัน
   };
 
-  const slides = [slide1, slide2]; // สามารถเพิ่ม slide ได้ (!!อัตราส่วน 4:1: ภาพควรมีขนาด 1920x480 พิกเซล (กว้าง 1920px และสูง 480px!!)
+  const slides = [slide1, slide2, slide3]; // สามารถเพิ่ม slide ได้ (!!อัตราส่วน 4:1: ภาพควรมีขนาด 1920x480 พิกเซล (กว้าง 1920px และสูง 480px!!)
 
   return (
     <div className="relative w-full overflow-hidden">

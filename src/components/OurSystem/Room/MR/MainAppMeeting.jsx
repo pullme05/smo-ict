@@ -5,7 +5,7 @@ import BookingForm from './BookingForm';
 import BookingHistory from './BookingHistory';
 import ConfirmationDialog from './ConfirmationDialog';
 import AdvanceBookingDialog from './AdvanceBookingDialog';
-import './MainApp.css';
+// import './MainAppMeeting.css';
 
 function MainApp() {
   const [rooms, setRooms] = useState([

@@ -27,9 +27,8 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
   // เติมวันในเดือนลงในตาราง
   for (let day = 1; day <= daysInMonth; day++) {
     const isToday = currentDate.getDate() === day && new Date().getMonth() === currentDate.getMonth();
-    const highlightColor = isToday ? '#996600' : 'transparent';
+    const highlightColor = isToday ? '#996600' : '#gray';
     const textColor = isToday ? 'white' : 'black';
-     
 
     const dayEvents = events[day] || []; // ใช้ events[day] ถ้ามีค่า ถ้าไม่มีก็ใช้ array ว่าง
 
@@ -56,7 +55,7 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
             variant="outlined" 
             size="small" 
             onClick={() => onAddEvent(day)} // เรียกใช้ฟังก์ชัน onAddEvent เมื่อคลิก
-            style={{ position: 'absolute', bottom: '4px', left: '4px',padding: '4px',cursor: 'pointer' }}
+            style={{ position: 'absolute', bottom: '4px', left: '4px',padding: '4px',cursor: 'pointer'}}
           >
             +
           </Button>

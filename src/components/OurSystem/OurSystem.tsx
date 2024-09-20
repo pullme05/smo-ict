@@ -5,31 +5,31 @@ import { Link } from 'react-router-dom'; // นำเข้า Link จาก re
 const Oursystem: React.FC = () => {
   return (
     <div id="ระบบของเรา" className="bg-gray-100 py-10">
-      <h2 className="text-2xl font-bold text-center mb-4">ระบบของเรา</h2>
+      <h2 className="text-3xl font-bold text-center mb-6 text-[#996600]">ระบบของเรา</h2>
       
-      <div className="flex justify-center space-x-4">
+      <div className="flex justify-center space-x-6">
         {/* Block 1: ปฏิทิน */}
-        <div className="w-48 h-48 bg-white rounded-lg shadow-lg flex flex-col items-center justify-center transition-transform transform hover:scale-105 duration-300">
-          <div className="bg-gray-200 w-24 h-24 rounded-full mb-4 flex items-center justify-center">
-            <CalendarToday style={{ fontSize: 48, color: 'gray' }} />
+        <div className="w-64 h-64 bg-white rounded-lg shadow-lg flex flex-col items-center justify-center transition-transform transform hover:scale-105 duration-300">
+          <div className="bg-gray-200 w-32 h-32 rounded-full mb-4 flex items-center justify-center">
+            <CalendarToday style={{ fontSize: 64, color: 'gray' }} />
           </div>
-          <Link to = "./CalendarMain">
-          <button
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md transition-colors hover:bg-blue-600 duration-300 focus:outline-none"
-          >
-            ปฏิทิน
-          </button>
+          <Link to="./CalendarMain">
+            <button
+              className="px-6 py-3 bg-[#996600] text-white rounded-lg shadow-md transition-colors hover:bg-[#664400] duration-300 focus:outline-none"
+            >
+              ปฏิทิน
+            </button>
           </Link>
         </div>
 
         {/* Block 2: การจองห้อง */}
-        <div className="w-48 h-48 bg-white rounded-lg shadow-lg flex flex-col items-center justify-center transition-transform transform hover:scale-105 duration-300">
-          <div className="bg-gray-200 w-24 h-24 rounded-full mb-4 flex items-center justify-center">
-            <MeetingRoom style={{ fontSize: 48, color: 'gray' }} />
+        <div className="w-64 h-64 bg-white rounded-lg shadow-lg flex flex-col items-center justify-center transition-transform transform hover:scale-105 duration-300">
+          <div className="bg-gray-200 w-32 h-32 rounded-full mb-4 flex items-center justify-center">
+            <MeetingRoom style={{ fontSize: 64, color: 'gray' }} />
           </div>
-          <Link to="/Meeting"> 
+          <Link to="/Meeting">
             <button
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md transition-colors hover:bg-blue-600 duration-300 focus:outline-none"
+              className="px-6 py-3 bg-[#996600] text-white rounded-lg shadow-md transition-colors hover:bg-[#664400] duration-300 focus:outline-none"
             >
               การจองห้อง
             </button>
@@ -37,12 +37,12 @@ const Oursystem: React.FC = () => {
         </div>
 
         {/* Block 3: สมาชิกของนิสิตสโมสร */}
-        <div className="w-48 h-48 bg-white rounded-lg shadow-lg flex flex-col items-center justify-center transition-transform transform hover:scale-105 duration-300">
-          <div className="bg-gray-200 w-24 h-24 rounded-full mb-4 flex items-center justify-center">
-            <Group style={{ fontSize: 48, color: 'gray' }} />
+        <div className="w-64 h-64 bg-white rounded-lg shadow-lg flex flex-col items-center justify-center transition-transform transform hover:scale-105 duration-300">
+          <div className="bg-gray-200 w-32 h-32 rounded-full mb-4 flex items-center justify-center">
+            <Group style={{ fontSize: 64, color: 'gray' }} />
           </div>
           <button
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md transition-colors hover:bg-blue-600 duration-300 focus:outline-none"
+            className="px-6 py-3 bg-[#996600] text-white rounded-lg shadow-md transition-colors hover:bg-[#664400] duration-300 focus:outline-none"
             onClick={() => alert('สมาชิกของนิสิตสโมสร system selected!')}
           >
             สมาชิกของนิสิตสโมสร

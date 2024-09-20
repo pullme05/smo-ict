@@ -6,6 +6,7 @@ import News from './components/News/News'
 import NewsActi from './components/News/NewsActi'
 import OurSystem from './components/OurSystem/OurSystem'
 import Allnews from './components/News/Allnews/Allnews' 
+import CalendarMain from './components/Calendar/CalendarMain.js'
 // @ts-ignore
 import Meeting from './components/OurSystem/Room/MR/MainAppMeeting.jsx';
 
@@ -27,6 +28,8 @@ function App() {
           } />
           <Route path="/allnews" element={<Allnews />} /> 
           <Route path="/meeting" element={<Meeting />} /> 
+          <Route path="/CalendarMain" element={<CalendarMain/>} />
+          
         </Routes>
       </div>
       

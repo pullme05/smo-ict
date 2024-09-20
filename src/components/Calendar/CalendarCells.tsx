@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Box, Typography, List, ListItem, Button } from '@mui/material';
+import { Grid, Box, Typography,Button } from '@mui/material';
 
 interface CalendarCellsProps {
   currentDate: Date;
@@ -29,6 +29,7 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
     const isToday = currentDate.getDate() === day && new Date().getMonth() === currentDate.getMonth();
     const highlightColor = isToday ? '#996600' : 'transparent';
     const textColor = isToday ? 'white' : 'black';
+     
 
     const dayEvents = events[day] || []; // ใช้ events[day] ถ้ามีค่า ถ้าไม่มีก็ใช้ array ว่าง
 
@@ -60,13 +61,31 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
             +
           </Button>
 
-          <List sx={{ mt: 20 }}>
-            {dayEvents.map((event, index) => (
-              <ListItem key={index} sx={{ fontSize: '12px', padding: '2px 0' }}>
-                {event}
-              </ListItem>
-            ))}
-          </List>
+          <Box 
+          sx={{ mt: 20}}>
+            <Grid container spacing={1}>
+              {dayEvents.map((event, index) => (
+                <Grid item xs={12} key={index}>
+                  <Box 
+                    sx={{ 
+                      padding: '0.05rem',  
+                      position: 'relative', // ใช้ position relative
+                      bottom: '10rem', // ย้ายกล่องลงด้านล่าง
+                      wordWrap: 'break-word', // ให้ข้อความตัดบรรทัดเมื่อยาวเกิน
+                      overflowWrap: 'break-word', // ให้รองรับการตัดบรรทัดเพิ่มเติม
+                      whiteSpace: 'nowrap', // ทำให้ข้อความสามารถตัดบรรทัดได้ตามปกติ                     
+                      width: '150px',
+                    }}>
+                    <Typography sx={{ fontSize: '14px',whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+               }}>- {event}<br /></Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+
         </Box>
       </Grid>
     );

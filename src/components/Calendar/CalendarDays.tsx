@@ -1,14 +1,18 @@
 import React from 'react';
+import { Grid, Typography } from '@mui/material';
+
+const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; // ชื่อวันทั้ง 7 วัน
 
 const CalendarDays: React.FC = () => {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center' }}>
-      {days.map(day => (
-        <div key={day}>{day}</div>
+    <Grid container>
+      {days.map((day) => (
+        // สร้าง grid ของแต่ละวัน
+        <Grid item xs={1.7} key={day} textAlign="center" p={1}>
+          <Typography variant="subtitle2" fontWeight="bold" >{day}</Typography>
+        </Grid>
       ))}
-    </div>
+    </Grid>
   );
 };
 

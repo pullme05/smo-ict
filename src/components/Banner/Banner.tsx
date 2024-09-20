@@ -28,7 +28,7 @@ const Banner: React.FC = () => {
     <div className="relative w-full overflow-hidden">
       <Slider {...settings} ref={sliderRef}> {/* เชื่อม sliderRef กับ Slider */}
         {slides.map((slide, index) => (
-          <div key={index} className="w-full aspect-[4/1]"> {/* ปรับ aspect ratio เป็น 4:1 ให้ slide ไม่ใหญ่เกินไป */}
+          <div key={index} className="w-full aspect-[4/1.6]"> {/* ปรับ aspect ratio เป็น 4:1 ให้ slide ไม่ใหญ่เกินไป */}
             <img
               src={slide}
               alt={`Slide ${index + 1}`}

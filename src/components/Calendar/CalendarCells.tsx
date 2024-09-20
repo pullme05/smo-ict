@@ -1,10 +1,10 @@
 import React from 'react';
-import { Grid, Box, Typography,Button } from '@mui/material';
+import { Grid, Box, Typography, Button } from '@mui/material';
 
 interface CalendarCellsProps {
   currentDate: Date;
-  events?: { [key: number]: string[] }; // ประกาศ props events ซึ่งอาจจะเป็น undefined ได้
-  onAddEvent: (day: number) => void; // เพิ่ม prop สำหรับฟังก์ชันเพิ่มกิจกรรม
+  events?: { [key: number]: string[] };
+  onAddEvent: (day: number) => void;
 }
 
 const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {}, onAddEvent }) => {
@@ -27,10 +27,11 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
   // เติมวันในเดือนลงในตาราง
   for (let day = 1; day <= daysInMonth; day++) {
     const isToday = currentDate.getDate() === day && new Date().getMonth() === currentDate.getMonth();
-    const highlightColor = isToday ? '#996600' : '#gray';
+    
+    const highlightColor = isToday ? 'rgba(153, 102, 0, 0.5)' : '#gray';
     const textColor = isToday ? 'white' : 'black';
 
-    const dayEvents = events[day] || []; // ใช้ events[day] ถ้ามีค่า ถ้าไม่มีก็ใช้ array ว่าง
+    const dayEvents = events[day] || [];
 
     cells.push(
       <Grid item xs={1.7} key={day} p={1}>
@@ -38,6 +39,7 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
           p={2}
           bgcolor={highlightColor}
           border={1}
+          borderColor="#996600"
           borderRadius={2}
           color={textColor}
           height="100%"
@@ -54,37 +56,49 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
           <Button 
             variant="outlined" 
             size="small" 
-            onClick={() => onAddEvent(day)} // เรียกใช้ฟังก์ชัน onAddEvent เมื่อคลิก
-            style={{ position: 'absolute', bottom: '4px', left: '4px',padding: '4px',cursor: 'pointer'}}
+            onClick={() => onAddEvent(day)}
+            sx={{ 
+              position: 'absolute', 
+              bottom: '4px', 
+              left: '4px', 
+              padding: '4px', 
+              cursor: 'pointer', 
+              borderColor: '#996600', // สีของขอบปุ่ม
+              color: '#996600', // สีของข้อความปุ่ม
+              transition: 'all 0.3s ease', // เพิ่ม transition เพื่อให้เอฟเฟกต์ลื่นไหล
+              '&:hover': {
+                backgroundColor: '#996600', // พื้นหลังเปลี่ยนเป็นสี #996600 เมื่อ hover
+                color: 'white', // เปลี่ยนสีข้อความเป็นสีขาวเมื่อ hover
+                transform: 'scale(1.05)', // ขยายปุ่มเล็กน้อยเมื่อ hover
+                borderColor: '#996600', // ขอบปุ่มยังคงเป็นสีเดิม
+              },
+            }}
           >
             +
           </Button>
 
-          <Box 
-          sx={{ mt: 20}}>
+          <Box sx={{ mt: 20 }}>
             <Grid container spacing={1}>
               {dayEvents.map((event, index) => (
                 <Grid item xs={12} key={index}>
                   <Box 
                     sx={{ 
                       padding: '0.05rem',  
-                      position: 'relative', // ใช้ position relative
-                      bottom: '10rem', // ย้ายกล่องลงด้านล่าง
-                      wordWrap: 'break-word', // ให้ข้อความตัดบรรทัดเมื่อยาวเกิน
-                      overflowWrap: 'break-word', // ให้รองรับการตัดบรรทัดเพิ่มเติม
-                      whiteSpace: 'nowrap', // ทำให้ข้อความสามารถตัดบรรทัดได้ตามปกติ                     
+                      position: 'relative', 
+                      bottom: '10rem', 
+                      wordWrap: 'break-word', 
+                      overflowWrap: 'break-word', 
+                      whiteSpace: 'nowrap',                     
                       width: '150px',
                     }}>
-                    <Typography sx={{ fontSize: '14px',whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-               }}>- {event}<br /></Typography>
+                    <Typography sx={{ fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      - {event}<br />
+                    </Typography>
                   </Box>
                 </Grid>
               ))}
             </Grid>
           </Box>
-
         </Box>
       </Grid>
     );

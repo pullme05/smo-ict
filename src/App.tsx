@@ -6,9 +6,9 @@ import News from './components/News/News'
 import NewsActi from './components/News/NewsActi'
 import OurSystem from './components/OurSystem/OurSystem'
 import Allnews from './components/News/Allnews/Allnews' 
-// @ts-ignore
-import Meeting from './components/OurSystem/Room/Old/Meeting.jsx';
 import CalendarMain from './components/Calendar/CalendarMain.js'
+// @ts-ignore
+import Meeting from './components/OurSystem/Room/MR/MainAppMeeting.jsx';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; 
 

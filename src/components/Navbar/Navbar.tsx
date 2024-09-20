@@ -18,12 +18,17 @@ const Navbar: React.FC = () => {
   };
 
   const handleNavigateAndScroll = (sectionId: string) => {
-    if (location.pathname !== "/") {
+    if (location.pathname !== "/" && sectionId !== 'ติดต่อเรา') {
       navigate("/"); // นำทางไปยังหน้าแรก
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
+      }, 500);
+    } else if (sectionId === 'ติดต่อเรา') {
+      // สำหรับ "ติดต่อเรา" ให้เลื่อนอย่าง smooth โดยไม่เปลี่ยนหน้า
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
+      }, 100); // เพิ่ม delay เล็กน้อยเพื่อให้แน่ใจว่า smooth scroll ทำงาน
     }
-    setTimeout(() => {
-      document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
-    }, 500);
   };
 
   return (

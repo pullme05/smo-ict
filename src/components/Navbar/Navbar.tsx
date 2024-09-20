@@ -4,100 +4,10 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import LanguageIcon from '@mui/icons-material/Language';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { Button, TextField, Box, Modal } from "@mui/material";
-import { AccountCircle, Lock } from "@mui/icons-material";
+import { Button } from "@mui/material";
 import { Link as ScrollLink } from 'react-scroll';
 import { useNavigate, useLocation } from 'react-router-dom';
-
-interface LoginModalProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleLogin = () => {
-    if (!email || !password) {
-      alert("กรุณากรอกทั้ง Email และ Password");
-      return;
-    }
-    // ส่งข้อมูลไปที่ backend (สามารถใช้ axios หรือ fetch ได้)
-    console.log("Logging in with", { email, password });
-    onClose(); // ปิด modal หลังจากล็อคอิน
-  };
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      aria-labelledby="login-modal-title"
-      aria-describedby="login-modal-description"
-    >
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 500,
-          bgcolor: 'background.paper',
-          borderRadius: '10px',
-          boxShadow: 24,
-          p: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-        }}
-      >
-        <div className="flex flex-col items-center">
-          <img src="/public/smoictmain.png" alt="Logo" className="mb-4 w-24 h-24" />
-          <h2 id="login-modal-title" className="text-xl font-bold mb-4">LOGIN</h2>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center">
-            <AccountCircle sx={{ color: "#996600", marginRight: "8px" }} />
-            <TextField 
-              label="Email" 
-              variant="outlined" 
-              fullWidth 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-            />
-          </div>
-
-          <div className="flex items-center">
-            <Lock sx={{ color: "#996600", marginRight: "8px" }} />
-            <TextField 
-              label="Password" 
-              type="password" 
-              variant="outlined" 
-              fullWidth 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <ScrollLink to="/forgot-password" className="text-red-500">
-              Forgot Password
-            </ScrollLink>
-          </div>
-
-          <Button
-            variant="contained"
-            sx={{ bgcolor: '#996600', '&:hover': { bgcolor: '#664400' } }}
-            onClick={handleLogin}
-          >
-            ล็อคอิน
-          </Button>
-        </div>
-      </Box>
-    </Modal>
-  );
-};
+import LoginModal from '../Login/LoginModel'; // Import LoginModal from the correct path
 
 const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -295,6 +205,7 @@ const Navbar: React.FC = () => {
           </div>
         )}
       </div>
+      {/* Use imported LoginModal */}
       <LoginModal open={loginModalOpen} onClose={handleCloseLoginModal} />
     </nav>
   );

@@ -8,6 +8,7 @@ import OurSystem from './components/OurSystem/OurSystem'
 import Allnews from './components/News/Allnews/Allnews' 
 // @ts-ignore
 import Meeting from './components/OurSystem/Room/Old/Meeting.jsx';
+import CalendarMain from './components/Calendar/CalendarMain.js'
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; 
 
@@ -27,6 +28,8 @@ function App() {
           } />
           <Route path="/allnews" element={<Allnews />} /> 
           <Route path="/meeting" element={<Meeting />} /> 
+          <Route path="/CalendarMain" element={<CalendarMain/>} />
+          
         </Routes>
       </div>
       

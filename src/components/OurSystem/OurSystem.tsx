@@ -13,12 +13,13 @@ const Oursystem: React.FC = () => {
           <div className="bg-gray-200 w-24 h-24 rounded-full mb-4 flex items-center justify-center">
             <CalendarToday style={{ fontSize: 48, color: 'gray' }} />
           </div>
+          <Link to = "./CalendarMain">
           <button
             className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md transition-colors hover:bg-blue-600 duration-300 focus:outline-none"
-            onClick={() => alert('ปฏิทิน system selected!')}
           >
             ปฏิทิน
           </button>
+          </Link>
         </div>
 
         {/* Block 2: การจองห้อง */}

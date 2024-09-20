@@ -1,15 +1,15 @@
-// Calendar เป็น component หลักที่รวมทุกอย่างเข้าด้วยกัน
-// CalendarHeader จัดการส่วนหัวของปฏิทิน (ชื่อเดือนและปี)
-// CalendarDays แสดงชื่อวันของสัปดาห์
-// CalendarCells แสดงวันของเดือนโดยจัดเรียงเป็นตาราง
 import React, { useState } from 'react';
 import CalendarHeader from './CalendarHeader';
 import CalendarDays from './CalendarDays';
 import CalendarCells from './CalendarCells';
-import { Container, Paper } from '@mui/material';
+import { Container, Paper, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 
 const App: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date()); // ตั้งค่า currentDate เป็นวันที่ปัจจุบัน
+  const [events, setEvents] = useState<{ [key: number]: string[] }>({}); // เก็บกิจกรรมสำหรับแต่ละวัน
+  const [open, setOpen] = useState(false); // สำหรับควบคุมการแสดง Dialog
+  const [newEvent, setNewEvent] = useState(''); // เก็บชื่อกิจกรรมใหม่
+  const [selectedDay, setSelectedDay] = useState<number | null>(null); // วันที่เลือกสำหรับเพิ่มกิจกรรม
 
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)); // เปลี่ยนไปเดือนก่อนหน้า
@@ -23,8 +23,29 @@ const App: React.FC = () => {
     setCurrentDate(new Date()); // ตั้งวันที่เป็นวันปัจจุบัน
   };
 
+  const handleClickOpen = (day: number) => {
+    setSelectedDay(day); // ตั้งค่าหมายเลขวันที่เลือก
+    setOpen(true); // เปิด Dialog
+  };
+
+  const handleClose = () => {
+    setOpen(false); // ปิด Dialog
+    setNewEvent(''); // รีเซ็ตชื่อกิจกรรม
+  };
+
+  const handleAddEvent = () => {
+    if (selectedDay !== null) {
+      // ถ้าวันที่เลือกมีค่า
+      setEvents((prevEvents) => ({
+        ...prevEvents,
+        [selectedDay]: [...(prevEvents[selectedDay] || []), newEvent], // เพิ่มกิจกรรมในวันนั้น
+      }));
+      handleClose(); // ปิด Dialog หลังจากเพิ่มกิจกรรม
+    }
+  };
+
   return (
-    <Container maxWidth="xl" sx={{ mt: 4 }}>
+    <Container maxWidth={false} sx={{ mt: 4, width: '100%', padding: '16px' }}>
       <Paper elevation={3} sx={{ p: 4 }}>
         {/* เรียกใช้ component CalendarHeader */}
         <CalendarHeader
@@ -35,8 +56,33 @@ const App: React.FC = () => {
         />
         {/* เรียกใช้ component CalendarDays */}
         <CalendarDays />
-        {/* เรียกใช้ component CalendarCells */}
-        <CalendarCells currentDate={currentDate} />
+        {/* เรียกใช้ component CalendarCells พร้อมส่ง events และ handleClickOpen */}
+        <CalendarCells currentDate={currentDate} events={events} onAddEvent={handleClickOpen} />       
+
+        {/* Dialog สำหรับเพิ่มกิจกรรม */}
+        <Dialog open={open} onClose={handleClose}>
+          <DialogTitle>เพิ่มกิจกรรม</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="กิจกรรม"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={newEvent}
+              onChange={(e) => setNewEvent(e.target.value)} // อัปเดตชื่อกิจกรรมใหม่
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose} color="primary">
+              ยกเลิก
+            </Button>
+            <Button onClick={handleAddEvent} color="primary">
+              เพิ่ม
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Container>
   );

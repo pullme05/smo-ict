@@ -30,11 +30,8 @@ function App() {
           <Route path="/allnews" element={<Allnews />} /> 
           <Route path="/meeting" element={<Meeting />} /> 
           <Route path="/CalendarMain" element={<CalendarMain/>} />
-<<<<<<< HEAD
           <Route path="/MemberList" element={<MemberList/>} />
           
-=======
->>>>>>> e9b24e81a7305971bb94ba277f01f957aa54144b
         </Routes>
       </div>
       <Footer /> {/* Footer จะอยู่ด้านล่างทุกหน้า */}

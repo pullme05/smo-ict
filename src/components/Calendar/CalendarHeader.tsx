@@ -1,6 +1,8 @@
 import React from 'react';
 import { Button, IconButton, Typography, Box } from '@mui/material';
 import { ArrowBackIos, ArrowForwardIos } from '@mui/icons-material';
+import CalendarView from './CalendarView';
+import { Link } from 'react-router-dom'; // 
 
 interface CalendarHeaderProps {
   currentDate: Date; // วันปัจจุบันที่ส่งเข้ามา
@@ -34,7 +36,15 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({ currentDate, onPrevMont
         {/* ปุ่มแสดงแบบเดือน */}
         <Button variant="contained">เดือน</Button>
         {/* ปุ่มแสดงแบบรายการ */}
-        <Button variant="outlined" sx={{ ml: 1 }}>รายการ</Button>
+        <Link to="./CalendarView">
+        <Button 
+          variant="outlined" 
+          sx={{ ml: 1 }} 
+          // onClick={() => window.open('./CalendarView.tsx', '_blank')}
+        >
+          รายการ
+        </Button>
+        </Link>
       </Box>
     </Box>
   );

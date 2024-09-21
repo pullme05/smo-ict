@@ -39,7 +39,7 @@ const Footer = () => {
             </div>
             <div className="flex items-center space-x-2">
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/WeLoveICTUP/?locale=th_TH"
                 className="text-white hover:text-blue-300 transition-transform duration-300 ease-in-out transform hover:scale-110"
               >
                 <FacebookIcon fontSize="large" />

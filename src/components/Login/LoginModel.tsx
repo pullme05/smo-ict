@@ -2,8 +2,7 @@ import React from 'react';
 import { Modal, Box, TextField, Button } from "@mui/material";
 import { AccountCircle, Lock } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-// import โลโก้ ถ้าเป็นโลโก้จากโฟลเดอร์ public
-// ไม่ต้องใช้ import แต่ใช้ src="/smoictmain.png"
+
 
 interface LoginModalProps {
   open: boolean;
@@ -59,8 +58,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
 
           {/* ลิงก์ Forgot Password */}
           <div className="flex justify-start"> {/* ย้ายไปทางซ้าย */}
-            <Link to="https://your-website.com/forgot-password" className="text-red-500">
-              Forgot Passwor
+            <Link to="https://intra.up.ac.th/account/wfrmForgetPassword.aspx" className="text-red-500">
+              Forgot Password
             </Link>
           </div>
 

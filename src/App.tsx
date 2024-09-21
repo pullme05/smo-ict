@@ -1,4 +1,4 @@
-// import './App.css'
+import './App.css'
 import Banner from './components/Banner/Banner'
 import Footer from './components/Footer/Footer'
 import Navbar from './components/Navbar/Navbar'
@@ -29,10 +29,8 @@ function App() {
           <Route path="/allnews" element={<Allnews />} /> 
           <Route path="/meeting" element={<Meeting />} /> 
           <Route path="/CalendarMain" element={<CalendarMain/>} />
-          
         </Routes>
       </div>
-      
       <Footer /> {/* Footer จะอยู่ด้านล่างทุกหน้า */}
     </Router>
   );

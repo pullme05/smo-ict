@@ -1,4 +1,29 @@
 html {
     scroll-behavior: smooth;
   }
+/* ทำให้ body และ html ยืดเต็มความสูง */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+/* ตัว container หลัก */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* ให้ความสูงเต็มหน้าจอ */
+}
+
+/* main-content จะยืดออกเต็มพื้นที่ที่เหลือ */
+.main-content {
+  flex: 1; /* ทำให้ main-content ยืดตามพื้นที่ที่เหลืออยู่ */
+}
+
+/* Footer จะติดที่ด้านล่าง */
+footer {
+  background-color: #f8f9fa;
+  padding: 10px;
+  text-align: center;
+}
+
   

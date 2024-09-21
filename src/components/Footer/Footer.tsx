@@ -4,9 +4,10 @@ const Footer = () => {
   return (
     <footer id="ติดต่อเรา" className="bg-[#996600] text-white py-10 w-full relative">
       <div className="container mx-auto px-4 lg:px-0">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8"> {/* เพิ่ม gap เพื่อเพิ่มระยะห่าง */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8"> {/* เพิ่ม gap เพื่อเพิ่มระยะห่าง */} 
+
           {/* ส่วนซ้าย - โลโก้และที่อยู่ */}
-          <div className="flex flex-col lg:flex-row items-start space-y-4 lg:space-y-0 lg:space-x-6 border-b lg:border-r border-gray-300 pb-6 lg:pb-0 lg:pr-6">
+          <div className="flex flex-row items-start space-x-4 lg:space-x-6 border-b lg:border-r border-gray-300 pb-6 lg:pb-0 lg:pr-6 text-left"> {/* ปรับเป็น flex-row เพื่อให้ข้อความอยู่ข้างโลโก้ */}
             <a href="/" aria-label="หน้าหลัก">
               <img
                 src="/src/assets/smoictmain.png"
@@ -14,7 +15,7 @@ const Footer = () => {
                 className="w-24 sm:w-28 lg:w-32"
               />
             </a>
-            <div className="flex flex-col space-y-2 text-sm sm:text-base">
+            <div className="flex flex-col space-y-2 text-sm sm:text-base"> {/* ข้อความจัดเรียงเป็นคอลัมน์ */}
               <p className="font-semibold text-lg sm:text-xl lg:text-2xl">
                 นิสิตสโมสรคณะเทคโนโลยีสารสนเทศ
               </p>
@@ -23,15 +24,14 @@ const Footer = () => {
               <p>มหาวิทยาลัยพะเยา</p>
             </div>
           </div>
-
           {/* ส่วนกลาง - ข้อมูลติดต่อ */}
-          <div className="flex flex-col items-start space-y-4 border-b lg:border-r border-gray-300 pb-6 lg:pb-0 lg:pr-6 text-sm">
+          <div className="flex flex-col items-start space-y-4 border-b lg:border-r border-gray-300 pb-6 lg:pb-0 lg:pr-6 text-sm text-left">
             <p className="text-lg sm:text-xl lg:text-2xl font-semibold">
               ข้อมูลติดต่อ
             </p>
-            <div className="space-y-2"> {/* เพิ่มระยะห่างระหว่างบรรทัด */}
+            <div className="space-y-2">
               <p>
-                <strong>โทร:</strong> 09-XXX-XXXX
+                <strong>เบอร์โทร ติดต่อ :</strong> 09-XXX-XXXX
               </p>
               <p>
                 <strong>อีเมล:</strong> smoict@up.ac.th
@@ -59,7 +59,7 @@ const Footer = () => {
           </div>
 
           {/* ส่วนขวา - เกี่ยวกับเรา */}
-          <div className="flex flex-col items-start space-y-4 text-sm">
+          <div className="flex flex-col items-start space-y-4 text-sm text-left">
             <p className="text-lg sm:text-xl lg:text-2xl font-semibold">
               เกี่ยวกับเรา
             </p>

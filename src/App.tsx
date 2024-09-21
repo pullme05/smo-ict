@@ -11,6 +11,7 @@ import CalendarMain from './components/Calendar/CalendarMain.js'
 import Meeting from './components/OurSystem/Room/MR/MainAppMeeting.jsx';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; 
+import MemberList from './components/Member/MemberList.js'
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/allnews" element={<Allnews />} /> 
           <Route path="/meeting" element={<Meeting />} /> 
           <Route path="/CalendarMain" element={<CalendarMain/>} />
+          <Route path="/MemberList" element={<MemberList/>} />
           
         </Routes>
       </div>

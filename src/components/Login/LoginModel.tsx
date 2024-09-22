@@ -1,15 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Modal, Box, TextField, Button } from "@mui/material";
-import { AccountCircle, Lock } from "@mui/icons-material";
+import { AccountCircle, Lock, Visibility, VisibilityOff } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-
 
 interface LoginModalProps {
   open: boolean;
   onClose: () => void;
+  onLogin: (isAdmin: boolean) => void;
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
+const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }) => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false); // สถานะการแสดงรหัสผ่าน
+
+  const adminCredentials = {
+    email: "adminsmoict",
+    password: "123",
+  };
+
+  const handleLogin = () => {
+    if (email === adminCredentials.email && password === adminCredentials.password) {
+      onLogin(true); // ล็อกอินเป็น admin
+    } else {
+      onLogin(false); // ล็อกอินเป็น user ปกติ
+    }
+    onClose(); // ปิด modal หลังล็อกอิน
+  };
+
   return (
     <Modal
       open={open}
@@ -35,7 +53,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
       >
         {/* ด้านบน */}
         <div className="flex flex-col items-center">
-          {/* แสดงโลโก้จากโฟลเดอร์ public */}
           <img src="/smoictmain.png" alt="Logo" className="mb-4 w-24 h-24" />
           <h2 id="login-modal-title" style={{ color: '#996600' }} className="text-xl font-bold mb-4">
             LOGIN
@@ -47,17 +64,44 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
           {/* ฟิลด์ Email */}
           <div className="flex items-center">
             <AccountCircle sx={{ color: "#996600", marginRight: "8px" }} />
-            <TextField label="Email" variant="outlined" fullWidth />
+            <TextField
+              label="Email"
+              variant="outlined"
+              fullWidth
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
 
           {/* ฟิลด์ Password */}
           <div className="flex items-center">
             <Lock sx={{ color: "#996600", marginRight: "8px" }} />
-            <TextField label="Password" type="password" variant="outlined" fullWidth />
+            <TextField
+              label="Password"
+              type={showPassword ? "text" : "password"} // ใช้สถานะในการแสดงรหัสผ่าน
+              variant="outlined"
+              fullWidth
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <div
+                    onClick={() => setShowPassword(!showPassword)} // เปลี่ยนสถานะเมื่อคลิกที่ไอคอน
+                    style={{ cursor: 'pointer' }} // แสดงว่าเป็น clickable
+                  >
+                    {showPassword ? (
+                      <VisibilityOff sx={{ color: "#996600" }} />
+                    ) : (
+                      <Visibility sx={{ color: "#996600" }} />
+                    )}
+                  </div>
+                ),
+              }}
+            />
           </div>
 
           {/* ลิงก์ Forgot Password */}
-          <div className="flex justify-start"> {/* ย้ายไปทางซ้าย */}
+          <div className="flex justify-start">
             <Link to="https://intra.up.ac.th/account/wfrmForgetPassword.aspx" className="text-red-500">
               Forgot Password
             </Link>
@@ -66,7 +110,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
           {/* ปุ่ม Login */}
           <Button
             variant="contained"
-            sx={{ bgcolor: '#996600', '&:hover': { bgcolor: '#664400' } }}
+            sx={{ bgcolor: '#996600', '&:hover': { bgcolor: '#664400' } }} // สีปุ่ม
+            onClick={handleLogin}
           >
             ล็อคอิน
           </Button>

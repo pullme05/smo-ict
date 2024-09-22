@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MemberCard from './MemberCard';
 import Header from './Header';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Member {
-  id: number;
+  id: string;
   name: string;
   position: string;
   phone: string;
@@ -11,64 +12,56 @@ interface Member {
 }
 
 const MemberList: React.FC = () => {
-  const [members, setMembers] = useState<Member[][]>([[], [], [], []]); // 4 Columns
+  const [members, setMembers] = useState<Member[][]>([]);
 
-  const addMember = (index: number) => {
-    const newMember: Member = {
-      id: Date.now(),
-      name: 'New Member',
-      position: 'New Position',
-      phone: '099-999-9999',
-      email: 'new.member@example.com',
-    };
-    const updatedMembers = [...members];
-    updatedMembers[index].push(newMember);
-    setMembers(updatedMembers);
-  };
+  const initialMembers: Member[][] = [
+    [
+      { id: uuidv4(), name: 'Member 1', position: 'Position 1', phone: '099-999-9999', email: 'member1@example.com' },
+      { id: uuidv4(), name: 'Member 2', position: 'Position 2', phone: '099-999-9998', email: 'member2@example.com' },
+      { id: uuidv4(), name: 'Member 3', position: 'Position 3', phone: '099-999-9997', email: 'member3@example.com' },
+    ],
+    [
+      { id: uuidv4(), name: 'Member 4', position: 'Position 4', phone: '099-999-9996', email: 'member4@example.com' },
+      { id: uuidv4(), name: 'Member 5', position: 'Position 5', phone: '099-999-9995', email: 'member5@example.com' },
+      { id: uuidv4(), name: 'Member 6', position: 'Position 6', phone: '099-999-9994', email: 'member6@example.com' },
+    ],
+    [
+      { id: uuidv4(), name: 'Member 7', position: 'Position 7', phone: '099-999-9993', email: 'member7@example.com' },
+      { id: uuidv4(), name: 'Member 8', position: 'Position 8', phone: '099-999-9992', email: 'member8@example.com' },
+      { id: uuidv4(), name: 'Member 9', position: 'Position 9', phone: '099-999-9991', email: 'member9@example.com' },
+    ],
+    [
+      { id: uuidv4(), name: 'Member 10', position: 'Position 10', phone: '099-999-9990', email: 'member10@example.com' },
+      { id: uuidv4(), name: 'Member 11', position: 'Position 11', phone: '099-999-9888', email: 'member11@example.com' },
+      { id: uuidv4(), name: 'Member 12', position: 'Position 12', phone: '099-999-7777', email: 'member12@example.com' },
+    ],
+  ];
 
-  const removeMember = (columnIndex: number, id: number) => {
-    const updatedMembers = members.map((column, index) => 
-      index === columnIndex ? column.filter(member => member.id !== id) : column
-    );
-    setMembers(updatedMembers);
-  };
+  useEffect(() => {
+    setMembers(initialMembers);
+  }, []);
 
   return (
     <div className="flex flex-col items-center">
-      <Header onSave={() => members.flat()} onLoad={(data) => {
-        const newMembers: Member[][] = [[], [], [], []];
-        data.forEach((member: Member, index: number) => {
-          newMembers[index % 4].push(member); // แบ่งสมาชิกตามคอลัมน์
-        });
-        setMembers(newMembers);
-      }} />
+      <Header
+        onSave={() => members.flat()}
+        onLoad={(data) => setMembers(data)}
+      />
 
-      <div className="flex flex-col gap-4">
-        {members.map((column, columnIndex) => (
-          <div key={columnIndex} className="border p-4">
-            <div className="mb-2 font-bold">Column {columnIndex + 1}</div>
-            <div className="flex flex-col gap-2 mb-2">
-              {column.map(member => (
-                <MemberCard
-                  key={member.id}
-                  id={member.id}
-                  name={member.name}
-                  position={member.position}
-                  phone={member.phone}
-                  email={member.email}
-                  onRemove={() => removeMember(columnIndex, member.id)}
-                />
-              ))}
+      {members.map((group, index) => (
+        <div key={index} className="flex flex-row gap-4 mb-4">
+          {group.map(member => (
+            <div key={member.id} className="flex-1 border p-4"> {/* ใช้ flex-1 เพื่อให้กล่องมีขนาดเท่ากัน */}
+              <MemberCard
+                name={member.name}
+                position={member.position}
+                phone={member.phone}
+                email={member.email}
+              />
             </div>
-            <button
-              onClick={() => addMember(columnIndex)}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              เพิ่มสมาชิก
-            </button>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 };

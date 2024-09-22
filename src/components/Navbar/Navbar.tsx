@@ -239,14 +239,22 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
   };
 
   const handleNavigateAndScroll = (sectionId: string) => {
-    if (location.pathname !== "/" && sectionId !== 'ติดต่อเรา') {
+    if (sectionId === 'เกี่ยวกับเรา') {
+      navigate('/MemberList');
+    } else if (location.pathname !== "/" && sectionId !== 'ติดต่อเรา') {
       navigate("/");
       setTimeout(() => {
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
+        document.getElementById(sectionId)?.scrollIntoView({ 
+          behavior: "smooth", 
+          block: "start" 
+        });window.scrollBy(0, -100);
       }, 500);
     } else if (sectionId === 'ติดต่อเรา') {
       setTimeout(() => {
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
+        document.getElementById(sectionId)?.scrollIntoView({ 
+          behavior: "smooth", 
+          block: "start" 
+        });window.scrollBy(0, -100);
       }, 100);
     }
   };
@@ -272,7 +280,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   to="เกี่ยวกับเรา"
                   smooth={true}
                   duration={500}
-                  offset={-80}
+                  offset={-100} 
                   onClick={() => handleNavigateAndScroll('เกี่ยวกับเรา')}
                   className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                 >
@@ -282,7 +290,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   to="ระบบของเรา"
                   smooth={true}
                   duration={500}
-                  offset={-80}
+                  offset={-100} 
                   onClick={() => handleNavigateAndScroll('ระบบของเรา')}
                   className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                 >
@@ -292,7 +300,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   to="ข่าวสาร"
                   smooth={true}
                   duration={500}
-                  offset={-80}
+                  offset={-100} 
                   onClick={() => handleNavigateAndScroll('ข่าวสาร')}
                   className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                 >
@@ -302,7 +310,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   to="ติดต่อเรา"
                   smooth={true}
                   duration={500}
-                  offset={-80}
+                  offset={-100} 
                   onClick={() => handleNavigateAndScroll('ติดต่อเรา')}
                   className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                 >
@@ -315,7 +323,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   to="/admin/dashboard"
                   smooth={true}
                   duration={500}
-                  offset={-80}
+                  offset={-100}
                   onClick={() => navigate('/admin/dashboard')}
                   className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                 >
@@ -401,7 +409,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     to="เกี่ยวกับเรา"
                     smooth={true}
                     duration={500}
-                    offset={-80}
+                    offset={-100} 
                     onClick={() => {
                       handleNavigateAndScroll('เกี่ยวกับเรา');
                       toggleMenu();
@@ -414,7 +422,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     to="ระบบของเรา"
                     smooth={true}
                     duration={500}
-                    offset={-80}
+                    offset={-100} 
                     onClick={() => {
                       handleNavigateAndScroll('ระบบของเรา');
                       toggleMenu();
@@ -427,7 +435,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     to="ข่าวสาร"
                     smooth={true}
                     duration={500}
-                    offset={-80}
+                    offset={-100} 
                     onClick={() => {
                       handleNavigateAndScroll('ข่าวสาร');
                       toggleMenu();
@@ -440,7 +448,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     to="ติดต่อเรา"
                     smooth={true}
                     duration={500}
-                    offset={-80}
+                    offset={-100} 
                     onClick={() => {
                       handleNavigateAndScroll('ติดต่อเรา');
                       toggleMenu();
@@ -456,7 +464,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     to="/admin/dashboard"
                     smooth={true}
                     duration={500}
-                    offset={-80}
+                    offset={-100}
                     onClick={() => {
                       navigate('/admin/dashboard');
                       toggleMenu();
@@ -468,10 +476,10 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                 </>
               )}
             </nav>
-            <div className="mt-4">
+            <div className="mt-auto">
               {isLoggedIn ? (
                 <Button
-                  className="px-4 py-2 rounded-lg font-medium tracking-tight"
+                  className="w-full py-2 rounded-lg font-medium tracking-tight"
                   variant="outlined"
                   onClick={onLogout}
                   sx={{
@@ -487,12 +495,9 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                 </Button>
               ) : (
                 <Button
-                  className="px-4 py-2 rounded-lg font-medium tracking-tight"
+                  className="w-full py-2 rounded-lg font-medium tracking-tight"
                   variant="outlined"
-                  onClick={() => {
-                    onLoginClick();
-                    toggleMenu();
-                  }}
+                  onClick={onLoginClick}
                   sx={{
                     color: '#996600',
                     borderColor: '#996600',

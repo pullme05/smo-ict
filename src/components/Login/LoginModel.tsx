@@ -15,7 +15,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }) => {
   const [showPassword, setShowPassword] = useState<boolean>(false); // สถานะการแสดงรหัสผ่าน
 
   const adminCredentials = {
-    email: "adminsmoict",
+    email: "admin",
     password: "123",
   };
 

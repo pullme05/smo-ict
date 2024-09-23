@@ -11,10 +11,9 @@ import CalendarMain from './components/Calendar/CalendarMain';
 import MemberList from './components/Member/MemberList';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 // @ts-ignore
-import Meeting from './components/OurSystem/Room/MR/MainAppMeeting.jsx';
-
 import AdminDashboard from './components/Admin/AdminDashboard'; // Dashboard admin
 import LoginModal from './components/Login/LoginModel';
+import Heart from './components/OurSystem/Room/MR/Heart.tsx';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false); // สถานะล็อกอิน
@@ -75,7 +74,7 @@ function App() {
             }
           />
           <Route path="/allnews" element={<Allnews />} />
-          <Route path="/meeting" element={<Meeting />} />
+          <Route path="/Heart" element={<Heart />} />
           <Route path="/CalendarMain" element={<CalendarMain />} />
           <Route path="/MemberList" element={<MemberList />} />
 

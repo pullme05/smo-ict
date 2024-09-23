@@ -27,7 +27,7 @@ const Oursystem: React.FC = () => {
           <div className="bg-gray-200 w-32 h-32 rounded-full mb-4 flex items-center justify-center">
             <MeetingRoom style={{ fontSize: 64, color: 'gray' }} />
           </div>
-          <Link to="/Meeting">
+          <Link to="/Heart">
             <button
               className="px-6 py-3 bg-[#996600] text-white rounded-lg shadow-md transition-colors hover:bg-[#664400] duration-300 focus:outline-none"
             >

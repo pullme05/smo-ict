@@ -1,24 +1,35 @@
 import React, { useState } from 'react';
-import { Grid, Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Grid, Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions,  } from '@mui/material';
 
 interface CalendarCellsProps {
   currentDate: Date;
-  events?: { [key: number]: string[] };
+  events?: { [key: number]: { title: string; details: string }[] };
   onAddEvent: (day: number) => void;
+  onDeleteEvent: (day: number, title: string) => void;
 }
 
-const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {}, onAddEvent }) => {
-  const [open, setOpen] = useState(false); // State สำหรับ Dialog
-  const [selectedEvent, setSelectedEvent] = useState<string | null>(null); // State สำหรับเหตุการณ์ที่เลือก
+const CalendarCellsAM: React.FC<CalendarCellsProps> = ({ currentDate, events = {}, onAddEvent, onDeleteEvent }) => {
+  const [open, setOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<{ title: string; details: string } | null>(null);
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
-  const handleClickOpen = (event: string) => {
-    setSelectedEvent(event); // เก็บเหตุการณ์ที่เลือก
-    setOpen(true); // เปิด Dialog
+  const handleClickOpen = (day: number, event: { title: string; details: string }) => {
+    setSelectedEvent(event);
+    setSelectedDay(day);
+    setOpen(true);
   };
 
   const handleClose = () => {
-    setOpen(false); // ปิด Dialog
-    setSelectedEvent(null); // เคลียร์เหตุการณ์ที่เลือก
+    setOpen(false);
+    setSelectedEvent(null);
+    setSelectedDay(null);
+  };
+
+  const handleDeleteEvent = () => {
+    if (selectedDay !== null && selectedEvent) {
+      onDeleteEvent(selectedDay, selectedEvent.title);
+      handleClose();
+    }
   };
 
   const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -41,7 +52,7 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
   for (let day = 1; day <= daysInMonth; day++) {
     const isToday = currentDate.getDate() === day && new Date().getMonth() === currentDate.getMonth();
     
-    const highlightColor = isToday ? 'rgba(153, 102, 0, 0.5)' : '#gray';
+    const highlightColor = isToday ? 'rgba(153, 102, 0, 0.5)' : '#f5f5f5';
     const textColor = isToday ? 'white' : 'black';
 
     const dayEvents = events[day] || [];
@@ -55,8 +66,9 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
           borderColor="#996600"
           borderRadius={2}
           color={textColor}
-          height="100%"
+          height="120px" // ทำให้กรอบมีความสูงที่ fix
           position="relative"
+          overflow="hidden" // ไม่ให้กิจกรรมที่เกินขอบล้นออกมา
         >
           <Typography 
             variant="body2" 
@@ -65,7 +77,38 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
             {day}
           </Typography>
 
-          {/* ปุ่มสำหรับเพิ่มกิจกรรม */}
+          <Box 
+            sx={{
+              mt: 1,
+              overflowY: 'auto', // ทำให้สามารถ scroll ได้เมื่อมีหลายกิจกรรม
+              maxHeight: '80px' // จำกัดความสูงของกล่องกิจกรรม
+            }}
+          >
+            {dayEvents.map((event, index) => (
+              <Box 
+                key={index}
+                sx={{
+                  padding: '0.2rem',
+                  backgroundColor: '#fff',
+                  borderRadius: '4px',
+                  mb: 1,
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap', // ป้องกันการตัดคำ
+                  '&:hover': {
+                    backgroundColor: '#ddd', // เปลี่ยนสีเมื่อ hover
+                  }
+                }}
+                onClick={() => handleClickOpen(day, event)} // คลิกเพื่อเปิด Dialog
+              >
+                <Typography variant="body2" noWrap>
+                  {event.title}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
           <Button 
             variant="outlined" 
             size="small" 
@@ -75,53 +118,16 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
               bottom: '4px', 
               left: '4px', 
               padding: '4px', 
-              cursor: 'pointer', 
-              borderColor: '#996600', // สีของขอบปุ่ม
-              color: '#996600', // สีของข้อความปุ่ม
-              transition: 'all 0.3s ease', // เพิ่ม transition เพื่อให้เอฟเฟกต์ลื่นไหล
+              borderColor: '#996600',
+              color: '#996600',
               '&:hover': {
-                backgroundColor: '#996600', // พื้นหลังเปลี่ยนเป็นสี #996600 เมื่อ hover
-                color: 'white', // เปลี่ยนสีข้อความเป็นสีขาวเมื่อ hover
-                transform: 'scale(1.05)', // ขยายปุ่มเล็กน้อยเมื่อ hover
-                borderColor: '#996600', // ขอบปุ่มยังคงเป็นสีเดิม
+                backgroundColor: '#996600',
+                color: 'white',
               },
             }}
           >
             +
           </Button>
-
-          <Box sx={{ mt: 20 }}>
-            <Grid container spacing={1}>
-              {dayEvents.map((event, index) => (
-                <Grid item xs={12} key={index}>
-                  <Box 
-                    sx={{ 
-                      padding: '0.05rem',  
-                      position: 'relative', 
-                      bottom: '10rem', 
-                      wordWrap: 'break-word', 
-                      overflowWrap: 'break-word', 
-                      whiteSpace: 'nowrap',                     
-                      width: '150px',
-                      cursor: 'pointer', // เปลี่ยนเป็น pointer เมื่อชี้ที่เหตุการณ์
-                    }}
-                    onClick={() => handleClickOpen(event)} // คลิกเพื่อเปิด Dialog
-                  >
-                    <Typography 
-                      sx={{ 
-                        fontSize: '14px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      - {event}
-                    </Typography>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
         </Box>
       </Grid>
     );
@@ -133,46 +139,24 @@ const CalendarCells: React.FC<CalendarCellsProps> = ({ currentDate, events = {},
 
       {/* Dialog สำหรับแสดงรายละเอียดเหตุการณ์ */}
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Event Details</DialogTitle>
+        <DialogTitle>รายละเอียดกิจกรรม</DialogTitle>
         <DialogContent>
-          <Box display="flex" flexDirection="column" alignItems="center">
-            <Box 
-              sx={{
-                width: '250px', // กำหนดความกว้างคงที่
-                height: '200px', // กำหนดความสูงคงที่
-                overflow: 'hidden', // ซ่อนส่วนที่เกิน
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderRadius: '8px',
-                marginBottom: '16px',
-                backgroundColor: '#f0f0f0', // เพิ่มสีพื้นหลังสำหรับภาพที่ไม่โหลด
-              }}
-            >
-              <img 
-                src="https://via.placeholder.com/250?text=Room+A" 
-                alt="Event" 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', // กำหนดให้มีความสูงเต็มที่
-                  objectFit: 'cover', // ทำให้ภาพครอบคลุมพื้นที่
-                }} 
-              />
-            </Box>
-            <Typography variant="h6">{selectedEvent}</Typography>
-            <Typography variant="body2" sx={{ marginTop: '8px' }}>
-              Additional details about the event can go here.
-            </Typography>
-          </Box>
+          {selectedEvent ? (
+            <>
+              <Typography variant="h6">{selectedEvent?.title}</Typography>
+              <Typography variant="body2" sx={{ marginTop: '8px' }}>
+                {selectedEvent?.details}
+              </Typography>
+            </>
+          ) : null}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">Cancel</Button>
-          <Button onClick={handleClose} color="secondary">Confirm</Button>
+          <Button onClick={handleClose} color="primary">ยกเลิก</Button>
+          <Button onClick={handleDeleteEvent} color="secondary">ลบกิจกรรม</Button>
         </DialogActions>
       </Dialog>
-
     </>
   );
 };
 
-export default CalendarCells;
+export default CalendarCellsAM;

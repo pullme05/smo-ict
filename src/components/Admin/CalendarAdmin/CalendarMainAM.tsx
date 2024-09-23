@@ -2,101 +2,107 @@ import React, { useState } from 'react';
 import CalendarHeader from './CalendarHeaderAM';
 import CalendarDays from './ListViewAM';
 import CalendarCells from './CalendarCellsAM';
-import { Container, Paper, List, ListItem, ListItemText, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Typography, Box } from '@mui/material';
+import { Container, Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Box, Typography } from '@mui/material';
 
 const App: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<{ [key: number]: string[] }>({});
-  const [isListView, setIsListView] = useState(false); // สถานะมุมมองปัจจุบัน
-  const [open, setOpen] = useState(false); // สำหรับควบคุม Dialog
-  const [newEvent, setNewEvent] = useState(''); // สำหรับเก็บชื่อกิจกรรมใหม่
-  const [selectedDay, setSelectedDay] = useState<number | null>(null); // สำหรับเก็บวันที่ที่เลือกเพิ่มกิจกรรม
+  const [events, setEvents] = useState<{ [key: string]: { [key: number]: { title: string, details: string }[] } }>({});
+  const [isListView, setIsListView] = useState(false);  // เพิ่ม state สำหรับการ toggle view
+  const [open, setOpen] = useState(false);
+  const [newEventTitle, setNewEventTitle] = useState('');
+  const [newEventDetails, setNewEventDetails] = useState('');
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  };
+  // ฟังก์ชันสำหรับเปลี่ยนเดือน
+  const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const handleNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  const handleToday = () => setCurrentDate(new Date());
+  const handleToggleView = () => setIsListView(!isListView);  // ฟังก์ชัน toggle view
 
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-  };
-
-  const handleToday = () => {
-    setCurrentDate(new Date());
-  };
-
-  const handleToggleView = () => {
-    setIsListView(!isListView);
-  };
-
+  // ฟังก์ชันสำหรับเปิด/ปิด Dialog
   const handleClickOpen = (day: number) => {
-    setSelectedDay(day); // เก็บวันที่ที่เลือก
-    setOpen(true); // เปิด Dialog
+    setSelectedDay(day);
+    setOpen(true);
   };
 
   const handleClose = () => {
-    setOpen(false); // ปิด Dialog
-    setNewEvent(''); // รีเซ็ตชื่อกิจกรรม
+    setOpen(false);
+    setNewEventTitle('');
+    setNewEventDetails('');
+    setSelectedDay(null);
   };
 
+  // ฟังก์ชันสำหรับเพิ่มกิจกรรม
   const handleAddEvent = () => {
-    if (selectedDay !== null && newEvent.trim()) {
-      // เพิ่มกิจกรรมในวันที่เลือก
+    if (selectedDay !== null && newEventTitle.trim()) {
+      const monthKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
+      
       setEvents((prevEvents) => ({
         ...prevEvents,
-        [selectedDay]: [...(prevEvents[selectedDay] || []), newEvent],
+        [monthKey]: {
+          ...prevEvents[monthKey],
+          [selectedDay]: [...(prevEvents[monthKey]?.[selectedDay] || []), { title: newEventTitle, details: newEventDetails }]
+        }
       }));
+
       handleClose();
     }
   };
 
+  // ฟังก์ชันสำหรับลบกิจกรรม
+  const handleDeleteEvent = (day: number, eventTitle: string) => {
+    const monthKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
+    setEvents((prevEvents) => {
+      const updatedEvents = { ...prevEvents };
+      const dayEvents = updatedEvents[monthKey]?.[day] || [];
+
+      // ลบกิจกรรมที่มีชื่อเดียวกัน
+      const filteredEvents = dayEvents.filter(event => event.title !== eventTitle);
+
+      if (filteredEvents.length > 0) {
+        updatedEvents[monthKey][day] = filteredEvents;
+      } else {
+        delete updatedEvents[monthKey][day];  // ลบวันที่ถ้าไม่มีเหตุการณ์เหลือ
+      }
+
+      if (Object.keys(updatedEvents[monthKey]).length === 0) {
+        delete updatedEvents[monthKey];  // ลบเดือนถ้าไม่มีวันเหลือ
+      }
+
+      return updatedEvents;
+    });
+  };
+
+  const monthKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
+  const monthEvents = events[monthKey] || {};
+
   return (
     <Container maxWidth={false} sx={{ mt: 4, width: '100%', padding: '16px' }}>
       <Paper elevation={3} sx={{ p: 4 }}>
+        <Box sx={{ backgroundColor: '#996600', color: '#fff', padding: '16px', textAlign: 'center', marginBottom: '16px' }}>
+          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>ปฏิทิน</Typography>
+        </Box>
         
-        {/* เพิ่ม div สำหรับหัวข้อ "ปฏิทิน" */}
-      <Box
-      sx={{
-        backgroundColor: '#996600',
-        color: '#fff',
-        padding: '16px',
-        textAlign: 'center',
-        marginBottom: '16px',
-      }}>
-      <Typography 
-        variant="h4"  // ปรับขนาดของตัวหนังสือให้ใหญ่ขึ้น (สามารถใช้ h3 หากต้องการใหญ่กว่า)
-        sx={{
-          fontWeight: 'bold',  // ทำให้ตัวหนังสือหนา
-        }}>ปฏิทิน</Typography>
-      </Box>
-
         <CalendarHeader
           currentDate={currentDate}
           onPrevMonth={handlePrevMonth}
           onNextMonth={handleNextMonth}
           onToday={handleToday}
-          onToggleView={handleToggleView}
-          isListView={isListView}
+          onToggleView={handleToggleView}  
+          isListView={isListView}  
         />
+
         {isListView ? (
-          // แสดงมุมมองแบบรายการ (List View)
-          <List>
-            {Object.keys(events).length > 0 ? (
-              Object.keys(events).map((day) => (
-                events[Number(day)]?.map((event, index) => (
-                  <ListItem key={`${day}-${index}`}>
-                    <ListItemText primary={`วันที่ ${day}: ${event}`} />
-                  </ListItem>
-                ))
-              ))
-            ) : (
-              <Typography variant="body1">ไม่มีเหตุการณ์ในเดือนนี้</Typography>
-            )}
-          </List>
+          <Typography>มุมมองรายการ ยังไม่ได้สร้าง</Typography>
         ) : (
-          // แสดงมุมมองแบบปฏิทิน (Calendar View)
           <>
             <CalendarDays />
-            <CalendarCells currentDate={currentDate} events={events} onAddEvent={handleClickOpen} />
+            <CalendarCells
+              currentDate={currentDate}
+              events={monthEvents}
+              onAddEvent={handleClickOpen}
+              onDeleteEvent={handleDeleteEvent}
+            />
           </>
         )}
 
@@ -107,21 +113,24 @@ const App: React.FC = () => {
             <TextField
               autoFocus
               margin="dense"
-              label="กิจกรรม"
-              type="text"
+              label="ชื่อกิจกรรม"
               fullWidth
-              variant="outlined"
-              value={newEvent}
-              onChange={(e) => setNewEvent(e.target.value)}
+              value={newEventTitle}
+              onChange={(e) => setNewEventTitle(e.target.value)}
+            />
+            <TextField
+              margin="dense"
+              label="รายละเอียดกิจกรรม"
+              fullWidth
+              multiline
+              rows={3}
+              value={newEventDetails}
+              onChange={(e) => setNewEventDetails(e.target.value)}
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose} color="primary">
-              ยกเลิก
-            </Button>
-            <Button onClick={handleAddEvent} color="primary">
-              เพิ่ม
-            </Button>
+            <Button onClick={handleClose} color="primary">ยกเลิก</Button>
+            <Button onClick={handleAddEvent} color="primary">เพิ่มกิจกรรม</Button>
           </DialogActions>
         </Dialog>
       </Paper>

@@ -10,22 +10,26 @@ interface LoginModalProps {
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }) => {
-  const [email, setEmail] = useState<string>('');
+  const [username, setUsername] = useState<string>(''); 
   const [password, setPassword] = useState<string>('');
-  const [showPassword, setShowPassword] = useState<boolean>(false); // สถานะการแสดงรหัสผ่าน
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const adminCredentials = {
-    email: "admin",
+    username: "admin", 
     password: "123",
   };
 
   const handleLogin = () => {
-    if (email === adminCredentials.email && password === adminCredentials.password) {
-      onLogin(true); // ล็อกอินเป็น admin
+    if (username === adminCredentials.username && password === adminCredentials.password) {
+      onLogin(true);
     } else {
-      onLogin(false); // ล็อกอินเป็น user ปกติ
+      onLogin(false);
     }
-    onClose(); // ปิด modal หลังล็อกอิน
+    onClose();
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -61,15 +65,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }) => {
 
         {/* ฟอร์ม */}
         <div className="flex flex-col gap-4">
-          {/* ฟิลด์ Email */}
+          {/* ฟิลด์ Username */}
           <div className="flex items-center">
             <AccountCircle sx={{ color: "#996600", marginRight: "8px" }} />
             <TextField
-              label="Email"
+              label="Username"
               variant="outlined"
               fullWidth
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              helperText="ชื่อผู้ใช้งาน"
+              autoComplete="off" // ปิดการจดจำ username
             />
           </div>
 
@@ -78,7 +84,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }) => {
             <Lock sx={{ color: "#996600", marginRight: "8px" }} />
             <TextField
               label="Password"
-              type={showPassword ? "text" : "password"} // ใช้สถานะในการแสดงรหัสผ่าน
+              type={showPassword ? "text" : "password"}
               variant="outlined"
               fullWidth
               value={password}
@@ -86,17 +92,20 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }) => {
               InputProps={{
                 endAdornment: (
                   <div
-                    onClick={() => setShowPassword(!showPassword)} // เปลี่ยนสถานะเมื่อคลิกที่ไอคอน
-                    style={{ cursor: 'pointer' }} // แสดงว่าเป็น clickable
+                    onClick={togglePasswordVisibility}
+                    style={{ cursor: 'pointer' }}
                   >
+                    {/* ไอคอนเริ่มต้นเป็นลูกตาปิด */}
                     {showPassword ? (
-                      <VisibilityOff sx={{ color: "#996600" }} />
+                      <Visibility sx={{ color: "#996600" }} /> // ลูกตาเปิด
                     ) : (
-                      <Visibility sx={{ color: "#996600" }} />
+                      <VisibilityOff sx={{ color: "#996600" }} /> // ลูกตาปิด
                     )}
                   </div>
                 ),
               }}
+              helperText="รหัสผ่าน"
+              autoComplete="off" // ปิดการจดจำรหัสผ่าน
             />
           </div>
 
@@ -110,7 +119,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }) => {
           {/* ปุ่ม Login */}
           <Button
             variant="contained"
-            sx={{ bgcolor: '#996600', '&:hover': { bgcolor: '#664400' } }} // สีปุ่ม
+            sx={{ bgcolor: '#996600', '&:hover': { bgcolor: '#664400' } }}
             onClick={handleLogin}
           >
             ล็อคอิน

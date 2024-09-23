@@ -51,10 +51,13 @@ const Allnews = () => {
       <div className="flex justify-center mb-8">
         <div className="flex flex-col md:flex-row gap-4">
           <button className="bg-[#996600] shadow-md p-4 text-center text-lg font-semibold text-white rounded-lg hover:bg-[#7a5300] transition-all hover:shadow-lg">
-            ข่าวประชาสัมพันธ์ของนิสิตสโมสรคณะเทคโนโลยีสารสนเทศ
+            ข่าวทั่วไป
           </button>
           <button className="bg-[#996600] shadow-md p-4 text-center text-lg font-semibold text-white rounded-lg hover:bg-[#7a5300] transition-all hover:shadow-lg">
             ข่าวกิจกรรมของคณะ
+          </button>
+          <button className="bg-[#996600] shadow-md p-4 text-center text-lg font-semibold text-white rounded-lg hover:bg-[#7a5300] transition-all hover:shadow-lg">
+            ข่าวการศึกษา
           </button>
         </div>
       </div>

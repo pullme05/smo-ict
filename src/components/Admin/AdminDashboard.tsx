@@ -84,6 +84,7 @@ const AdminDashboard = () => {
           <h2 className="text-2xl font-semibold mb-4">ข่าวประชาสัมพันธ์นิติสโมสร</h2>
           <button
               className="mt-4 px-4 py-2 bg-[#996600] text-white rounded transition-transform duration-300 hover:scale-105"
+              onClick={() => navigate('/admin/news')}
             >
               กดปุ่ม
             </button>

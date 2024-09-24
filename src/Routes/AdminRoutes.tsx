@@ -1,8 +1,8 @@
 import { Route, Routes, Navigate } from 'react-router-dom';
 import AdminDashboard from '../components/Admin/AdminDashboard';
-import CalendarMainAM from '../components/Admin/CalendarAdmin/CalendarMainAM';
 import AllNewAM from '../components/Admin/NewsAdmin/AllNewAM';
 import HeartAM from '../components/Admin/Meeting/HeartAM';
+import AdminCalendar from '../components/Admin/CalendarAdminPro/AdminCalendar';
 import { useEffect, useState } from 'react';
 
 interface AdminRoutesProps {
@@ -31,9 +31,10 @@ const AdminRoutes: React.FC<AdminRoutesProps> = ({ isAdmin }) => {
         path="/admin/dashboard"
         element={isAdmin ? <AdminDashboard /> : <Navigate to="/" />}
       />
+      {/* test calendarpro */}
       <Route
-        path="/admin/calendar"
-        element={isAdmin ? <CalendarMainAM /> : <Navigate to="/" />}
+        path="/admin/AdminCalendar"
+        element={isAdmin ? <AdminCalendar /> : <Navigate to="/" />}
       />
       <Route
         path="/admin/heart"

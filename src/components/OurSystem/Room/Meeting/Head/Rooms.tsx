@@ -1,6 +1,6 @@
 // Rooms.tsx
 import React from 'react';
-
+import Timetable from './CalenTable/Timetable';
 interface RoomsProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,7 +12,7 @@ const Rooms: React.FC<RoomsProps> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center mt-5 z-50">
       {/* เพิ่มขนาดให้ modal */}
-      <div className="bg-white p-4 rounded-lg w-[2000px] h-[900px] "> 
+      <div className="bg-white p-4 rounded-lg w-[2000px] h-[1000px] "> 
         
         <div className="mb-4 ">
           <h2 className="text-lg font-bold "></h2>
@@ -27,11 +27,10 @@ const Rooms: React.FC<RoomsProps> = ({ isOpen, onClose }) => {
 
         <div>
           {/* กล่องที่สอง */}
-          <div className="h-[800px] bg-green-200 flex justify-center items-center">                     
+          <div className="h-[910px] bg-green-200 flex justify-center items-center">
+            <Timetable />                     
           </div>
-        </div>
-
-        
+        </div>       
 
       </div>
     </div>

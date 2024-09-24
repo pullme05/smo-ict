@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // ใช้สำหรับการเปลี่ยนหน้า
 
 interface NewsItem {
   title: string;
@@ -6,39 +7,32 @@ interface NewsItem {
   description: string;
   imageUrl: string;
   category: string;
+  detailImage: string;
 }
 
 const AllnewAM = () => {
-  const [newsData, setNewsData] = useState<NewsItem[]>([
-    {
-      title: 'ข่าว',
-      date: '15/02/2024',
-      description: 'รายละเอียดของข่าว',
-      imageUrl: 'https://via.placeholder.com/800x400',
-      category: 'ข่าวสาร - /////',
-    },
-  ]);
-
+  const [newsData, setNewsData] = useState<NewsItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const [isEditing, setIsEditing] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
-
   const [newNews, setNewNews] = useState<NewsItem>({
     title: '',
     date: '',
     description: '',
     imageUrl: '',
-    category: '',
+    category: 'ข่าวทั่วไป',
+    detailImage: '',
   });
-
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [detailImageFile, setDetailImageFile] = useState<File | null>(null);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentNews = newsData.slice(indexOfFirstItem, indexOfLastItem);
-
   const totalPages = Math.ceil(newsData.length / itemsPerPage);
+  
+  const navigate = useNavigate(); // ใช้สำหรับการเปลี่ยนหน้า
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -53,34 +47,30 @@ const AllnewAM = () => {
   };
 
   const handleAddNews = () => {
-    // ถ้าไม่มีการอัปโหลดรูปภาพ ใช้รูป placeholder แทน
-    const imageUrl = imageFile ? URL.createObjectURL(imageFile) : 'https://via.placeholder.com/800x400'; 
-    
-    // เจนวันที่อัตโนมัติ
+    const imageUrl = imageFile ? URL.createObjectURL(imageFile) : 'https://via.placeholder.com/800x400';
+    const detailImageUrl = detailImageFile ? URL.createObjectURL(detailImageFile) : '';
     const currentDate = new Date().toLocaleDateString();
-  
+
     if (isEditing && editIndex !== null) {
-      // กรณีแก้ไขข่าว
       const updatedNews = [...newsData];
-      updatedNews[editIndex] = { ...newNews, imageUrl, date: currentDate };
+      updatedNews[editIndex] = { ...newNews, imageUrl, detailImage: detailImageUrl, date: currentDate };
       setNewsData(updatedNews);
       setIsEditing(false);
       setEditIndex(null);
     } else {
-      // กรณีเพิ่มข่าวใหม่
-      setNewsData([...newsData, { ...newNews, imageUrl, date: currentDate }]);
+      setNewsData([...newsData, { ...newNews, imageUrl, detailImage: detailImageUrl, date: currentDate }]);
     }
-  
-    // รีเซ็ตฟอร์มและสถานะการอัปโหลดรูป
+
     setNewNews({
       title: '',
       date: '',
       description: '',
       imageUrl: '',
-      category: '',
+      category: 'ข่าวทั่วไป',
+      detailImage: '',
     });
-    
-    setImageFile(null); // รีเซ็ตไฟล์รูปภาพ
+    setImageFile(null);
+    setDetailImageFile(null);
   };
 
   const handleEditNews = (index: number) => {
@@ -94,14 +84,24 @@ const AllnewAM = () => {
     setNewsData(updatedNews);
   };
 
+  const handleViewDetail = (index: number) => {
+    navigate(`/news/${index}`); // เปลี่ยนหน้าไปยังหน้ารายละเอียดข่าว
+  };
+
+  const renderDescription = (description: string) => {
+    const maxLength = 100;
+    if (description.length > maxLength) {
+      return description.slice(0, maxLength) + '...';
+    }
+    return description;
+  };
+
   return (
     <div className="max-w-screen-xl mx-auto px-4 py-8">
-      {/* ส่วนหัวข้อหลัก */}
       <div className="bg-[#996600] py-8 mb-8 text-center">
         <h1 className="text-4xl font-bold text-white">จัดการข่าวสาร</h1>
       </div>
 
-      {/* ฟอร์มสำหรับเพิ่มและแก้ไขข่าว */}
       <div className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">{isEditing ? 'แก้ไขข่าว' : 'เพิ่มข่าวใหม่'}</h2>
         <div className="grid grid-cols-1 gap-4 mb-4">
@@ -112,26 +112,27 @@ const AllnewAM = () => {
             value={newNews.title}
             onChange={(e) => setNewNews({ ...newNews, title: e.target.value })}
           />
-          <input
-            type="text"
-            placeholder="หมวดหมู่"
-            className="p-2 border border-gray-300 rounded"
+          <select
             value={newNews.category}
             onChange={(e) => setNewNews({ ...newNews, category: e.target.value })}
-          />
+            className="p-2 border border-gray-300 rounded"
+          >
+            <option value="ข่าวทั่วไป">ข่าวทั่วไป</option>
+            <option value="ข่าวกิจกรรม">ข่าวกิจกรรม</option>
+            <option value="ข่าวการศึกษา">ข่าวการศึกษา</option>
+          </select>
           <textarea
             placeholder="รายละเอียดข่าว"
-            className="p-2 border border-gray-300 rounded"
+            className="p-4 h-32 border border-gray-300 rounded"
             value={newNews.description}
             onChange={(e) => setNewNews({ ...newNews, description: e.target.value })}
           />
-          {/* เพิ่ม input สำหรับอัปโหลดรูป */}
           <input
             type="file"
             accept="image/*"
             className="p-2 border border-gray-300 rounded"
             onChange={(e) => {
-              if (e.target.files) setImageFile(e.target.files[0]);
+              if (e.target.files) setDetailImageFile(e.target.files[0]);
             }}
           />
         </div>
@@ -143,12 +144,12 @@ const AllnewAM = () => {
         </button>
       </div>
 
-      {/* แสดงบล็อกข่าวที่แบ่งหน้า */}
       <div className="grid lg:grid-cols-3 gap-8 mb-8">
         {currentNews.map((newsItem, index) => (
           <div
             key={index}
             className="bg-white shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
+            onClick={() => handleViewDetail(index)} // เปลี่ยนหน้าเมื่อกดบล็อกข่าว
           >
             <img
               src={newsItem.imageUrl}
@@ -165,7 +166,9 @@ const AllnewAM = () => {
                 {newsItem.title}
               </h3>
               <p className="text-sm text-gray-500 mb-2">{newsItem.date}</p>
-              <p className="text-gray-700">{newsItem.description}</p>
+              <p className="text-gray-700">
+                {renderDescription(newsItem.description)}
+              </p>
               <button
                 onClick={() => handleEditNews(index)}
                 className="text-blue-500 mr-2"
@@ -183,18 +186,19 @@ const AllnewAM = () => {
         ))}
       </div>
 
-      {/* ควบคุมการแบ่งหน้า */}
       <div className="flex justify-center items-center space-x-4">
+        {/* ปุ่ม Previous Page */}
         <button
           className={`w-10 h-10 rounded-full bg-[#996600] text-white flex items-center justify-center ${
             currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
           }`}
-          onClick={handlePreviousPage}
+          onClick={handlePreviousPage} // ใช้งานฟังก์ชัน handlePreviousPage
           disabled={currentPage === 1}
         >
           &lt;
         </button>
 
+        {/* ปุ่ม Page Number */}
         {[...Array(totalPages)].map((_, index) => (
           <button
             key={index}
@@ -207,11 +211,12 @@ const AllnewAM = () => {
           </button>
         ))}
 
+        {/* ปุ่ม Next Page */}
         <button
           className={`w-10 h-10 rounded-full bg-[#996600] text-white flex items-center justify-center ${
             currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''
           }`}
-          onClick={handleNextPage}
+          onClick={handleNextPage} // ใช้งานฟังก์ชัน handleNextPage
           disabled={currentPage === totalPages}
         >
           &gt;

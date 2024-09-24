@@ -1,10 +1,19 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // เช็คว่า user เป็น admin หรือไม่ ถ้าไม่ใช่ให้เปลี่ยนหน้าไปที่หน้าแรก
+    const isAdmin = JSON.parse(localStorage.getItem('isAdmin') || 'false');
+    if (!isAdmin) {
+      navigate('/');  // ถ้าไม่ใช่ admin ให้ redirect ไปหน้าแรก
+    }
+  }, [navigate]);
 
   return (
     <div className="flex min-h-screen bg-gray-100">

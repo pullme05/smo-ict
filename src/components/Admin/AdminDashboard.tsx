@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SummarizeIcon from '@mui/icons-material/Summarize';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -7,13 +6,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // เช็คว่า user เป็น admin หรือไม่ ถ้าไม่ใช่ให้เปลี่ยนหน้าไปที่หน้าแรก
-    const isAdmin = JSON.parse(localStorage.getItem('isAdmin') || 'false');
-    if (!isAdmin) {
-      navigate('/');  // ถ้าไม่ใช่ admin ให้ redirect ไปหน้าแรก
-    }
-  }, [navigate]);
+  // ไม่ต้องเช็ค isAdmin ในนี้ เพราะเช็คใน AdminRoutes แล้ว
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -59,9 +52,9 @@ const AdminDashboard = () => {
           {/* Card 1 */}
           <div className="bg-white p-4 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300">
             <h2 className="text-xl font-semibold">ปฏิทินกิจกรรม</h2>
-            <button
+          <button
               className="mt-4 px-4 py-2 bg-[#996600] text-white rounded transition-transform duration-300 hover:scale-105"
-              onClick={() => navigate('/admin/calendar')}  
+              onClick={() => navigate('/admin/AdminCalendar')}
             >
               กดปุ่ม
             </button>
@@ -72,6 +65,7 @@ const AdminDashboard = () => {
             <h2 className="text-xl font-semibold">การจองห้อง</h2>
             <button
               className="mt-4 px-4 py-2 bg-[#996600] text-white rounded transition-transform duration-300 hover:scale-105"
+              onClick={() => navigate('/admin/heart')}
             >
               กดปุ่ม
             </button>
@@ -96,7 +90,7 @@ const AdminDashboard = () => {
               onClick={() => navigate('/admin/news')}
             >
               กดปุ่ม
-            </button>
+          </button>
         </div>
       </main>
     </div>

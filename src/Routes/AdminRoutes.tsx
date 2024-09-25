@@ -1,40 +1,48 @@
 import { Route, Routes, Navigate } from 'react-router-dom';
 import AdminDashboard from '../components/Admin/AdminDashboard';
-import CalendarMainAM from '../components/Admin/CalendarAdmin/CalendarMainAM';
 import AllNewAM from '../components/Admin/NewsAdmin/AllNewAM';
+import HeartAM from '../components/Admin/Meeting/HeartAM';
+import AdminCalendar from '../components/Admin/CalendarAdminPro/AdminCalendar';
 import { useEffect, useState } from 'react';
 
-const AdminRoutes: React.FC = () => {
-  const [adminStatus, setAdminStatus] = useState<boolean | null>(null);
+interface AdminRoutesProps {
+  isAdmin: boolean;
+}
+
+const AdminRoutes: React.FC<AdminRoutesProps> = ({ isAdmin }) => {
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ดึงค่า isAdmin จาก localStorage
-    const savedAdminStatus = localStorage.getItem('isAdmin');
-    if (savedAdminStatus) {
-      setAdminStatus(JSON.parse(savedAdminStatus));
+    const storedIsAdmin = JSON.parse(localStorage.getItem('isAdmin') || 'false');
+    if (storedIsAdmin === isAdmin) {
+      setLoading(false);
     } else {
-      setAdminStatus(false);  // ถ้าไม่มีค่าให้ตั้งเป็น false
+      setLoading(true);
     }
-  }, []);
+  }, [isAdmin]);
 
-  if (adminStatus === null) {
-    // แสดง Loading หรือ Spinner ขณะเช็คสิทธิ์
-    return <div>Loading...</div>;
+  if (loading) {
+    return <div>Loading...</div>; // หรือ Loading Spinner อื่น ๆ
   }
 
   return (
     <Routes>
       <Route
         path="/admin/dashboard"
-        element={adminStatus ? <AdminDashboard /> : <Navigate to="/" />}
+        element={isAdmin ? <AdminDashboard /> : <Navigate to="/" />}
+      />
+      {/* test calendarpro */}
+      <Route
+        path="/admin/AdminCalendar"
+        element={isAdmin ? <AdminCalendar /> : <Navigate to="/" />}
       />
       <Route
-        path="/admin/calendar"
-        element={adminStatus ? <CalendarMainAM /> : <Navigate to="/" />}
+        path="/admin/heart"
+        element={isAdmin ? <HeartAM /> : <Navigate to="/" />}
       />
       <Route
         path="/admin/news"
-        element={adminStatus ? <AllNewAM /> : <Navigate to="/" />}
+        element={isAdmin ? <AllNewAM /> : <Navigate to="/" />}
       />
     </Routes>
   );

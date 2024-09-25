@@ -201,13 +201,13 @@ const AdminCalendar: React.FC = () => {
                 sx={{ backgroundColor: '#ff5050', '&:hover': { backgroundColor: '#ff3333' } }}
                 onClick={() => handleDeleteEvent(selectedEvent)}
               >
-                Delete Event
+                ลบ
               </Button>
             </div>
           ) : (
             <div>
               <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#996600', marginBottom: '10px' }}>
-                Add New Event
+                เพิ่มกิจกรรม
               </Typography>
               <TextField
                 label="Event Title"
@@ -231,7 +231,7 @@ const AdminCalendar: React.FC = () => {
                 sx={{ backgroundColor: '#6699cc', color: '#fff', '&:hover': { backgroundColor: '#336699' } }}
                 onClick={handleAddEvent}
               >
-                Add Event
+                เพิ่ม
               </Button>
             </div>
           )}

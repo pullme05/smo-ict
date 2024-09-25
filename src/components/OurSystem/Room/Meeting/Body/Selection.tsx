@@ -5,55 +5,46 @@ import FormTextField from './FormTextField';
 
 interface SelectionProps {
   selectedData: {
+    roomName: string; // เพิ่ม roomName ที่นี่
     date: string;
     duration: number;
   };
   onUpdateFormData: (data: { roomName: string; name: string; date: string; duration: number }) => void; 
-  receiveDataFromEventModal: (data: { roomName: string; name: string; date: string; duration: number }) => void; // เพิ่มที่นี่
+  receiveDataFromEventModal: (data: { roomName: string; name: string; date: string; duration: number }) => void; 
+  updateSelectionData: (data: { roomName: string; date: string; duration: number }) => void; // เพิ่มที่นี่
 }
 
-const Selection: React.FC<SelectionProps> = ({ selectedData, onUpdateFormData, receiveDataFromEventModal }) => {
+const Selection: React.FC<SelectionProps> = ({ selectedData, onUpdateFormData, receiveDataFromEventModal, updateSelectionData }) => {
   // สร้างสถานะสำหรับข้อมูลฟอร์ม
   const [formData, setFormData] = useState({
-    name: '',              
-    studentId: '',         
-    contact: '',           
-    date: '',              
-    duration: '',          
-    roomName: '',          
-    participants: '',      
-    purpose: '',           
-    notes: '',             
+    name: '',
+    studentId: '',
+    contact: '',
+    date: '',
+    duration: '',
+    roomName: '',
+    participants: '',
+    purpose: '',
+    notes: '',
   });
 
   // สร้างสถานะสำหรับเก็บข้อผิดพลาด
   const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
-
-  // ฟังก์ชันสำหรับรับข้อมูลจาก EventModal
-  const handleReceiveDataFromEventModal = (data: { roomName: string; name: string; date: string; duration: number }) => {
-    console.log('Received Data from EventModal:', data); // เพิ่ม log ที่นี่
-    setFormData((prevData) => ({
-      ...prevData,
-      roomName: data.roomName,
-      name: data.name,
-      date: data.date,
-      duration: data.duration.toString(),
-    }));
-  };
 
   // อัพเดตข้อมูลฟอร์มเมื่อ selectedData เปลี่ยน
   useEffect(() => {
     if (selectedData) {
       setFormData((prevData) => ({
         ...prevData,
+        roomName: selectedData.roomName, // กรอกข้อมูลชื่อห้องประชุม
         date: selectedData.date || prevData.date,
-        duration: selectedData.duration ? selectedData.duration.toString() : prevData.duration,
+        duration: selectedData.duration.toString() || prevData.duration,
       }));
-  
+
       // เรียกใช้ receiveDataFromEventModal เพื่อกรอกข้อมูลในฟอร์ม
-      handleReceiveDataFromEventModal({
-        roomName: formData.roomName, // หรือใส่ค่าจาก props ถ้ามี
-        name: formData.name,          // หรือใส่ค่าจาก props ถ้ามี
+      receiveDataFromEventModal({
+        roomName: selectedData.roomName,
+        name: formData.name, // หรือให้มีค่าเริ่มต้น
         date: selectedData.date,
         duration: selectedData.duration,
       });
@@ -65,11 +56,11 @@ const Selection: React.FC<SelectionProps> = ({ selectedData, onUpdateFormData, r
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value
+      [name]: value,
     }));
     setErrors((prevErrors) => ({
       ...prevErrors,
-      [name]: ''
+      [name]: '',
     }));
   };
 
@@ -111,9 +102,7 @@ const Selection: React.FC<SelectionProps> = ({ selectedData, onUpdateFormData, r
       
       // ส่งข้อมูลไปยังคอมโพเนนต์แม่
       onUpdateFormData(dataToSubmit);
-
-      // เรียกใช้ receiveDataFromEventModal เพื่อกรอกข้อมูลในฟอร์ม
-      receiveDataFromEventModal(dataToSubmit);
+      updateSelectionData(dataToSubmit); // เรียกใช้ฟังก์ชันนี้เพื่อส่งข้อมูล
     } else {
       setErrors(newErrors);
     }

@@ -17,7 +17,7 @@ const Oursystem: React.FC = () => {
             <button
               className="px-6 py-3 bg-[#996600] text-white rounded-lg shadow-md transition-colors hover:bg-[#664400] duration-300 focus:outline-none"
             >
-              การจองห้อง
+              ปฎิทินกิจกรรม
             </button>
           </Link>
         </div>

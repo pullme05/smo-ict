@@ -11,6 +11,7 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import EventModal from './EventModal';
 import Toolbar from './Toolbar';
+import Selection from '../../Body/Selection'; // นำเข้า Selection component
 import { Event as CustomEventType } from './types';
 
 const localizer = momentLocalizer(moment);
@@ -28,6 +29,12 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
   const [showModal, setShowModal] = React.useState(false);
   const [currentDate, setCurrentDate] = React.useState<Date>(new Date());
   const [currentView, setCurrentView] = React.useState<View>(Views.MONTH);
+  
+  const [selectedData, setSelectedData] = React.useState<{
+    roomName: string;
+    date: string;
+    duration: number;
+  }>({ roomName: '', date: '', duration: 30 });
 
   const [formData, setFormData] = React.useState({
     roomName: '',
@@ -59,17 +66,14 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
 
   const handleSubmit = () => {
     const { roomName, duration } = formData;
-    const date = currentDate.toLocaleDateString('en-CA'); // เก็บวันที่ในตัวแปร
+    const date = currentDate.toLocaleDateString('en-CA');
 
-    // อัปเดตข้อมูลที่ส่งไปยัง Selection
     updateSelectionData({
       roomName,
       date,
       duration,
     });
-    setShowModal(false);
-    
-    // ส่งข้อมูลไปยัง Selection
+
     const eventModalData = {
       roomName,
       name: formData.name,
@@ -77,8 +81,8 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
       duration,
     };
 
-    receiveDataFromEventModal(eventModalData);
-    updateSelection(eventModalData); // เรียกใช้ฟังก์ชันใหม่ที่สร้างขึ้น
+    updateSelection(eventModalData);
+    setShowModal(false);
   };
 
   const handleCloseModal = () => {
@@ -100,20 +104,21 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
   const handleNavigate = (newDate: Date, view: View, action: NavigateAction) => {
     setCurrentDate(newDate);
     setCurrentView(view);
-
     if (action === 'TODAY') {
       setCurrentDate(new Date());
     }
   };
 
   const receiveDataFromEventModal = (data: { roomName: string; name: string; date: string; duration: number; }) => {
-    // ทำสิ่งที่คุณต้องการกับข้อมูลที่ได้รับ
     console.log('Received data from EventModal:', data);
   };
 
   const updateSelection = (data: { roomName: string; name: string; date: string; duration: number; }) => {
-    // ส่งข้อมูลไปยัง Selection หรือทำสิ่งที่คุณต้องการ
-    console.log('Updating selection with data:', data);
+    setSelectedData({
+      roomName: data.roomName,
+      date: data.date,
+      duration: data.duration,
+    });
   };
 
   const components: Components<CustomEventType> = {
@@ -127,32 +132,45 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
   };
 
   return (
-    <div className="p-4">
-      <Calendar
-        localizer={localizer}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        style={{ height: 800, width: 1500 }}
-        views={Object.values(Views)}
-        view={currentView}
-        date={currentDate}
-        defaultView={Views.MONTH}
-        popup={true}
-        selectable
-        onSelectSlot={handleSelectSlot}
-        onNavigate={handleNavigate}
-        onView={handleViewChange}
-        components={components}
-      />
-      {showModal && (
+    <div className="flex flex-col md:flex-row p-4">
+      <div className="flex-1">
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 800 }}
+          views={Object.values(Views)}
+          view={currentView}
+          date={currentDate}
+          defaultView={Views.MONTH}
+          popup={true}
+          selectable
+          onSelectSlot={handleSelectSlot}
+          onNavigate={handleNavigate}
+          onView={handleViewChange}
+          components={components}
+        />
+      </div>
+
+      {/* เช็คว่าเปิด modal อยู่หรือไม่ ถ้าเปิดให้ซ่อน Selection */}
+      {showModal ? (
         <EventModal 
           formData={formData}
           onChange={handleFormChange}
           onSubmit={handleSubmit}
           onClose={handleCloseModal}
-          receiveDataFromEventModal={receiveDataFromEventModal} // ส่งฟังก์ชันนี้เข้าไป
+          receiveDataFromEventModal={receiveDataFromEventModal} 
         />
+      ) : (
+        <div className="w-full mt-4">
+          <Selection 
+            selectedData={selectedData} 
+            onUpdateFormData={updateSelection}
+            receiveDataFromEventModal={receiveDataFromEventModal}
+            updateSelectionData={updateSelectionData} 
+          />
+        </div>
       )}
     </div>
   );

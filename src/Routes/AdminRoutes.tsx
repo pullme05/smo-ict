@@ -3,6 +3,7 @@ import AdminDashboard from '../components/Admin/AdminDashboard';
 import AllNewAM from '../components/Admin/NewsAdmin/AllNewAM';
 import HeartAM from '../components/Admin/Meeting/HeartAM';
 import AdminCalendar from '../components/Admin/CalendarAdminPro/AdminCalendar';
+import AdminMember from '../components/Admin/MemberAdmin/AdminMember';
 import { useEffect, useState } from 'react';
 
 interface AdminRoutesProps {
@@ -13,35 +14,34 @@ const AdminRoutes: React.FC<AdminRoutesProps> = ({ isAdmin }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedIsAdmin = JSON.parse(localStorage.getItem('isAdmin') || 'false');
-    if (storedIsAdmin === isAdmin) {
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
+    // Removed 'storedIsAdmin' declaration as it's not used
+    setLoading(false);
   }, [isAdmin]);
 
   if (loading) {
-    return <div>Loading...</div>; // หรือ Loading Spinner อื่น ๆ
+    return <div>Loading...</div>; // แสดง Loading จนกว่า state ของ admin จะถูกเช็ค
   }
 
   return (
     <Routes>
       <Route
-        path="/admin/dashboard"
+        path="/dashboard"
         element={isAdmin ? <AdminDashboard /> : <Navigate to="/" />}
       />
-      {/* test calendarpro */}
       <Route
-        path="/admin/AdminCalendar"
+        path="/AdminCalendar"
         element={isAdmin ? <AdminCalendar /> : <Navigate to="/" />}
       />
       <Route
-        path="/admin/heart"
+        path="/heart"
         element={isAdmin ? <HeartAM /> : <Navigate to="/" />}
       />
       <Route
-        path="/admin/news"
+        path="/Member"
+        element={isAdmin ? <AdminMember /> : <Navigate to="/" />}
+      />
+      <Route
+        path="/news"
         element={isAdmin ? <AllNewAM /> : <Navigate to="/" />}
       />
     </Routes>

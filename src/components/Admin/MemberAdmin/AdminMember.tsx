@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Typography from '@mui/material/Typography';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import { Box, Modal } from '@mui/material';
+import {
+  Button, TextField, Box, Modal, Avatar, Typography, Grid, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Container
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 type MemberProps = {
   id: number;
@@ -13,156 +11,200 @@ type MemberProps = {
   position: string;
   email: string;
   avatarUrl?: string;
-  column: number; // เพิ่มฟิลด์คอลัมน์
-  block: number; // เพิ่มฟิลด์บล็อค
 };
 
 const AdminMember: React.FC = () => {
-  // ข้อมูลสมาชิก พร้อมระบุตำแหน่งคอลัมน์และบล็อค
   const [members, setMembers] = useState<MemberProps[]>([
-    { id: 1, name: 'Member 1', position: 'Position 1', email: 'email1@example.com', avatarUrl: '', column: 1, block: 1 },
-    { id: 2, name: 'Member 2', position: 'Position 2', email: 'email2@example.com', avatarUrl: '', column: 2, block: 1 },
-    { id: 3, name: 'Member 3', position: 'Position 3', email: 'email3@example.com', avatarUrl: '', column: 2, block: 2 },
+    { id: 1, name: 'Member 1', position: 'Position 1', email: 'email1@example.com', avatarUrl: '' },
+    { id: 2, name: 'Member 2', position: 'Position 2', email: 'email2@example.com', avatarUrl: '' },
+    { id: 3, name: 'Member 3', position: 'Position 3', email: 'email3@example.com', avatarUrl: '' },
+    { id: 4, name: 'Member 4', position: 'Position 4', email: 'email4@example.com', avatarUrl: '' },
   ]);
 
-  // จัดการ state สำหรับการแก้ไข/เพิ่มสมาชิก
   const [currentMember, setCurrentMember] = useState<MemberProps | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<number | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | ArrayBuffer | null>(null);
 
-  // ฟังก์ชันเปิด modal เพื่อเพิ่ม/แก้ไขสมาชิก
   const handleOpenModal = (member: MemberProps | null = null) => {
-    setCurrentMember(member);
+    setCurrentMember(member || { id: 0, name: '', position: '', email: '', avatarUrl: '' });
+    setImageUrl(member?.avatarUrl || '');
     setIsModalOpen(true);
   };
 
-  // ฟังก์ชันปิด modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setCurrentMember(null);
+    setImageUrl(null);
   };
 
-  // ฟังก์ชันจัดการการแก้ไขข้อมูลสมาชิก
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (currentMember) {
       setCurrentMember({ ...currentMember, [e.target.name]: e.target.value });
     }
   };
 
-  // ฟังก์ชันบันทึกสมาชิกใหม่หรือแก้ไขสมาชิกเดิม
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = () => {
     if (currentMember) {
+      const updatedMember = { ...currentMember, avatarUrl: imageUrl as string };
       if (currentMember.id) {
-        setMembers(
-          members.map((member) =>
-            member.id === currentMember.id ? currentMember : member
-          )
-        );
+        setMembers(members.map((member) => (member.id === currentMember.id ? updatedMember : member)));
       } else {
-        setMembers([
-          ...members,
-          { ...currentMember, id: members.length + 1, column: 1, block: members.length + 1 }, // เพิ่ม ID, column, และ block ให้กับสมาชิกใหม่
-        ]);
+        setMembers([...members, { ...updatedMember, id: members.length + 1 }]);
       }
     }
     handleCloseModal();
   };
 
-  // ฟังก์ชันลบสมาชิก
-  const handleDelete = (id: number) => {
-    setMembers(members.filter((member) => member.id !== id));
+  const handleDeleteConfirmOpen = (id: number) => {
+    setDeleteConfirmOpen(true);
+    setMemberToDelete(id);
+  };
+
+  const handleDeleteConfirmClose = () => {
+    setDeleteConfirmOpen(false);
+    setMemberToDelete(null);
+  };
+
+  const handleDelete = () => {
+    if (memberToDelete !== null) {
+      setMembers(members.filter((member) => member.id !== memberToDelete));
+    }
+    handleDeleteConfirmClose();
   };
 
   return (
-    <div className="flex flex-col items-center space-y-4">
-      <Box sx={{ backgroundColor: '#996600', color: '#fff', padding: '16px', textAlign: 'center', marginBottom: '16px', width: '100vw', position: 'relative', left: 'calc(-50vw + 50%)' }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>จัดการสมาชิกนิสิตสโมสร</Typography>
+    <Container maxWidth="md">
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>
+          จัดการสมาชิกนิสิตสโมสร
+        </Typography>
+        <Button variant="contained" color="primary" onClick={() => handleOpenModal()}>
+          เพิ่มสมาชิก
+        </Button>
       </Box>
 
-      <Button variant="contained" color="primary" onClick={() => handleOpenModal()}>
-        เพิ่มสมาชิก
-      </Button>
-
-      {/* แสดงรายการสมาชิก */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {members.map((member) => (
-          <Card key={member.id} className="max-w-sm mx-auto mt-4 shadow-lg rounded-lg">
-            <CardContent className="flex flex-col items-center space-y-4">
+      <Grid container spacing={3}>
+        {members.map((member, index) => (
+          <Grid item xs={12} sm={6} md={4} key={index}>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'column', border: '1px solid #ddd', borderRadius: 2, p: 2 }}>
               <Avatar
                 alt={member.name}
                 src={member.avatarUrl || 'https://via.placeholder.com/150'}
-                sx={{ width: 128, height: 128, borderRadius: '8px' }}
+                sx={{ width: 128, height: 128, borderRadius: '8px' }} // ปรับให้เป็นสี่เหลี่ยม
               />
-              <Typography variant="h6" className="text-gray-800 font-semibold">
-                {member.name}
-              </Typography>
-              <Typography variant="body1" className="text-gray-600">
-                ตำแหน่ง: {member.position}
-              </Typography>
-              <Typography variant="body2" className="text-gray-600">
-                Email: {member.email}
-              </Typography>
-              {/* แสดงข้อมูลคอลัมน์และบล็อค */}
-              <Typography variant="body2" className="text-gray-600">
-                คอลัมน์: {member.column} บล็อค: {member.block}
-              </Typography>
-              <div className="flex space-x-2">
-                <Button variant="outlined" color="primary" onClick={() => handleOpenModal(member)}>
-                  แก้ไข
-                </Button>
-                <Button variant="outlined" color="secondary" onClick={() => handleDelete(member.id)}>
-                  ลบ
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              <Typography variant="h6" sx={{ mt: 2 }}>{member.name}</Typography>
+              <Typography variant="body1" color="textSecondary">{member.position}</Typography>
+              <Typography variant="body2" color="textSecondary">{member.email}</Typography>
+              <Box sx={{ mt: 2 }}>
+                <IconButton color="primary" onClick={() => handleOpenModal(member)}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton color="secondary" onClick={() => handleDeleteConfirmOpen(member.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            </Box>
+          </Grid>
         ))}
-      </div>
+      </Grid>
 
       {/* Modal สำหรับเพิ่ม/แก้ไขสมาชิก */}
       <Modal open={isModalOpen} onClose={handleCloseModal}>
-        <Box className="bg-white p-4 rounded-md shadow-lg mx-auto mt-20 w-96">
+        <Box sx={{ bgcolor: 'white', padding: 4, width: 400, mx: 'auto', mt: 8, borderRadius: 2 }}>
           <Typography variant="h6">{currentMember?.id ? 'แก้ไขสมาชิก' : 'เพิ่มสมาชิก'}</Typography>
 
-          {/* ฟิลด์ชื่อ */}
           <TextField
             label="ชื่อ"
             name="name"
             value={currentMember?.name || ''}
             onChange={handleChange}
             fullWidth
-            className="mt-4"
-            placeholder="กรอกชื่อสมาชิก"
+            sx={{ mt: 2 }}
           />
 
-          {/* ฟิลด์ตำแหน่ง */}
           <TextField
             label="ตำแหน่ง"
             name="position"
             value={currentMember?.position || ''}
             onChange={handleChange}
             fullWidth
-            className="mt-4"
-            placeholder="กรอกตำแหน่งของสมาชิก"
+            sx={{ mt: 2 }}
           />
 
-          {/* ฟิลด์อีเมล */}
           <TextField
             label="Email"
             name="email"
             value={currentMember?.email || ''}
             onChange={handleChange}
             fullWidth
-            className="mt-4"
-            placeholder="กรอกอีเมลของสมาชิก"
+            sx={{ mt: 2 }}
+            helperText="กรุณากรอกอีเมลที่ถูกต้อง"
           />
 
-          <Box className="flex justify-end space-x-2 mt-4">
-            <Button onClick={handleCloseModal} variant="outlined">ยกเลิก</Button>
-            <Button onClick={handleSave} variant="contained" color="primary">บันทึก</Button>
+          <Box sx={{ mt: 2 }}>
+            {/* input แบบ HTML */}
+            <input type="file" accept="image/*" onChange={handleImageUpload} />
+
+            {/* ใช้ TextField แบบ MUI */}
+            {/* <TextField
+              type="file"
+              InputProps={{
+                inputProps: {
+                  accept: "image/*"
+                }
+              }}
+              onChange={handleImageUpload}
+              fullWidth
+              sx={{ mt: 2 }}
+            /> */}
+
+            {imageUrl && (
+              <Box sx={{ mt: 2 }}>
+                <Avatar
+                  alt="Preview"
+                  src={imageUrl as string}
+                  sx={{ width: 128, height: 128, borderRadius: '8px' }} // แสดงพรีวิวรูปภาพ
+                />
+              </Box>
+            )}
+          </Box>
+
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button onClick={handleCloseModal} variant="outlined" sx={{ mr: 1 }}>
+              ยกเลิก
+            </Button>
+            <Button onClick={handleSave} variant="contained" color="primary">
+              บันทึก
+            </Button>
           </Box>
         </Box>
       </Modal>
-    </div>
+
+      {/* Dialog ยืนยันการลบ */}
+      <Dialog open={deleteConfirmOpen} onClose={handleDeleteConfirmClose}>
+        <DialogTitle>ยืนยันการลบสมาชิก</DialogTitle>
+        <DialogContent>
+          <DialogContentText>คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteConfirmClose} variant="outlined">ยกเลิก</Button>
+          <Button onClick={handleDelete} variant="contained" color="secondary">ลบ</Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
 };
 

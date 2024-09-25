@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LoginModal from './components/Login/LoginModel';
-import UserRoutes from './Routes/UserRouter'; // นำเข้าจากไฟล์ UserRoutes.tsx
-import AdminRoutes from './Routes/AdminRoutes'; // นำเข้าจากไฟล์ AdminRoutes.tsx
+import UserRoutes from './Routes/UserRouter';
+import AdminRoutes from './Routes/AdminRoutes';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -47,15 +47,12 @@ function App() {
         onLoginClick={() => setLoginModalOpen(true)}
       />
       <div className="main-content">
-        {/* Routes สำหรับผู้ใช้ทั่วไป */}
-        <UserRoutes />
-
-        {/* Routes สำหรับ Admin */}
-        <AdminRoutes isAdmin={isAdmin} />
+        <Routes>
+          <Route path="/*" element={<UserRoutes />} />
+          <Route path="/admin/*" element={<AdminRoutes isAdmin={isAdmin} />} />
+        </Routes>
       </div>
       <Footer />
-
-      {/* Modal ล็อกอิน */}
       <LoginModal
         open={loginModalOpen}
         onClose={() => setLoginModalOpen(false)}
@@ -65,4 +62,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

@@ -105,16 +105,12 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
               </>
             ) : (
               <>
-                <ScrollLink
-                  to="/admin/dashboard"
-                  smooth={true}
-                  duration={500}
-                  offset={-100}
-                  onClick={() => navigate('/admin/dashboard')}
-                  className="hover:text-yellow-500 transition duration-300 cursor-pointer"
-                >
-                  Admin Dashboard
-                </ScrollLink>
+                <div
+  onClick={() => navigate('/admin/dashboard')}
+  className="hover:text-yellow-500 transition duration-300 cursor-pointer"
+>
+  Admin Dashboard
+</div>
               </>
             )}
           </nav>

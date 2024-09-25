@@ -7,6 +7,7 @@ import Allnews from '../components/News/Allnews/Allnews';
 import MemberList from '../components/Member/MemberList';
 import Heart from '../components/OurSystem/Room/Meeting/Heart';
 import UserCalendar from '../components/Calendar/UserCalendar';
+import MemberUser from '../components/MemberUser/MemberUser';
 
 const UserRoutes = () => (
   <Routes>
@@ -24,6 +25,7 @@ const UserRoutes = () => (
     <Route path="/allnews" element={<Allnews />} />
     <Route path="/Heart" element={<Heart />} />
     <Route path="/MemberList" element={<MemberList />} />
+    <Route path="/MemberUser" element={<MemberUser />} />
     <Route path="/UserCalendar" element={<UserCalendar />} />
   </Routes>
 );

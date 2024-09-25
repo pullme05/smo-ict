@@ -37,6 +37,7 @@ const Header: React.FC = () => {
 
       {/* Modal */}
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} />
+      
     </div>
   );
 };

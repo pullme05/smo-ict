@@ -11,7 +11,7 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import EventModal from './EventModal';
 import Toolbar from './Toolbar';
-import Selection from '../../Body/Selection'; // นำเข้า Selection component
+import TextFieldComponent from '../../Body/TextFieldComponent';
 import { Event as CustomEventType } from './types';
 
 const localizer = momentLocalizer(moment);
@@ -19,6 +19,7 @@ const localizer = momentLocalizer(moment);
 interface TimetableProps {
   updateSelectionData: (data: {
     roomName: string;
+    name: string;  // เปลี่ยนเป็น name ตัวเล็ก
     date: string;
     duration: number;
   }) => void;
@@ -34,7 +35,8 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
     roomName: string;
     date: string;
     duration: number;
-  }>({ roomName: '', date: '', duration: 30 });
+    name: string;  // ใช้ name ตัวเล็ก
+  }>({ roomName: '', name: '', date: '', duration: 30 });
 
   const [formData, setFormData] = React.useState({
     roomName: '',
@@ -65,18 +67,19 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
   };
 
   const handleSubmit = () => {
-    const { roomName, duration } = formData;
+    const { roomName, name, duration } = formData;  // เพิ่ม name ที่นี่ด้วย
     const date = currentDate.toLocaleDateString('en-CA');
 
     updateSelectionData({
       roomName,
+      name,  // เพิ่ม name ที่นี่ด้วย
       date,
       duration,
     });
 
     const eventModalData = {
       roomName,
-      name: formData.name,
+      name: formData.name,  // เพิ่ม name ที่นี่ด้วย
       date,
       duration,
     };
@@ -116,9 +119,16 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
   const updateSelection = (data: { roomName: string; name: string; date: string; duration: number; }) => {
     setSelectedData({
       roomName: data.roomName,
+      name: data.name,
       date: data.date,
       duration: data.duration,
     });
+  };
+
+  // ฟังก์ชันสำหรับอัพเดตข้อมูล
+  const handleUpdateFormData = (data: { roomName: string; name: string; date: string; duration: number; }) => {
+    setSelectedData(data);
+    // ทำการอัพเดตข้อมูลเพิ่มเติมที่จำเป็น
   };
 
   const components: Components<CustomEventType> = {
@@ -132,9 +142,9 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row p-4">
+    <div className="w-5/6 flex flex-col md:flex-row p-4">
       <div className="flex-1">
-        <Calendar
+        <Calendar 
           localizer={localizer}
           events={events}
           startAccessor="start"
@@ -163,11 +173,11 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
           receiveDataFromEventModal={receiveDataFromEventModal} 
         />
       ) : (
-        <div className="w-full mt-4">
-          <Selection 
+        <div className="mt-4">
+          <TextFieldComponent 
             selectedData={selectedData} 
-            onUpdateFormData={updateSelection}
-            receiveDataFromEventModal={receiveDataFromEventModal}
+            onUpdateFormData={handleUpdateFormData} 
+            receiveDataFromEventModal={receiveDataFromEventModal} 
             updateSelectionData={updateSelectionData} 
           />
         </div>

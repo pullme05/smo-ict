@@ -14,6 +14,8 @@ interface FormTextFieldProps {
   rows?: number;
   select?: boolean; 
   options?: Array<{ value: string | number; label: string }>; // สำหรับ select
+  className?: string; // เพิ่ม className ที่นี่
+  sx?: React.CSSProperties
 }
 
 const FormTextField: React.FC<FormTextFieldProps> = ({
@@ -29,6 +31,8 @@ const FormTextField: React.FC<FormTextFieldProps> = ({
   rows,
   select,
   options,
+  className,
+  sx, // เพิ่ม className ที่นี่
 }) => {
   if (select && options) {
     return (
@@ -40,8 +44,10 @@ const FormTextField: React.FC<FormTextFieldProps> = ({
         onChange={onChange}
         error={error}
         helperText={helperText}
-        disabled={disabled} // ใช้งาน disabled ที่นี่
+        disabled={disabled}
         fullWidth
+        className={className} // ตรวจสอบว่ามี className ที่นี่
+        sx={sx}
       >
         {options.map((option) => (
           <MenuItem key={option.value} value={option.value}>
@@ -50,7 +56,7 @@ const FormTextField: React.FC<FormTextFieldProps> = ({
         ))}
       </TextField>
     );
-  }
+}
 
   return (
     <TextField
@@ -65,6 +71,8 @@ const FormTextField: React.FC<FormTextFieldProps> = ({
       multiline={multiline}
       rows={rows}
       fullWidth
+      className={className} // ใช้ className ที่ส่งมา
+      sx={sx}  
     />
   );
 };

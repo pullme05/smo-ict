@@ -3,7 +3,7 @@ import React from 'react';
 import Header from './Head/Header';
 import Selection from './Body/Selection'
 
-const HeartAM: React.FC = () => {
+const HeartAdmin: React.FC = () => {
   return (
     <div>
       <Header />
@@ -12,4 +12,4 @@ const HeartAM: React.FC = () => {
   );
 };
 
-export default HeartAM;
+export default HeartAdmin;

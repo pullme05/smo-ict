@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import FormTextField from './FormTextField';
-import { Typography } from '@mui/material'; // เพิ่มการนำเข้า Typography
+import { Typography } from '@mui/material';
+import useFormHandler from './FormHandler';
 
 interface TextFieldComponentProps {
   selectedData: {
@@ -12,134 +13,86 @@ interface TextFieldComponentProps {
   onUpdateFormData: (data: { roomName: string; name: string; date: string; duration: number }) => void; 
   receiveDataFromEventModal: (data: { roomName: string; name: string; date: string; duration: number }) => void; 
   updateSelectionData: (data: { roomName: string; name: string; date: string; duration: number }) => void;
+  onSubmit: (data: { meetingRoom: string; roomName: string; name: string; studentId: string; contact: string; date: string; duration: number; purpose: string; }) => void; 
 }
 
-const TextFieldComponent: React.FC<TextFieldComponentProps> = ({ selectedData, onUpdateFormData, receiveDataFromEventModal, updateSelectionData }) => {
-  // สร้างสถานะสำหรับข้อมูลฟอร์ม
-  const [formData, setFormData] = useState({
+const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
+  selectedData,
+  onUpdateFormData,
+  receiveDataFromEventModal,
+  updateSelectionData,
+  onSubmit
+}) => {
+  const initialFormData = {
     meetingRoom: '',
     name: '',
     studentId: '',
     contact: '',
     date: '',
-    duration: '',
+    duration: 0, // แปลงเป็น 0 แทน string
     roomName: '',
-    participants: '',
     purpose: '',
     notes: '',
+  };
+
+  const {
+    formData,
+    errors,
+    handleChange,
+    handleConfirm,
+  } = useFormHandler(initialFormData, (data) => {
+    const dataToSubmit = {
+      meetingRoom: data.meetingRoom,
+      roomName: data.roomName,
+      name: data.name,
+      studentId: data.studentId,
+      contact: data.contact,
+      date: data.date,
+      duration: data.duration as number, // ระบุชนิดให้ชัดเจน
+      purpose: data.purpose,
+    };
+
+    onUpdateFormData(dataToSubmit);
+    updateSelectionData(dataToSubmit);
+    onSubmit(dataToSubmit);
   });
 
-  // สร้างสถานะสำหรับเก็บข้อผิดพลาด
-  const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
-
-  // อัพเดตข้อมูลฟอร์มเมื่อ selectedData เปลี่ยน
   useEffect(() => {
     if (selectedData) {
-      // อัปเดต formData โดยรับค่าจาก selectedData
-      setFormData((prevData) => ({
-        ...prevData,
-        roomName: selectedData.roomName || prevData.roomName,
-        date: selectedData.date || prevData.date,
-        duration: selectedData.duration.toString() || prevData.duration,
-        name: selectedData.name || prevData.name, // ตรวจสอบให้แน่ใจว่ามีการอัปเดต name ด้วย
-      }));
-  
-      // ส่งข้อมูลที่อัปเดตกลับไปที่ EventModal
+      const changeValue = (name: string, value: string) => {
+        handleChange({ target: { name, value } } as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>);
+      };
+
+      changeValue('roomName', selectedData.roomName);
+      changeValue('date', selectedData.date);
+      changeValue('duration', selectedData.duration.toString());
+      changeValue('name', selectedData.name);
+
       receiveDataFromEventModal({
         roomName: selectedData.roomName,
-        name: selectedData.name, // ส่ง name ที่อัปเดตไปให้ EventModal
+        name: selectedData.name,
         date: selectedData.date,
         duration: selectedData.duration,
       });
     }
-  }, [selectedData, receiveDataFromEventModal]);
+  }, [selectedData, receiveDataFromEventModal, handleChange]);
 
-  // ฟังก์ชันสำหรับจัดการการเปลี่ยนแปลงของฟิลด์ในฟอร์ม
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const handleSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
 
-    // อัปเดตค่าใน formData
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    console.log('Form Data:', formData);
+    console.log('Errors:', errors);
 
-    // ตรวจสอบข้อผิดพลาดแบบ real-time สำหรับ "studentId"
-    if (name === 'studentId') {
-      const isNumeric = /^\d+$/.test(value); // เช็คว่าเป็นตัวเลข
-      const isValidLength = value.length <= 8; // เช็คว่ามีความยาวไม่เกิน 8 หลัก
+    const requiredFields = ['meetingRoom', 'roomName', 'studentId', 'name', 'contact', 'date', 'duration', 'purpose'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]); // แปลงประเภทที่นี่
 
-      // กำหนดข้อผิดพลาดตามเงื่อนไข
-      if (!isNumeric) {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          studentId: 'กรุณากรอกเป็นตัวเลขเท่านั้น',
-        }));
-      } else if (!isValidLength) {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          studentId: 'กรุณากรอกไม่เกิน 8 หลัก',
-        }));
-      } else {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          studentId: '', // ลบข้อผิดพลาดถ้าข้อมูลถูกต้อง
-        }));
-      }
-    } else {
-      // ลบข้อผิดพลาดสำหรับฟิลด์อื่น ๆ
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: '',
-      }));
-    }
-  };
-
-  // ฟังก์ชันสำหรับตรวจสอบความถูกต้องของข้อมูลและยืนยัน
-  const handleConfirm = () => {
-    const newErrors: Partial<Record<keyof typeof formData, string>> = {};
-    let isValid = true;
-
-    const fieldsToValidate: (keyof typeof formData)[] = [
-      'meetingRoom',
-      'name',
-      'studentId',
-      'contact',
-      'date',
-      'duration',
-      'roomName',
-      'participants',
-      'purpose',
-    ];
-
-    fieldsToValidate.forEach((field) => {
-      if (!formData[field]) {
-        newErrors[field] = 'กรุณากรอกข้อมูล';
-        isValid = false;
-      }
-    });
-
-    // ตรวจสอบรหัสนิสิตอีกครั้ง
-    if (formData.studentId.length > 8 || !/^\d+$/.test(formData.studentId)) {
-      newErrors.studentId = 'กรุณากรอกเป็นตัวเลขและไม่เกิน 8 หลัก';
-      isValid = false;
+    if (missingFields.length > 0) {
+      alert(`กรุณากรอกข้อมูลในช่องต่อไปนี้: ${missingFields.join(', ')}`);
+      return; // ยกเลิกการส่งข้อมูลหากมีช่องว่าง
     }
 
-    if (isValid) {
-      console.log('Confirmed Data:', formData);
-
-      const dataToSubmit = {
-        roomName: formData.roomName,
-        name: formData.name,
-        date: formData.date,
-        duration: Number(formData.duration),
-      };
-      
-      onUpdateFormData(dataToSubmit);
-      updateSelectionData(dataToSubmit);
-    } else {
-      setErrors(newErrors);
-    }
+    handleConfirm();
+    alert('ข้อมูลถูกส่งเรียบร้อยแล้ว!');
   };
 
   return (
@@ -154,7 +107,6 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({ selectedData, o
         error={!!errors.meetingRoom}
         helperText={errors.meetingRoom}
         select={true}
-        sx={{ padding: '5px' }}
         options={[
           { value: '', label: 'เลือกห้องประชุม' },
           { value: 'A', label: 'ห้อง A' },
@@ -164,13 +116,12 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({ selectedData, o
       />
 
       <FormTextField 
-        label="ชื่อห้องประชุม"
+        label="หัวข้อการประชุม"
         name="roomName"
         value={formData.roomName}
         onChange={handleChange}
         error={!!errors.roomName}
         helperText={errors.roomName}
-        sx={{ padding: '5px' }}
       />
 
       <FormTextField 
@@ -178,9 +129,8 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({ selectedData, o
         name="studentId"
         value={formData.studentId}
         onChange={handleChange}
-        error={!!errors.studentId} // แสดงว่ามีข้อผิดพลาดหรือไม่
-        helperText={errors.studentId} // แสดงข้อความข้อผิดพลาด
-        sx={{ padding: '5px' }}
+        error={!!errors.studentId}
+        helperText={errors.studentId}
       />
 
       <FormTextField 
@@ -190,7 +140,6 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({ selectedData, o
         onChange={handleChange}
         error={!!errors.name}
         helperText={errors.name}
-        sx={{ padding: '5px' }}
       />
 
       <FormTextField 
@@ -200,7 +149,6 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({ selectedData, o
         onChange={handleChange}
         error={!!errors.contact}
         helperText={errors.contact}
-        sx={{ padding: '5px' }}
       />
 
       <FormTextField 
@@ -211,53 +159,33 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({ selectedData, o
         error={!!errors.date}
         helperText={errors.date}
         type="date" 
-        sx={{ padding: '5px' }}
       />
 
       <FormTextField 
         label="ระยะเวลา (นาที)"
         name="duration"
-        value={formData.duration}
+        value={formData.duration.toString()} // แปลงเป็น string สำหรับการแสดงผล
         onChange={handleChange}
         error={!!errors.duration}
         helperText={errors.duration}
         select
-        sx={{ padding: '5px' }}
         options={[
-          { value: 30, label: '30 นาที' },
-          { value: 60, label: '1 ชั่วโมง' },
-          { value: 90, label: '1 ชั่วโมง 30 นาที' },
-          { value: 120, label: '2 ชั่วโมง' },
-          { value: 150, label: '2 ชั่วโมง 30 นาที' },
-          { value: 180, label: '3 ชั่วโมง' },         
+          { value: '30', label: '30 นาที' },
+          { value: '60', label: '60 นาที' },
+          { value: '90', label: '90 นาที' },
         ]}
       />
 
       <FormTextField 
-        label="วัตถุประสงค์ของการประชุม"
+        label="วัตถุประสงค์"
         name="purpose"
         value={formData.purpose}
         onChange={handleChange}
         error={!!errors.purpose}
         helperText={errors.purpose}
-        multiline
-        rows={4}
-        sx={{ padding: '5px' }}
       />
 
-      <FormTextField 
-        label="หมายเหตุเพิ่มเติม"
-        name="notes"
-        value={formData.notes}
-        onChange={handleChange}
-        error={!!errors.notes}
-        helperText={errors.notes}
-        multiline
-        rows={4}
-        sx={{ padding: '5px' }}
-      />
-
-      <button onClick={handleConfirm} className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">ยืนยัน</button>
+      <button onClick={handleSubmit} className="bg-blue-500 text-white p-2 rounded">ยืนยัน</button>
     </div>
   );
 };

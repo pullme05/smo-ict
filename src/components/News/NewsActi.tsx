@@ -9,20 +9,20 @@ const NewsActi = () => {
       imageUrl: 'https://via.placeholder.com/400x200',
       category: 'กิจกรรม',
     },
-    {
-      title: 'กิจกรรมเชื่อมสัมพันธ์ประจำปี',
-      date: '15/02/2024',
-      description: 'กิจกรรมสนุกสนาน ... ',
-      imageUrl: 'https://via.placeholder.com/400x200',
-      category: 'กิจกรรม',
-    },
-    {
-      title: 'นิทรรศการเทคโนโลยี',
-      date: '05/03/2024',
-      description: 'การจัดแสดงนิทรรศการ ... ',
-      imageUrl: 'https://via.placeholder.com/400x200',
-      category: 'กิจกรรม',
-    },
+    // {
+    //   title: 'กิจกรรมเชื่อมสัมพันธ์ประจำปี',
+    //   date: '15/02/2024',
+    //   description: 'กิจกรรมสนุกสนาน ... ',
+    //   imageUrl: 'https://via.placeholder.com/400x200',
+    //   category: 'กิจกรรม',
+    // },
+    // {
+    //   title: 'นิทรรศการเทคโนโลยี',
+    //   date: '05/03/2024',
+    //   description: 'การจัดแสดงนิทรรศการ ... ',
+    //   imageUrl: 'https://via.placeholder.com/400x200',
+    //   category: 'กิจกรรม',
+    // },
   ];
 
   // กรองเฉพาะข่าวที่หมวดหมู่เป็น "กิจกรรม"

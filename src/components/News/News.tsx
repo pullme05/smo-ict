@@ -9,20 +9,20 @@ const News = () => {
         imageUrl: 'https://via.placeholder.com/800x400',
         category: 'ข่าว - /////',
       },
-      {
-        title: 'กิจกรรมเชื่อมสัมพันธ์ประจำปี',
-        date: '15/02/2024',
-        description: 'กิจกรรมสนุกสนาน ... ',
-        imageUrl: 'https://via.placeholder.com/800x400',
-        category: 'กิจกรรม - /////',
-      },
-      {
-        title: '////////',
-        date: '05/03/2024',
-        description: '//////// ... ',
-        imageUrl: 'https://via.placeholder.com/800x400',
-        category: ' - /////',
-      },
+      // {
+      //   title: 'กิจกรรมเชื่อมสัมพันธ์ประจำปี',
+      //   date: '15/02/2024',
+      //   description: 'กิจกรรมสนุกสนาน ... ',
+      //   imageUrl: 'https://via.placeholder.com/800x400',
+      //   category: 'กิจกรรม - /////',
+      // },
+      // {
+      //   title: '////////',
+      //   date: '05/03/2024',
+      //   description: '//////// ... ',
+      //   imageUrl: 'https://via.placeholder.com/800x400',
+      //   category: ' - /////',
+      // },
     ];
   
     const smallNewsData = [
@@ -33,20 +33,20 @@ const News = () => {
         imageUrl: 'https://via.placeholder.com/400x200',
         category: 'ข่าวสาร ',
       },
-      {
-        title: 'ต้อนรับผู้บริหาร',
-        date: '12/09/2024',
-        description: 'คณะบริหารธุรกิจ . ... ',
-        imageUrl: 'https://via.placeholder.com/400x200',
-        category: 'ข่าวสาร ',
-      },
-      {
-        title: 'พัฒนาความสำเร็จแห่งอาชีพ',
-        date: '12/09/2024',
-        description: ' จัดบรรยายพิเศษ ... ',
-        imageUrl: 'https://via.placeholder.com/400x200',
-        category: ' ข่าวสาร ',
-      },
+      // {
+      //   title: 'ต้อนรับผู้บริหาร',
+      //   date: '12/09/2024',
+      //   description: 'คณะบริหารธุรกิจ . ... ',
+      //   imageUrl: 'https://via.placeholder.com/400x200',
+      //   category: 'ข่าวสาร ',
+      // },
+      // {
+      //   title: 'พัฒนาความสำเร็จแห่งอาชีพ',
+      //   date: '12/09/2024',
+      //   description: ' จัดบรรยายพิเศษ ... ',
+      //   imageUrl: 'https://via.placeholder.com/400x200',
+      //   category: ' ข่าวสาร ',
+      // },
     ];
   
     return (

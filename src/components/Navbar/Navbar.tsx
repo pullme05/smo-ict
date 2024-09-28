@@ -2,12 +2,11 @@ import React, { useState } from "react";
 import Logo from "../../assets/smoictmain.png";
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-// import LanguageIcon from '@mui/icons-material/Language';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import QrcodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import { Button } from "@mui/material";
 import { Link as ScrollLink } from 'react-scroll';
 import { useNavigate, useLocation } from 'react-router-dom';
-
 interface NavbarProps {
   isLoggedIn: boolean;
   isAdmin: boolean;
@@ -26,23 +25,32 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
 
   const handleNavigateAndScroll = (sectionId: string) => {
     if (sectionId === 'เกี่ยวกับเรา') {
-      navigate('/MemberList');
+      navigate('/MemberUser');
     } else if (location.pathname !== "/" && sectionId !== 'ติดต่อเรา') {
       navigate("/");
       setTimeout(() => {
         document.getElementById(sectionId)?.scrollIntoView({ 
           behavior: "smooth", 
           block: "start" 
-        });window.scrollBy(0, -100);
+        });
+        window.scrollBy(0, -100);
       }, 500);
     } else if (sectionId === 'ติดต่อเรา') {
       setTimeout(() => {
         document.getElementById(sectionId)?.scrollIntoView({ 
           behavior: "smooth", 
           block: "start" 
-        });window.scrollBy(0, -100);
+        });
+        window.scrollBy(0, -100);
       }, 100);
     }
+  };
+
+  const handleLogout = () => {
+    if (location.pathname === '/scan') {
+      navigate('/');
+    }
+    onLogout();
   };
 
   return (
@@ -66,7 +74,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   to="เกี่ยวกับเรา"
                   smooth={true}
                   duration={500}
-                  offset={-100} 
+                  offset={-100}
                   onClick={() => handleNavigateAndScroll('เกี่ยวกับเรา')}
                   className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                 >
@@ -76,7 +84,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   to="ระบบของเรา"
                   smooth={true}
                   duration={500}
-                  offset={-100} 
+                  offset={-100}
                   onClick={() => handleNavigateAndScroll('ระบบของเรา')}
                   className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                 >
@@ -86,7 +94,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   to="ข่าวสาร"
                   smooth={true}
                   duration={500}
-                  offset={-100} 
+                  offset={-100}
                   onClick={() => handleNavigateAndScroll('ข่าวสาร')}
                   className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                 >
@@ -96,7 +104,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   to="ติดต่อเรา"
                   smooth={true}
                   duration={500}
-                  offset={-100} 
+                  offset={-100}
                   onClick={() => handleNavigateAndScroll('ติดต่อเรา')}
                   className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                 >
@@ -106,32 +114,46 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
             ) : (
               <>
                 <div
-  onClick={() => navigate('/admin/dashboard')}
-  className="hover:text-yellow-500 transition duration-300 cursor-pointer"
->
-  Admin Dashboard
-</div>
+                  onClick={() => navigate('/admin/dashboard')}
+                  className="hover:text-yellow-500 transition duration-300 cursor-pointer"
+                >
+                  Admin Dashboard
+                </div>
               </>
             )}
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
             {isLoggedIn ? (
-              <Button
-                className="px-4 py-2 rounded-lg font-medium tracking-tight"
-                variant="outlined"
-                onClick={onLogout}
-                sx={{
-                  color: '#996600',
-                  borderColor: '#996600',
-                  '&:hover': {
-                    backgroundColor: '#996600',
-                    color: '#fff',
-                  },
-                }}
-              >
-                ออกจากระบบ
-              </Button>
+              <>
+                <Button
+                  className="px-4 py-2 rounded-lg font-medium tracking-tight"
+                  variant="outlined"
+                  onClick={handleLogout}
+                  sx={{
+                    color: '#996600',
+                    borderColor: '#996600',
+                    '&:hover': {
+                      backgroundColor: '#996600',
+                      color: '#fff',
+                    },
+                  }}
+                >
+                  ออกจากระบบ
+                </Button>
+                <span>|</span>
+                <div className="flex space-x-2">
+                  <div
+                    className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300 cursor-pointer"
+                    onClick={() => navigate('/qrcode')}
+                  >
+                    <QrcodeScannerIcon sx={{ fontSize: 20 }} />
+                  </div>
+                  <div className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300">
+                    <NotificationsIcon sx={{ fontSize: 20 }} />
+                  </div>
+                </div>
+              </>
             ) : (
               <Button
                 className="px-4 py-2 rounded-lg font-medium tracking-tight"
@@ -149,15 +171,6 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                 ล็อคอิน
               </Button>
             )}
-            <span>|</span>
-            <div className="flex space-x-2">
-              <div className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300">
-                <NotificationsIcon sx={{ fontSize: 20 }} />
-              </div>
-              {/* <div className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300">
-                <LanguageIcon sx={{ fontSize: 20 }} />
-              </div> */}
-            </div>
           </div>
 
           <div className="flex md:hidden">
@@ -175,12 +188,19 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                 </a>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300">
-                  <NotificationsIcon sx={{ fontSize: 20 }} />
-                </div>
-                {/* <div className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300">
-                  <LanguageIcon sx={{ fontSize: 20 }} />
-                </div> */}
+                {isLoggedIn && (
+                  <div className="flex space-x-2">
+                    <div
+                      className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300 cursor-pointer"
+                      onClick={() => navigate('/scan')}
+                    >
+                      <QrcodeScannerIcon sx={{ fontSize: 20 }} />
+                    </div>
+                    <div className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300">
+                      <NotificationsIcon sx={{ fontSize: 20 }} />
+                    </div>
+                  </div>
+                )}
                 <CloseIcon className="h-8 w-8 text-smoIct cursor-pointer" onClick={toggleMenu} />
               </div>
             </div>
@@ -191,7 +211,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     to="เกี่ยวกับเรา"
                     smooth={true}
                     duration={500}
-                    offset={-100} 
+                    offset={-100}
                     onClick={() => {
                       handleNavigateAndScroll('เกี่ยวกับเรา');
                       toggleMenu();
@@ -204,7 +224,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     to="ระบบของเรา"
                     smooth={true}
                     duration={500}
-                    offset={-100} 
+                    offset={-100}
                     onClick={() => {
                       handleNavigateAndScroll('ระบบของเรา');
                       toggleMenu();
@@ -217,7 +237,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     to="ข่าวสาร"
                     smooth={true}
                     duration={500}
-                    offset={-100} 
+                    offset={-100}
                     onClick={() => {
                       handleNavigateAndScroll('ข่าวสาร');
                       toggleMenu();
@@ -230,7 +250,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     to="ติดต่อเรา"
                     smooth={true}
                     duration={500}
-                    offset={-100} 
+                    offset={-100}
                     onClick={() => {
                       handleNavigateAndScroll('ติดต่อเรา');
                       toggleMenu();
@@ -263,7 +283,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                 <Button
                   className="w-full py-2 rounded-lg font-medium tracking-tight"
                   variant="outlined"
-                  onClick={onLogout}
+                  onClick={handleLogout}
                   sx={{
                     color: '#996600',
                     borderColor: '#996600',
@@ -301,3 +321,6 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
 };
 
 export default Navbar;
+
+
+

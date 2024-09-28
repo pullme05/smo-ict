@@ -7,7 +7,7 @@ import Allnews from '../components/News/Allnews/Allnews';
 import Heart from '../components/OurSystem/Room/Meeting/Heart';
 import UserCalendar from '../components/Calendar/UserCalendar';
 import MemberUser from '../components/MemberUser/MemberUser';
-
+import Qrcode from '../components/QRcode/QRcode';
 const UserRoutes = () => (
   <Routes>
     <Route
@@ -25,6 +25,7 @@ const UserRoutes = () => (
     <Route path="/Heart" element={<Heart />} />
     <Route path="/MemberUser" element={<MemberUser />} />
     <Route path="/UserCalendar" element={<UserCalendar />} />
+    <Route path="/qrcode" element={<Qrcode />} />
   </Routes>
 );
 

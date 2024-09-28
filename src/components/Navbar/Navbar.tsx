@@ -192,7 +192,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   <div className="flex space-x-2">
                     <div
                       className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300 cursor-pointer"
-                      onClick={() => navigate('/scan')}
+                      onClick={() => navigate('/qrcode')}
                     >
                       <QrcodeScannerIcon sx={{ fontSize: 20 }} />
                     </div>

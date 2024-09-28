@@ -1,4 +1,13 @@
 import React, { useState } from 'react';
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Card, 
+  CardContent, 
+  Modal, 
+  TextField 
+} from '@mui/material';
 
 // สร้าง interface สำหรับข้อมูลการจอง
 interface BookingData {
@@ -34,74 +43,83 @@ const ApprovalComponent: React.FC<ApprovalComponentProps> = ({ bookings, onAppro
     setIsOpen(true);
   };
 
+  // เช็คว่ามีการจองที่รอการอนุมัติหรือไม่
+  const pendingBookings = bookings.filter(booking => booking.status === 'pending');
+
   return (
-    <div className="bg-white p-4 rounded shadow">
-      <h2 className="text-lg font-bold mb-4">รายการการจองที่รอการอนุมัติ</h2>
-      {bookings.filter(booking => booking.status === 'pending').map((booking) => (
-        <div key={booking.id} className="border-b pb-2 mb-2">
-          {/* แสดงรูปห้องเป็นกล่องสีเทา */}
-          <div className="w-24 h-24 bg-gray-300 flex items-center justify-center mb-2">
-            <span className="text-gray-700 text-sm">{booking.roomName}</span>
-          </div>
-          <p>ผู้จอง: {booking.name}</p>
-          <p>รหัสนิสิต: {booking.studentId}</p>
-          <p>วันที่: {booking.date}</p>
-          <p>ระยะเวลา: {booking.duration} นาที</p>
-          <button 
-            className="bg-blue-500 text-white px-2 py-1 rounded mt-2" 
-            onClick={() => handleShowDetails(booking)}
-          >
-            แสดงรายละเอียด
-          </button>
-          <div className="mt-2 flex gap-2">
-            <button 
-              className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600" 
-              onClick={() => onApprove(booking.id)}
-            >
-              อนุมัติ
-            </button>
-            <button 
-              className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600" 
-              onClick={() => onReject(booking.id, rejectReason)}
-            >
-              ปฏิเสธ
-            </button>
-            <input 
-              type="text" 
-              placeholder="เหตุผลการปฏิเสธ" 
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)} // ใช้ setRejectReason เพื่ออัปเดตสถานะ
-              className="border px-2 py-1 rounded"
-            />
-          </div>
-        </div>
-      ))}
+    <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: 2, boxShadow: 3 }}>
+      <Typography variant="h6" component="h2" gutterBottom>
+        รายการการจองที่รอการอนุมัติ
+      </Typography>
+      {/* แสดงเฉพาะถ้ามีการจองที่รออนุมัติ */}
+      {pendingBookings.length === 0 ? (
+        <Typography variant="body2" color="textSecondary">
+          ไม่มีการจองที่รอการอนุมัติ
+        </Typography>
+      ) : (
+        pendingBookings.map((booking) => (
+          <Card key={booking.id} variant="outlined" sx={{ mb: 2 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ width: 60, height: 60, bgcolor: 'grey.300', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 1 }}>
+                  <Typography variant="caption" color="textSecondary">{booking.roomName}</Typography>
+                </Box>
+                <Box sx={{ ml: 2 }}>
+                  <Typography variant="body1">ผู้จอง: {booking.name}</Typography>
+                  <Typography variant="body2" color="textSecondary">รหัสนิสิต: {booking.studentId}</Typography>
+                  <Typography variant="body2" color="textSecondary">วันที่: {booking.date}</Typography>
+                  <Typography variant="body2" color="textSecondary">ระยะเวลา: {booking.duration} นาที</Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                <Button variant="contained" color="success" onClick={() => onApprove(booking.id)}>
+                  อนุมัติ
+                </Button>
+                <Button variant="contained" color="error" onClick={() => onReject(booking.id, rejectReason)}>
+                  ปฏิเสธ
+                </Button>
+                <Button variant="outlined" onClick={() => handleShowDetails(booking)}>
+                  แสดงรายละเอียด
+                </Button>
+              </Box>
+              <TextField 
+                label="เหตุผลการปฏิเสธ" 
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                variant="outlined"
+                size="small"
+                sx={{ mt: 1, width: '100%' }} 
+              />
+            </CardContent>
+          </Card>
+        ))
+      )}
 
       {/* Pop-up สำหรับรายละเอียดการจอง */}
-      {isOpen && selectedBooking && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg">
-            <h2 className="text-lg font-bold">รายละเอียดการจอง</h2>
-            <p>ชื่อห้อง: {selectedBooking.roomName}</p>
-            <p>ผู้จอง: {selectedBooking.name}</p>
-            <p>รหัสนิสิต: {selectedBooking.studentId}</p>
-            <p>อีเมล/เบอร์โทรศัพท์: {selectedBooking.contact}</p>
-            <p>วันที่: {selectedBooking.date}</p>
-            <p>ระยะเวลา: {selectedBooking.duration} นาที</p>
-            <p>จำนวนผู้เข้าร่วม: {selectedBooking.participants}</p>
-            <p>วัตถุประสงค์: {selectedBooking.purpose}</p>
-            <p>หมายเหตุเพิ่มเติม: {selectedBooking.notes}</p>
-
-            <button 
-              className="mt-4 bg-gray-300 px-4 py-2 rounded" 
-              onClick={() => setIsOpen(false)}
-            >
+      <Modal open={isOpen} onClose={() => setIsOpen(false)}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', bgcolor: 'rgba(0, 0, 0, 0.5)' }}>
+          <Box sx={{ bgcolor: 'white', p: 4, borderRadius: 2, boxShadow: 3 }}>
+            <Typography variant="h6">รายละเอียดการจอง</Typography>
+            {selectedBooking && (
+              <>
+                <Typography>ชื่อห้อง: {selectedBooking.roomName}</Typography>
+                <Typography>ผู้จอง: {selectedBooking.name}</Typography>
+                <Typography>รหัสนิสิต: {selectedBooking.studentId}</Typography>
+                <Typography>อีเมล/เบอร์โทรศัพท์: {selectedBooking.contact}</Typography>
+                <Typography>วันที่: {selectedBooking.date}</Typography>
+                <Typography>ระยะเวลา: {selectedBooking.duration} นาที</Typography>
+                <Typography>จำนวนผู้เข้าร่วม: {selectedBooking.participants}</Typography>
+                <Typography>วัตถุประสงค์: {selectedBooking.purpose}</Typography>
+                <Typography>หมายเหตุเพิ่มเติม: {selectedBooking.notes}</Typography>
+              </>
+            )}
+            <Button variant="outlined" onClick={() => setIsOpen(false)} sx={{ mt: 2 }}>
               ปิด
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </Box>
   );
 };
 

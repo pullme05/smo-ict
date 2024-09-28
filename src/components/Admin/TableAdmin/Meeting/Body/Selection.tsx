@@ -1,5 +1,6 @@
 import React from 'react';
 import ApprovalComponent from './ApproveRooms/ApprovalComponent'; // อย่าลืม import ApprovalComponent
+import { Box, Typography, CardContent, Card} from '@mui/material';
 
 // สร้าง interface สำหรับข้อมูลการจอง
 interface BookingData {
@@ -52,15 +53,28 @@ const Selection: React.FC = () => {
       <div className="flex w-full h-full">
         <div className="flex-[5] bg-green-500 mr-2 flex">
           <div className="flex-[3.5] bg-green-600 flex flex-col justify-center items-center text-white font-bold rounded-lg m-2">
-            <h2 className="text-xl">ข้อมูลการจอง</h2>
-            {bookings.map((booking) => (
-              <div key={booking.id} className="p-2 border-b border-white">
-                <p>ชื่อห้อง: {booking.roomName}</p>
-                <p>ผู้จอง: {booking.name}</p>
-                <p>วันที่: {booking.date}</p>
-                <p>สถานะ: {booking.status}</p>
-              </div>
-            ))}
+
+            <div className='MuiBox-root css-130f50 text-black'>
+              <h2 className="text-xl">ข้อมูลการจอง</h2>
+                {bookings.map((booking) => (
+                  <Card key={booking.id} variant="outlined" sx={{ mb: 1, bgcolor: 'background.paper', border: '1px solid grey' }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', p: 1  }}>
+                        <Typography variant="body1" fontWeight="bold">ชื่อห้อง: {booking.roomName}</Typography>
+                        <Typography variant="body1">ผู้จอง: {booking.name}</Typography>
+                        <Typography variant="body1">วันที่: {booking.date}</Typography>
+                        <Typography variant="body1">
+                          สถานะ: 
+                          <span className={`font-bold ${booking.status === 'approved' ? 'text-green-500' : booking.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'}`}>
+                            {booking.status === 'pending' ? 'รอการอนุมัติ' : booking.status === 'approved' ? 'อนุมัติแล้ว' : 'ถูกปฏิเสธ'}
+                          </span>
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}                        
+            </div>
+
           </div>
         </div>
 

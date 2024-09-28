@@ -1,5 +1,5 @@
-// RoomDisplayComponent.tsx
 import React from 'react';
+import { Box, Typography, Card, CardContent } from '@mui/material';
 
 interface RoomDisplayProps {
   bookings: {
@@ -21,43 +21,46 @@ interface RoomDisplayProps {
 
 const RoomDisplayComponent: React.FC<RoomDisplayProps> = ({ bookings, currentUser }) => {
   return (
-    <div className="bg-gray-100 p-4 rounded shadow">
-      <h2 className="text-lg font-bold mb-4">สถานะการจองห้องประชุม</h2>
+    <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: 2, boxShadow: 3 }}>
+      <Typography variant="h6" component="h2" gutterBottom>
+        สถานะการจองห้องประชุม
+      </Typography>
       {bookings.map((booking) => (
-        <div key={booking.id} className="border-b pb-2 mb-2">
-          <p>ชื่อห้องประชุม: {booking.roomName}</p>
-          <p>ชื่อผู้จอง: {booking.name}</p>
-          {booking.name === currentUser && (
-            <>
-              <p>รหัสนิสิต: {booking.studentId}</p>
-              <p>อีเมล/เบอร์โทรศัพท์: {booking.contact}</p>
-              <p>วันที่: {booking.date}</p>
-              <p>ระยะเวลา: {booking.duration} นาที</p>
-              <p>จำนวนผู้เข้าร่วม: {booking.participants}</p>
-              <p>วัตถุประสงค์: {booking.purpose}</p>
-              <p>หมายเหตุเพิ่มเติม: {booking.notes}</p>
-              {booking.status === 'rejected' && (
-                <p className="text-red-600">เหตุผลการปฏิเสธ: {booking.rejectReason}</p>
-              )}
-            </>
-          )}
-          {booking.name !== currentUser && (
-            <>
-              <p>วันที่: {booking.date}</p>
-              <p>ระยะเวลา: {booking.duration} นาที</p>
-              <p>สถานะ: 
-                <span className={`font-bold ${booking.status === 'approved' ? 'text-green-600' : booking.status === 'rejected' ? 'text-red-600' : 'text-yellow-600'}`}>
-                  {booking.status === 'pending' ? 'รอการอนุมัติ' : booking.status === 'approved' ? 'อนุมัติแล้ว' : 'ถูกปฏิเสธ'}
-                </span>
-              </p>
-              {booking.status === 'rejected' && (
-                <p className="text-red-600">เหตุผลการปฏิเสธ: {booking.rejectReason}</p>
-              )}
-            </>
-          )}
-        </div>
+        <Card key={booking.id} variant="outlined" sx={{ mb: 2 }}>
+          <CardContent>
+            <Typography variant="h6">{booking.roomName}</Typography>
+            <Typography variant="subtitle1">ผู้จอง: {booking.name}</Typography>
+            {booking.name === currentUser ? (
+              <>
+                <Typography variant="body2">รหัสนิสิต: {booking.studentId}</Typography>
+                <Typography variant="body2">อีเมล/เบอร์โทรศัพท์: {booking.contact}</Typography>
+                <Typography variant="body2">วันที่: {booking.date}</Typography>
+                <Typography variant="body2">ระยะเวลา: {booking.duration} นาที</Typography>
+                <Typography variant="body2">จำนวนผู้เข้าร่วม: {booking.participants}</Typography>
+                <Typography variant="body2">วัตถุประสงค์: {booking.purpose}</Typography>
+                <Typography variant="body2">หมายเหตุเพิ่มเติม: {booking.notes}</Typography>
+                {booking.status === 'rejected' && (
+                  <Typography variant="body2" color="error">เหตุผลการปฏิเสธ: {booking.rejectReason}</Typography>
+                )}
+              </>
+            ) : (
+              <>
+                <Typography variant="body2">วันที่: {booking.date}</Typography>
+                <Typography variant="body2">ระยะเวลา: {booking.duration} นาที</Typography>
+                <Typography variant="body2">สถานะ: 
+                  <span className={`font-bold ${booking.status === 'approved' ? 'text-green-600' : booking.status === 'rejected' ? 'text-red-600' : 'text-yellow-600'}`}>
+                    {booking.status === 'pending' ? 'รอการอนุมัติ' : booking.status === 'approved' ? 'อนุมัติแล้ว' : 'ถูกปฏิเสธ'}
+                  </span>
+                </Typography>
+                {booking.status === 'rejected' && (
+                  <Typography variant="body2" color="error">เหตุผลการปฏิเสธ: {booking.rejectReason}</Typography>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
       ))}
-    </div>
+    </Box>
   );
 };
 

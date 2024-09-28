@@ -1,31 +1,25 @@
+// EventModal.tsx
 import React from 'react';
 import TextFieldComponent from '../../Body/TextFieldComponent';
 import useFormValidation from '../../Body/useFormValidation';
 
+interface FormData {
+  meetingRoom: string;
+  name: string;
+  studentId: string;
+  contact: string;
+  date: string;
+  duration: string; 
+  roomName: string;
+  purpose: string;
+}
+
 interface EventModalProps {
-  formData: {
-    meetingRoom: string;
-    name: string;
-    studentId: string;
-    contact: string;
-    date: string;
-    duration: string; // changed to string to match TextFieldComponent
-    roomName: string;
-    purpose: string;
-  };
-  onChange: (data: {
-    meetingRoom: string;
-    name: string;
-    studentId: string;
-    contact: string;
-    date: string;
-    duration: string; // changed to string
-    roomName: string;
-    purpose: string;
-  }) => void;
-  onSubmit: () => void;
-  onClose: () => void;
-  errors: { [key: string]: string }; // added errors prop
+  formData: FormData; 
+  onChange: (data: FormData) => void; 
+  onSubmit: (data: FormData) => void;
+  onClose: () => void; 
+  errors: { [key: string]: string }; 
 }
 
 const EventModal: React.FC<EventModalProps> = ({
@@ -35,14 +29,21 @@ const EventModal: React.FC<EventModalProps> = ({
   onClose,
   errors,
 }) => {
-  const { validateStudentId, validateContact } = useFormValidation(formData); // เรียกใช้ฟังก์ชันการตรวจสอบ
+  const { validateStudentId, validateContact } = useFormValidation(formData); 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    onChange({
+    const updatedFormData = {
       ...formData,
       [name]: value,
-    });
+    };
+    console.log("Form field changed:", { name, value }); // ตรวจสอบค่าที่ส่ง
+    onChange(updatedFormData); // ส่งข้อมูลที่อัปเดต
+  };
+
+  const handleSubmit = () => {
+    console.log('Submitting form data in EventModal:', formData); // Log before submit
+    onSubmit(formData); // เรียกใช้งาน onSubmit
   };
 
   return (
@@ -51,11 +52,11 @@ const EventModal: React.FC<EventModalProps> = ({
         <TextFieldComponent
           formData={formData}
           onChange={handleChange}
-          onSubmit={onSubmit}
+          onSubmit={handleSubmit} // เพิ่ม onSubmit ที่นี่
           onClose={onClose}
-          errors={errors} // pass errors to TextFieldComponent
-          validateStudentId={validateStudentId} // ส่ง validateStudentId
-          validateContact={validateContact} // ส่ง validateContact
+          errors={errors} 
+          validateStudentId={validateStudentId} 
+          validateContact={validateContact} 
         />
       </div>
     </div>

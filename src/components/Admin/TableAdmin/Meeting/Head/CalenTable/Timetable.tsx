@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   momentLocalizer,
@@ -12,6 +12,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import EventModal from './EventModal';
 import Toolbar from './Toolbar';
 import { Event as CustomEventType } from './types';
+import FormDataDisplay from '../../Body/ApproveRooms/FormDataDisplay';
 
 const localizer = momentLocalizer(moment);
 
@@ -22,39 +23,53 @@ interface TimetableProps {
     studentId: string;
     contact: string;
     date: string;
-    duration: string; // changed to string
+    duration: string;
     roomName: string;
     purpose: string;
   }) => void;
 }
 
 const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
-  const [events] = React.useState<CustomEventType[]>([]);
-  const [showModal, setShowModal] = React.useState(false);
-  const [currentDate, setCurrentDate] = React.useState<Date>(new Date());
-  const [currentView, setCurrentView] = React.useState<View>(Views.MONTH);
+  const [events] = useState<CustomEventType[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [currentView, setCurrentView] = useState<View>(Views.MONTH);
 
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = useState({
     meetingRoom: '',
     name: '',
     studentId: '',
     contact: '',
     date: currentDate.toISOString().split('T')[0],
-    duration: '30', // changed to string
+    duration: '30',
     roomName: '',
     purpose: '',
   });
 
-  const [errors, setErrors] = React.useState<{ [key: string]: string }>({}); // state for errors
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [submittedData, setSubmittedData] = useState<{
+    meetingRoom: string;
+    name: string;
+    studentId: string;
+    contact: string;
+    date: string;
+    duration: string;
+    roomName: string;
+    purpose: string;
+  } | null>(null); // กำหนดประเภทให้ชัดเจน
+
+  // useEffect เพื่ออัปเดต date ใน formData เมื่อ currentDate เปลี่ยน
+  useEffect(() => {
+    setFormData((prevData) => ({
+      ...prevData,
+      date: currentDate.toISOString().split('T')[0],
+    }));
+  }, [currentDate]);
 
   const handleSelectSlot = (slotInfo: { start: Date }) => {
     const selectedDate = new Date(slotInfo.start);
     selectedDate.setHours(0, 0, 0, 0);
     setCurrentDate(selectedDate);
-    setFormData((prevData) => ({
-      ...prevData,
-      date: selectedDate.toLocaleDateString('en-CA'), 
-    }));
     setShowModal(true);
   };
 
@@ -62,18 +77,17 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
     const { meetingRoom, name, studentId, contact, date, duration, roomName, purpose } = formData;
 
     const newErrors: { [key: string]: string } = {};
-
     if (!meetingRoom) newErrors.meetingRoom = 'กรุณาเลือกห้อง.';
     if (!name) newErrors.name = 'กรุณากรอกชื่อ.';
     if (!studentId) newErrors.studentId = 'กรุณากรอกรหัสนิสิต.';
     if (!contact) newErrors.contact = 'กรุณากรอกเบอร์โทรที่ติดต่อ.';
-    if (!date) newErrors.date = 'กรุณาวัน/เดือน/ปี.';
+    if (!date) newErrors.date = 'กรุณากรอกวันที่.';
     if (!duration) newErrors.duration = 'กรุณาเลือกระยะเวลา.';
     if (!roomName) newErrors.roomName = 'กรุณากรอกหัวข้อประชุม.';
     if (!purpose) newErrors.purpose = 'กรุณากรอกวัตถุประสงค์การจองห้อง.';
 
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors); // update errors state
+      setErrors(newErrors);
       return; 
     }
 
@@ -90,6 +104,9 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
       purpose,
     });
 
+    setSubmittedData(formData); // เก็บข้อมูลที่ส่ง
+    console.log('Submitted data for FormDataDisplay:', formData);
+
     setShowModal(false);
   };  
 
@@ -101,11 +118,11 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
       studentId: '',
       contact: '',
       date: currentDate.toISOString().split('T')[0],
-      duration: '30', // changed to string
+      duration: '30',
       roomName: '',
       purpose: '',
     });
-    setErrors({}); // clear errors
+    setErrors({});
   };
 
   const handleViewChange = (view: View) => {
@@ -158,9 +175,11 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
           onChange={(data) => setFormData(data)}
           onSubmit={handleSubmit}
           onClose={handleCloseModal}
-          errors={errors} // pass errors to EventModal
+          errors={errors}
         />
       )}
+
+      {submittedData && <FormDataDisplay data={submittedData} />} {/* แสดงข้อมูลที่ส่ง */}
     </div>
   );
 };

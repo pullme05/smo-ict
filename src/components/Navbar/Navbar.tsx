@@ -7,6 +7,7 @@ import QrcodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import { Button } from "@mui/material";
 import { Link as ScrollLink } from 'react-scroll';
 import { useNavigate, useLocation } from 'react-router-dom';
+
 interface NavbarProps {
   isLoggedIn: boolean;
   isAdmin: boolean;
@@ -23,25 +24,31 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
     setMenuOpen(!menuOpen);
   };
 
+  // ฟังก์ชันเลื่อนไปยังส่วนที่กำหนด
+  const scrollToSection = (sectionId: string) => {
+    const targetElement = document.getElementById(sectionId);
+    if (targetElement) {
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      window.scrollBy(0, -100); // เลื่อนหน้าต่างขึ้น 100px เพื่อลดการชนของ Navbar
+    } else {
+      // ลองใหม่หากยังไม่พบ element
+      setTimeout(() => scrollToSection(sectionId), 100);
+    }
+  };
+
+  // ฟังก์ชันที่ใช้เมื่อกดปุ่มสำหรับการเลื่อนหน้า
   const handleNavigateAndScroll = (sectionId: string) => {
-    if (sectionId === 'เกี่ยวกับเรา') {
-      navigate('/MemberUser');
-    } else if (location.pathname !== "/" && sectionId !== 'ติดต่อเรา') {
+    if (location.pathname !== "/" && sectionId !== 'ติดต่อเรา') {
       navigate("/");
       setTimeout(() => {
-        document.getElementById(sectionId)?.scrollIntoView({ 
-          behavior: "smooth", 
-          block: "start" 
-        });
-        window.scrollBy(0, -100);
+        scrollToSection(sectionId);
       }, 500);
     } else if (sectionId === 'ติดต่อเรา') {
       setTimeout(() => {
-        document.getElementById(sectionId)?.scrollIntoView({ 
-          behavior: "smooth", 
-          block: "start" 
-        });
-        window.scrollBy(0, -100);
+        scrollToSection(sectionId);
       }, 100);
     }
   };
@@ -70,16 +77,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
           <nav className="hidden md:flex gap-6 items-center justify-center flex-grow">
             {!isAdmin ? (
               <>
-                <ScrollLink
-                  to="เกี่ยวกับเรา"
-                  smooth={true}
-                  duration={500}
-                  offset={-100}
-                  onClick={() => handleNavigateAndScroll('เกี่ยวกับเรา')}
-                  className="hover:text-yellow-500 transition duration-300 cursor-pointer"
-                >
-                  เกี่ยวกับเรา
-                </ScrollLink>
+                {/* เอาเกี่ยวกับเราออก */}
                 <ScrollLink
                   to="ระบบของเรา"
                   smooth={true}
@@ -207,27 +205,15 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
             <nav className="flex flex-col space-y-4">
               {!isAdmin ? (
                 <>
-                  <ScrollLink
-                    to="เกี่ยวกับเรา"
-                    smooth={true}
-                    duration={500}
-                    offset={-100}
-                    onClick={() => {
-                      handleNavigateAndScroll('เกี่ยวกับเรา');
-                      toggleMenu();
-                    }}
-                    className="hover:text-yellow-500 transition duration-300 cursor-pointer"
-                  >
-                    เกี่ยวกับเรา
-                  </ScrollLink>
+                  {/* เอาเกี่ยวกับเราออก */}
                   <ScrollLink
                     to="ระบบของเรา"
                     smooth={true}
                     duration={500}
                     offset={-100}
                     onClick={() => {
-                      handleNavigateAndScroll('ระบบของเรา');
                       toggleMenu();
+                      handleNavigateAndScroll('ระบบของเรา');
                     }}
                     className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                   >
@@ -239,8 +225,8 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     duration={500}
                     offset={-100}
                     onClick={() => {
-                      handleNavigateAndScroll('ข่าวสาร');
                       toggleMenu();
+                      handleNavigateAndScroll('ข่าวสาร');
                     }}
                     className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                   >
@@ -252,8 +238,8 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     duration={500}
                     offset={-100}
                     onClick={() => {
-                      handleNavigateAndScroll('ติดต่อเรา');
                       toggleMenu();
+                      handleNavigateAndScroll('ติดต่อเรา');
                     }}
                     className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                   >
@@ -262,57 +248,61 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                 </>
               ) : (
                 <>
-                  <ScrollLink
-                    to="/admin/dashboard"
-                    smooth={true}
-                    duration={500}
-                    offset={-100}
+                  <div
                     onClick={() => {
-                      navigate('/admin/dashboard');
                       toggleMenu();
+                      navigate('/admin/dashboard');
                     }}
                     className="hover:text-yellow-500 transition duration-300 cursor-pointer"
                   >
                     Admin Dashboard
-                  </ScrollLink>
+                  </div>
                 </>
               )}
+              <div className="md:hidden flex items-center">
+                {isLoggedIn ? (
+                  <>
+                    <Button
+                      className="px-4 py-2 rounded-lg font-medium tracking-tight"
+                      variant="outlined"
+                      onClick={() => {
+                        handleLogout();
+                        toggleMenu();
+                      }}
+                      sx={{
+                        color: '#996600',
+                        borderColor: '#996600',
+                        '&:hover': {
+                          backgroundColor: '#996600',
+                          color: '#fff',
+                        },
+                      }}
+                    >
+                      ออกจากระบบ
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    className="px-4 py-2 rounded-lg font-medium tracking-tight"
+                    variant="outlined"
+                    onClick={() => {
+                      onLoginClick();
+                      toggleMenu();
+                    }}
+                    sx={{
+                      color: '#996600',
+                      borderColor: '#996600',
+                      '&:hover': {
+                        backgroundColor: '#996600',
+                        color: '#fff',
+                      },
+                    }}
+                  >
+                    ล็อคอิน
+                  </Button>
+                )}
+              </div>
             </nav>
-            <div className="mt-auto">
-              {isLoggedIn ? (
-                <Button
-                  className="w-full py-2 rounded-lg font-medium tracking-tight"
-                  variant="outlined"
-                  onClick={handleLogout}
-                  sx={{
-                    color: '#996600',
-                    borderColor: '#996600',
-                    '&:hover': {
-                      backgroundColor: '#996600',
-                      color: '#fff',
-                    },
-                  }}
-                >
-                  ออกจากระบบ
-                </Button>
-              ) : (
-                <Button
-                  className="w-full py-2 rounded-lg font-medium tracking-tight"
-                  variant="outlined"
-                  onClick={onLoginClick}
-                  sx={{
-                    color: '#996600',
-                    borderColor: '#996600',
-                    '&:hover': {
-                      backgroundColor: '#996600',
-                      color: '#fff',
-                    },
-                  }}
-                >
-                  ล็อคอิน
-                </Button>
-              )}
-            </div>
           </div>
         )}
       </div>
@@ -321,6 +311,3 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
 };
 
 export default Navbar;
-
-
-

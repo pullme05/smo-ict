@@ -47,7 +47,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
   };
 
   const handleLogout = () => {
-    if (location.pathname === '/scan') {
+    if (location.pathname === '/qrcode') {
       navigate('/');
     }
     onLogout();

@@ -8,17 +8,17 @@ interface TextFieldComponentProps {
     name: string;
     studentId: string;
     contact: string;
-    date: string;
-    duration: string; // ต้องเป็น string ตามที่คุณได้เปลี่ยนใน EventModal
+    date: string; // รูปแบบวันที่
+    duration: string; 
     roomName: string;
     purpose: string;
   };
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  onSubmit: () => void;
+  onSubmit: () => void; // การส่งข้อมูล
   onClose: () => void;
-  errors: { [key: string]: string }; // เพิ่ม errors
-  validateStudentId: (id: string) => string | null; // ฟังก์ชันตรวจสอบรหัสนิสิต
-  validateContact: (contact: string) => string | null; // ฟังก์ชันตรวจสอบเบอร์โทร
+  errors: { [key: string]: string }; 
+  validateStudentId: (id: string) => string | null; 
+  validateContact: (contact: string) => string | null; 
 }
 
 // ฟังก์ชันหลักของ TextFieldComponent
@@ -32,24 +32,47 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
   validateContact,
 }) => {
   useEffect(() => {
-    // ตรวจสอบรหัสนิสิตเมื่อมีการเปลี่ยนแปลง
     const studentIdError = validateStudentId(formData.studentId);
     if (studentIdError) {
       errors.studentId = studentIdError;
     } else {
-      delete errors.studentId; // ลบข้อผิดพลาดถ้าไม่มี
+      delete errors.studentId; 
     }
-  }, [formData.studentId]); // เรียกใช้เมื่อ studentId เปลี่ยนแปลง
+  }, [formData.studentId]); 
 
   useEffect(() => {
-    // ตรวจสอบเบอร์โทรเมื่อมีการเปลี่ยนแปลง
     const contactError = validateContact(formData.contact);
     if (contactError) {
       errors.contact = contactError;
     } else {
-      delete errors.contact; // ลบข้อผิดพลาดถ้าไม่มี
+      delete errors.contact; 
     }
-  }, [formData.contact]); // เรียกใช้เมื่อ contact เปลี่ยนแปลง
+  }, [formData.contact]); 
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+
+    if (name === 'date') {
+        // แปลงวันที่ที่ได้มาเป็น Local Date ที่ถูกต้อง
+        const selectedDate = new Date(value);
+        const localDate = new Date(selectedDate.getTime() + selectedDate.getTimezoneOffset() * 60000);
+        const formattedDate = localDate.toISOString().split('T')[0]; // เก็บเป็นวันที่ในรูปแบบ 'YYYY-MM-DD'
+
+        // ใช้ onChange ที่ส่งเข้ามาเพื่ออัปเดต formData
+        onChange({ target: { name, value: formattedDate } } as React.ChangeEvent<HTMLInputElement>);
+    } else {
+        // สำหรับฟิลด์อื่น ๆ
+        onChange(e); 
+    }
+};
+
+
+  // ฟังก์ชันที่เรียกเมื่อมีการส่งข้อมูล
+  const handleSubmit = () => {
+    // แสดงข้อมูลวันที่ใน console
+    console.log('Selected Date:', formData.date); // Log วันที่ที่ถูกเลือก
+    onSubmit(); // เรียกฟังก์ชัน onSubmit ที่ถูกส่งมา
+  };
 
   return (
     <Card variant="outlined" style={{ maxWidth: 500, margin: '5px auto', padding: '5px' }}>
@@ -61,13 +84,13 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
               label="ห้องประชุม"
               name="meetingRoom"
               value={formData.meetingRoom}
-              onChange={onChange}
+              onChange={handleChange}
               select
               fullWidth
               variant="outlined"
               required
-              error={!!errors.meetingRoom} // แสดงข้อผิดพลาดถ้ามี
-              helperText={errors.meetingRoom} // ข้อความข้อผิดพลาด
+              error={!!errors.meetingRoom} 
+              helperText={errors.meetingRoom} 
             >
               <MenuItem value="A">ห้อง A</MenuItem>
               <MenuItem value="B">ห้อง B</MenuItem>
@@ -79,7 +102,7 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
               label="ชื่อหัวข้อประชุม"
               name="roomName"
               value={formData.roomName}
-              onChange={onChange}
+              onChange={handleChange}
               fullWidth
               variant="outlined"
               required
@@ -92,7 +115,7 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
               label="ชื่อ"
               name="name"
               value={formData.name}
-              onChange={onChange}
+              onChange={handleChange}
               fullWidth
               variant="outlined"
               required
@@ -106,8 +129,8 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
               name="studentId"
               value={formData.studentId}
               onChange={(e) => {
-                onChange(e); // ใช้ onChange ที่ส่งเข้ามา
-                validateStudentId(e.target.value); // เรียกใช้ validateStudentId
+                handleChange(e); 
+                validateStudentId(e.target.value); 
               }}
               fullWidth
               variant="outlined"
@@ -122,8 +145,8 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
               name="contact"
               value={formData.contact}
               onChange={(e) => {
-                onChange(e); // ใช้ onChange ที่ส่งเข้ามา
-                validateContact(e.target.value); // เรียกใช้ validateContact
+                handleChange(e); 
+                validateContact(e.target.value); 
               }}
               fullWidth
               variant="outlined"
@@ -137,8 +160,8 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
               label="วันที่"
               name="date"
               type="date"
-              value={formData.date}
-              onChange={onChange}
+              value={formData.date} 
+              onChange={handleChange} 
               fullWidth
               variant="outlined"
               required
@@ -154,7 +177,7 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
               label="ระยะเวลา (นาที)"
               name="duration"
               value={formData.duration}
-              onChange={onChange}
+              onChange={handleChange}
               select
               fullWidth
               variant="outlined"
@@ -175,7 +198,7 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
               label="วัตถุประสงค์"
               name="purpose"
               value={formData.purpose}
-              onChange={onChange}
+              onChange={handleChange}
               fullWidth
               variant="outlined"
               multiline
@@ -186,7 +209,7 @@ const TextFieldComponent: React.FC<TextFieldComponentProps> = ({
             />
           </Grid>
           <Grid item xs={12}>
-            <Button variant="contained" color="primary" onClick={onSubmit}>
+            <Button variant="contained" color="primary" onClick={handleSubmit}>
               ส่งข้อมูล
             </Button>
             <Button variant="outlined" color="secondary" onClick={onClose} style={{ marginLeft: '10px' }}>

@@ -62,9 +62,10 @@ const Timetable: React.FC<TimetableProps> = ({ updateSelectionData }) => {
   useEffect(() => {
     setFormData((prevData) => ({
       ...prevData,
-      date: currentDate.toISOString().split('T')[0],
+      date: currentDate.toLocaleDateString('en-CA'), // ใช้ 'en-CA' สำหรับ 'YYYY-MM-DD'
     }));
   }, [currentDate]);
+  
 
   const handleSelectSlot = (slotInfo: { start: Date }) => {
     const selectedDate = new Date(slotInfo.start);

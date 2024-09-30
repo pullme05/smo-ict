@@ -67,9 +67,10 @@ const AdminDashboard = () => {
           {/* Card 2 */}
           <div className="bg-white p-4 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300">
             <h2 className="text-xl font-semibold">การจองห้อง</h2>
+            {/* test */}
             <button
               className="mt-4 px-4 py-2 bg-[#996600] text-white rounded transition-transform duration-300 hover:scale-105"
-              onClick={() => navigate('/admin/heart')}
+              onClick={() => navigate('/admin/heartAM')}
             >
               กดปุ่ม
             </button>

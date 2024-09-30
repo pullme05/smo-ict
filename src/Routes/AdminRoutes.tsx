@@ -4,7 +4,7 @@ import AllNewAM from '../components/Admin/NewsAdmin/AllNewAM';
 import AdminCalendar from '../components/Admin/CalendarAdminPro/AdminCalendar';
 import AdminMember from '../components/Admin/MemberAdmin/AdminMember';
 import { useEffect, useState } from 'react';
-import HeartAdmin from '../components/Admin/TableAdmin/Meeting/Heart';
+import MeetingRoomAM from '../components/Admin/MeetingRoomAm/MeetingRoomAm';
 interface AdminRoutesProps {
   isAdmin: boolean;
 }
@@ -32,9 +32,10 @@ const AdminRoutes: React.FC<AdminRoutesProps> = ({ isAdmin }) => {
         element={isAdmin ? <AdminCalendar /> : <Navigate to="/" />}
       />
       <Route
-        path="/heart"
-        element={isAdmin ? <HeartAdmin /> : <Navigate to="/" />}
+        path="/heartAM"
+        element={isAdmin ? <MeetingRoomAM /> : <Navigate to="/" />}
       />
+      
       <Route
         path="/Member"
         element={isAdmin ? <AdminMember /> : <Navigate to="/" />}

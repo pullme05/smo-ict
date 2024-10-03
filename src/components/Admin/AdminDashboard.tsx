@@ -98,6 +98,16 @@ const AdminDashboard = () => {
             กดปุ่ม
           </button>
         </div>
+
+        <div className="bg-white mt-8 p-6 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300 w-full">
+          <h2 className="text-2xl font-semibold mb-4">ข่าวประชาสัมพันธ์นิติสโมสร</h2>
+          <button
+            className="mt-4 px-4 py-2 bg-[#996600] text-white rounded transition-transform duration-300 hover:scale-105"
+            onClick={() => navigate('/admin/NewsAM')}
+          >
+            กดปุ่ม
+          </button>
+        </div>
       </main>
     </div>
   );

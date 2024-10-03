@@ -24,18 +24,20 @@ import {
   MenuItem,
   SelectChangeEvent,
 } from '@mui/material';
+import ReactQuill from 'react-quill'; // Import Quill
+import 'react-quill/dist/quill.snow.css'; // Import Quill CSS
 
-// กำหนดประเภทของข้อมูล
+// Define the type for data
 interface Entry {
   id: number;
   image: string;
   category: string;
   name: string;
   date: string;
-  description: string; // เพิ่มฟิลด์สำหรับเนื้อหา
+  description: string; // Added field for description
 }
 
-// ข้อมูลตัวอย่าง
+// Sample data
 const initialData: Entry[] = [
   {
     id: 1,
@@ -43,7 +45,7 @@ const initialData: Entry[] = [
     category: 'ข่าวทั่วไป',
     name: 'Item 1',
     date: '2024-01-01',
-    description: 'Description for Item 1', // เพิ่มเนื้อหาตัวอย่าง
+    description: 'Description for Item 1',
   },
   {
     id: 2,
@@ -51,20 +53,20 @@ const initialData: Entry[] = [
     category: 'ข่าวกิจกรรม',
     name: 'Item 2',
     date: '2024-02-01',
-    description: 'Description for Item 2', // เพิ่มเนื้อหาตัวอย่าง
+    description: 'Description for Item 2',
   },
 ];
 
-// สไตล์สำหรับ TableCell
+// Style for TableCell
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   border: '1px solid #e0e0e0',
   padding: '10px',
   backgroundColor: theme.palette.background.paper,
-  textAlign: 'center', // จัดกึ่งกลาง
+  textAlign: 'center', // Center align
 }));
 
 const CustomTable = () => {
-  const [data, setData] = useState<Entry[]>(initialData); // กำหนดประเภทให้ data
+  const [data, setData] = useState<Entry[]>(initialData);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [newEntry, setNewEntry] = useState<Omit<Entry, 'id'>>({
@@ -72,10 +74,10 @@ const CustomTable = () => {
     category: '',
     name: '',
     date: '',
-    description: '', // ฟิลด์เนื้อหา
-  }); // ใช้ Omit เพื่อลดประเภทให้ไม่มี id
+    description: '', // Content field
+  });
 
-  const [editEntry, setEditEntry] = useState<Entry | null>(null); // สำหรับการแก้ไข
+  const [editEntry, setEditEntry] = useState<Entry | null>(null);
 
   const handleOpen = () => {
     setOpen(true);
@@ -102,17 +104,17 @@ const CustomTable = () => {
     if (editEntry) {
       setEditEntry((prev) => ({
         ...prev!,
-        [name as string]: value, // แก้ไขการเข้าถึง name
+        [name as string]: value,
       }));
     } else {
       setNewEntry((prev) => ({
         ...prev,
-        [name as string]: value, // แก้ไขการเข้าถึง name
+        [name as string]: value,
       }));
     }
   };
 
-  // ฟังก์ชันเฉพาะสำหรับ Select
+  // Function specific for Select
   const handleSelectChange = (e: SelectChangeEvent<string>) => {
     const { name, value } = e.target;
     if (editEntry) {
@@ -129,23 +131,37 @@ const CustomTable = () => {
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; // ตรวจสอบว่า files มีค่าหรือไม่
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         if (editEntry) {
           setEditEntry((prev) => ({
             ...prev!,
-            image: reader.result as string, // เก็บค่า Base64 ของภาพในรูปแบบ string
+            image: reader.result as string,
           }));
         } else {
           setNewEntry((prev) => ({
             ...prev,
-            image: reader.result as string, // เก็บค่า Base64 ของภาพในรูปแบบ string
+            image: reader.result as string,
           }));
         }
       };
-      reader.readAsDataURL(file); // อ่านไฟล์เป็น Base64
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDescriptionChange = (value: string) => {
+    if (editEntry) {
+      setEditEntry((prev) => ({
+        ...prev!,
+        description: value,
+      }));
+    } else {
+      setNewEntry((prev) => ({
+        ...prev,
+        description: value,
+      }));
     }
   };
 
@@ -159,7 +175,7 @@ const CustomTable = () => {
       },
     ]);
     handleClose();
-    setNewEntry({ image: '', category: '', name: '', date: '', description: '' }); // Reset new entry
+    setNewEntry({ image: '', category: '', name: '', date: '', description: '' });
   };
 
   const handleEditSubmit = () => {
@@ -171,9 +187,9 @@ const CustomTable = () => {
     handleEditClose();
   };
 
-  // ฟังก์ชันสำหรับการลบรายการ
+  // Function to delete an entry
   const handleDelete = (id: number) => {
-    setData((prev) => prev.filter((entry) => entry.id !== id)); // ลบรายการที่มี id ตรงกัน
+    setData((prev) => prev.filter((entry) => entry.id !== id));
   };
 
   return (
@@ -193,7 +209,11 @@ const CustomTable = () => {
       </Box>
 
       {/* Table Container */}
-      <TableContainer component={Paper} elevation={3} style={{ marginTop: '20px', maxWidth: '1600px', marginLeft: 'auto', marginRight: 'auto' }}>
+      <TableContainer
+        component={Paper}
+        elevation={3}
+        style={{ marginTop: '20px', maxWidth: '1600px', marginLeft: 'auto', marginRight: 'auto' }}
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -210,7 +230,8 @@ const CustomTable = () => {
             {data.map((row) => (
               <TableRow key={row.id}>
                 <StyledTableCell>{row.id}</StyledTableCell>
-                <StyledTableCell style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}> {/* จัดกลางรูปภาพ */}
+                <StyledTableCell style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  {/* Center image */}
                   <input
                     accept="image/*"
                     style={{ display: 'none' }}
@@ -222,7 +243,7 @@ const CustomTable = () => {
                     <img
                       src={row.image}
                       alt={row.name}
-                      style={{ width: '150px', height: '150px', borderRadius: '4px', cursor: 'pointer' }} // ปรับขนาดเป็น 150x150
+                      style={{ width: '150px', height: '150px', borderRadius: '4px', cursor: 'pointer' }} // Adjust size to 150x150
                     />
                   </label>
                 </StyledTableCell>
@@ -235,7 +256,7 @@ const CustomTable = () => {
                   </Button>
                 </StyledTableCell>
                 <StyledTableCell>
-                  <Button variant="outlined" color="error" onClick={() => handleDelete(row.id)}> {/* เพิ่มการลบ */}
+                  <Button variant="outlined" color="error" onClick={() => handleDelete(row.id)}>
                     Delete
                   </Button>
                 </StyledTableCell>
@@ -252,11 +273,11 @@ const CustomTable = () => {
           <input
             accept="image/*"
             style={{ display: 'none' }}
-            id="new-image-upload"
+            id="image-upload"
             type="file"
             onChange={handleImageUpload}
           />
-          <label htmlFor="new-image-upload">
+          <label htmlFor="image-upload">
             <Button variant="outlined" component="span">
               Upload Image
             </Button>
@@ -264,46 +285,48 @@ const CustomTable = () => {
           <img
             src={newEntry.image}
             alt="Preview"
-            style={{ width: '150px', height: '150px', borderRadius: '4px', display: newEntry.image ? 'block' : 'none' }} // แสดงตัวอย่างภาพ
+            style={{ width: '60%', height: 'auto', marginTop: '10px', marginBottom: '10px' }} // Adjust size to 60%
           />
-          <FormControl fullWidth margin="normal">
+          <FormControl fullWidth variant="outlined" style={{ marginBottom: '10px' }}>
             <InputLabel>Category</InputLabel>
             <Select
               name="category"
               value={newEntry.category}
               onChange={handleSelectChange}
+              label="Category"
             >
               <MenuItem value="ข่าวทั่วไป">ข่าวทั่วไป</MenuItem>
               <MenuItem value="ข่าวกิจกรรม">ข่าวกิจกรรม</MenuItem>
+              <MenuItem value="ข่าวการศึกษา">ข่าวการศึกษา</MenuItem>
             </Select>
           </FormControl>
           <TextField
             name="name"
             label="Name"
-            fullWidth
-            margin="normal"
             value={newEntry.name}
             onChange={handleChange}
+            fullWidth
+            variant="outlined"
+            style={{ marginBottom: '10px' }}
           />
           <TextField
             name="date"
             label="Date"
             type="date"
-            fullWidth
-            margin="normal"
             value={newEntry.date}
             onChange={handleChange}
+            fullWidth
+            variant="outlined"
+            style={{ marginBottom: '10px' }}
             InputLabelProps={{
               shrink: true,
             }}
           />
-          <TextField
-            name="description" // เพิ่มฟิลด์สำหรับเนื้อหา
-            label="Description"
-            fullWidth
-            margin="normal"
-            value={newEntry.description} // เพิ่มการใช้งานเนื้อหา
-            onChange={handleChange}
+          {/* Description using Quill */}
+          <ReactQuill
+            value={newEntry.description}
+            onChange={handleDescriptionChange}
+            style={{ marginBottom: '10px' }}
           />
         </DialogContent>
         <DialogActions>
@@ -323,58 +346,62 @@ const CustomTable = () => {
           <input
             accept="image/*"
             style={{ display: 'none' }}
-            id={`edit-image-upload`}
+            id="image-upload-edit"
             type="file"
             onChange={handleImageUpload}
           />
-          <label htmlFor={`edit-image-upload`}>
+          <label htmlFor="image-upload-edit">
             <Button variant="outlined" component="span">
               Upload Image
             </Button>
           </label>
-          <img
-            src={editEntry?.image}
-            alt="Preview"
-            style={{ width: '150px', height: '150px', borderRadius: '4px', display: editEntry?.image ? 'block' : 'none' }} // แสดงตัวอย่างภาพ
-          />
-          <FormControl fullWidth margin="normal">
+          {editEntry?.image && (
+            <img
+              src={editEntry.image}
+              alt="Preview"
+              style={{ width: '60%', height: 'auto', marginTop: '10px', marginBottom: '10px' }}
+            />
+          )}
+          <FormControl fullWidth variant="outlined" style={{ marginBottom: '10px' }}>
             <InputLabel>Category</InputLabel>
             <Select
               name="category"
-              value={editEntry?.category}
+              value={editEntry?.category || ''}
               onChange={handleSelectChange}
+              label="Category"
             >
               <MenuItem value="ข่าวทั่วไป">ข่าวทั่วไป</MenuItem>
               <MenuItem value="ข่าวกิจกรรม">ข่าวกิจกรรม</MenuItem>
+              <MenuItem value="ข่าวการศึกษา">ข่าวการศึกษา</MenuItem>
             </Select>
           </FormControl>
           <TextField
             name="name"
             label="Name"
-            fullWidth
-            margin="normal"
-            value={editEntry?.name}
+            value={editEntry?.name || ''}
             onChange={handleChange}
+            fullWidth
+            variant="outlined"
+            style={{ marginBottom: '10px' }}
           />
           <TextField
             name="date"
             label="Date"
             type="date"
-            fullWidth
-            margin="normal"
-            value={editEntry?.date}
+            value={editEntry?.date || ''}
             onChange={handleChange}
+            fullWidth
+            variant="outlined"
+            style={{ marginBottom: '10px' }}
             InputLabelProps={{
               shrink: true,
             }}
           />
-          <TextField
-            name="description" // เพิ่มฟิลด์สำหรับเนื้อหา
-            label="Description"
-            fullWidth
-            margin="normal"
-            value={editEntry?.description} // เพิ่มการใช้งานเนื้อหา
-            onChange={handleChange}
+          {/* Description using Quill */}
+          <ReactQuill
+            value={editEntry?.description || ''}
+            onChange={handleDescriptionChange}
+            style={{ marginBottom: '10px' }}
           />
         </DialogContent>
         <DialogActions>
@@ -382,7 +409,7 @@ const CustomTable = () => {
             Cancel
           </Button>
           <Button onClick={handleEditSubmit} color="primary">
-            Save
+            Save Changes
           </Button>
         </DialogActions>
       </Dialog>

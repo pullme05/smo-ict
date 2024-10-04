@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState,  } from 'react';
 import './App.css';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'; // เพิ่ม Navigate
 import LoginModal from './components/Login/LoginModel';
 import UserRoutes from './Routes/UserRouter';
 import AdminRoutes from './Routes/AdminRoutes';
@@ -12,30 +12,14 @@ function App() {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
 
-  useEffect(() => {
-    const storedLoginStatus = localStorage.getItem('isLoggedIn');
-    const storedAdminStatus = localStorage.getItem('isAdmin');
-    
-    if (storedLoginStatus === 'true') {
-      setIsLoggedIn(true);
-      if (storedAdminStatus === 'true') {
-        setIsAdmin(true);
-      }
-    }
-  }, []);
-
   const handleLogin = (adminLogin: boolean) => {
     setIsLoggedIn(true);
     setIsAdmin(adminLogin);
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('isAdmin', adminLogin.toString());
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     setIsAdmin(false);
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('isAdmin');
   };
 
   return (
@@ -48,8 +32,20 @@ function App() {
       />
       <div className="main-content">
         <Routes>
+          {/* Routes สำหรับ User */}
           <Route path="/*" element={<UserRoutes />} />
-          <Route path="/admin/*" element={<AdminRoutes isAdmin={isAdmin} />} />
+          
+          {/* Routes สำหรับ Admin */}
+          <Route 
+            path="/admin/*" 
+            element={
+              isAdmin ? (
+                <AdminRoutes isAdmin={isAdmin} />
+              ) : (
+                <Navigate to="/" replace />  
+              )
+            } 
+          />
         </Routes>
       </div>
       <Footer />

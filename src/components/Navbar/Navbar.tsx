@@ -24,7 +24,6 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
     setMenuOpen(!menuOpen);
   };
 
-  // ฟังก์ชันเลื่อนไปยังส่วนที่กำหนด
   const scrollToSection = (sectionId: string) => {
     const targetElement = document.getElementById(sectionId);
     if (targetElement) {
@@ -34,12 +33,10 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
       });
       window.scrollBy(0, -100); // เลื่อนหน้าต่างขึ้น 100px เพื่อลดการชนของ Navbar
     } else {
-      // ลองใหม่หากยังไม่พบ element
       setTimeout(() => scrollToSection(sectionId), 100);
     }
   };
 
-  // ฟังก์ชันที่ใช้เมื่อกดปุ่มสำหรับการเลื่อนหน้า
   const handleNavigateAndScroll = (sectionId: string) => {
     if (location.pathname !== "/" && sectionId !== 'ติดต่อเรา') {
       navigate("/");
@@ -75,9 +72,15 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
           </div>
 
           <nav className="hidden md:flex gap-6 items-center justify-center flex-grow">
-            {!isAdmin ? (
+            {isAdmin ? (
+              <div
+                onClick={() => navigate('/admin/dashboard')}
+                className="hover:text-yellow-500 transition duration-300 cursor-pointer"
+              >
+                Admin Dashboard
+              </div>
+            ) : (
               <>
-                {/* เอาเกี่ยวกับเราออก */}
                 <ScrollLink
                   to="ระบบของเรา"
                   smooth={true}
@@ -108,15 +111,6 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                 >
                   ติดต่อเรา
                 </ScrollLink>
-              </>
-            ) : (
-              <>
-                <div
-                  onClick={() => navigate('/admin/dashboard')}
-                  className="hover:text-yellow-500 transition duration-300 cursor-pointer"
-                >
-                  Admin Dashboard
-                </div>
               </>
             )}
           </nav>
@@ -202,10 +196,20 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                 <CloseIcon className="h-8 w-8 text-smoIct cursor-pointer" onClick={toggleMenu} />
               </div>
             </div>
+
             <nav className="flex flex-col space-y-4">
-              {!isAdmin ? (
+              {isAdmin ? (
+                <div
+                  onClick={() => {
+                    toggleMenu();
+                    navigate('/admin/dashboard');
+                  }}
+                  className="hover:text-yellow-500 transition duration-300 cursor-pointer"
+                >
+                  Admin Dashboard
+                </div>
+              ) : (
                 <>
-                  {/* เอาเกี่ยวกับเราออก */}
                   <ScrollLink
                     to="ระบบของเรา"
                     smooth={true}
@@ -246,63 +250,50 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     ติดต่อเรา
                   </ScrollLink>
                 </>
-              ) : (
-                <>
-                  <div
-                    onClick={() => {
-                      toggleMenu();
-                      navigate('/admin/dashboard');
-                    }}
-                    className="hover:text-yellow-500 transition duration-300 cursor-pointer"
-                  >
-                    Admin Dashboard
-                  </div>
-                </>
               )}
-              <div className="md:hidden flex items-center">
-                {isLoggedIn ? (
-                  <>
-                    <Button
-                      className="px-4 py-2 rounded-lg font-medium tracking-tight"
-                      variant="outlined"
-                      onClick={() => {
-                        handleLogout();
-                        toggleMenu();
-                      }}
-                      sx={{
-                        color: '#996600',
-                        borderColor: '#996600',
-                        '&:hover': {
-                          backgroundColor: '#996600',
-                          color: '#fff',
-                        },
-                      }}
-                    >
-                      ออกจากระบบ
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    className="px-4 py-2 rounded-lg font-medium tracking-tight"
-                    variant="outlined"
-                    onClick={() => {
-                      onLoginClick();
-                      toggleMenu();
-                    }}
-                    sx={{
-                      color: '#996600',
-                      borderColor: '#996600',
-                      '&:hover': {
-                        backgroundColor: '#996600',
-                        color: '#fff',
-                      },
-                    }}
-                  >
-                    ล็อคอิน
-                  </Button>
-                )}
-              </div>
             </nav>
+
+            <div className="mt-auto">
+              {isLoggedIn ? (
+                <Button
+                  className="px-4 py-2 rounded-lg font-medium tracking-tight w-full"
+                  variant="outlined"
+                  onClick={() => {
+                    toggleMenu();
+                    handleLogout();
+                  }}
+                  sx={{
+                    color: '#996600',
+                    borderColor: '#996600',
+                    '&:hover': {
+                      backgroundColor: '#996600',
+                      color: '#fff',
+                    },
+                  }}
+                >
+                  ออกจากระบบ
+                </Button>
+              ) : (
+                <Button
+                  className="px-4 py-2 rounded-lg font-medium tracking-tight w-full"
+                  variant="outlined"
+                  onClick={() => {
+                    toggleMenu();
+                    onLoginClick();
+                  }}
+                  sx={{
+                    color: '#996600',
+                    borderColor: '#996600',
+                    '&:hover': {
+                      backgroundColor: '#996600',
+                      color: '#fff',
+                    },
+                  }}
+                >
+                  ล็อคอิน
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>

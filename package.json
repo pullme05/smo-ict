@@ -14,7 +14,11 @@
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^6.1.0",
     "@mui/material": "^6.1.0",
+<<<<<<< HEAD
     "boxicons": "^2.1.4",
+=======
+    "axios": "^1.7.7",
+>>>>>>> 02ce8abce53f6b63d4078af971a95396d991d273
     "crypto-js": "^4.2.0",
     "moment": "^2.30.1",
     "qrcode.react": "^4.0.1",

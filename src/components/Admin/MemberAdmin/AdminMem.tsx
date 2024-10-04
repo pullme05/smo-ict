@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -18,32 +18,36 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
 } from '@mui/material';
-import ReactQuill from 'react-quill'; // Import Quill
-import 'react-quill/dist/quill.snow.css'; // Import Quill CSS
+import { createEditor } from 'slate';
+import { Slate, Editable, withReact } from 'slate-react';
 
+// สร้าง interface สำหรับ CustomDescendant
+interface CustomText {
+  text: string; // เพิ่ม text ที่นี่
+}
 
-// Define the type for data
+interface CustomDescendant {
+  type: 'paragraph' | 'heading'; // กำหนดประเภทที่ต้องการ
+  children: CustomText[]; // เปลี่ยนให้ children เป็น CustomText[]
+}
+
+// สร้าง interface สำหรับ entry
 interface Entry {
   id: number;
   image: string;
-  position: string;  // Changed from category to position
+  position: string;
   name: string;
   date: string;
-  description: string; // Added field for description
+  description: string;
 }
 
-// Sample data
+// ข้อมูลเริ่มต้น
 const initialData: Entry[] = [
   {
     id: 1,
     image: 'https://via.placeholder.com/150',
-    position: '1', // Changed to position
+    position: '1',
     name: 'Item 1',
     date: '2024-01-01',
     description: 'Description for Item 1',
@@ -51,19 +55,18 @@ const initialData: Entry[] = [
   {
     id: 2,
     image: 'https://via.placeholder.com/150',
-    position: '2', // Changed to position
+    position: '2',
     name: 'Item 2',
     date: '2024-02-01',
     description: 'Description for Item 2',
   },
 ];
 
-// Style for TableCell
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   border: '1px solid #e0e0e0',
   padding: '10px',
   backgroundColor: theme.palette.background.paper,
-  textAlign: 'center', // Center align
+  textAlign: 'center',
 }));
 
 const CustomTable = () => {
@@ -72,13 +75,21 @@ const CustomTable = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [newEntry, setNewEntry] = useState<Omit<Entry, 'id'>>({
     image: '',
-    position: '', // Changed to position
+    position: '',
     name: '',
     date: '',
-    description: '', // Content field
+    description: '',
   });
-
   const [editEntry, setEditEntry] = useState<Entry | null>(null);
+  const editor = useMemo(() => withReact(createEditor()), []);
+
+  // ใช้ CustomDescendant แทน Descendant
+  const [editorValue, setEditorValue] = useState<CustomDescendant[]>([
+    {
+      type: 'paragraph',
+      children: [{ text: '' }],
+    },
+  ]);
 
   const handleOpen = () => {
     setOpen(true);
@@ -86,11 +97,13 @@ const CustomTable = () => {
 
   const handleClose = () => {
     setOpen(false);
+    setEditorValue([{ type: 'paragraph', children: [{ text: '' }] }]); // reset editor
   };
 
   const handleEditOpen = (row: Entry) => {
     setEditEntry(row);
-    setEditOpen(true);
+    setEditorValue([{ type: 'paragraph', children: [{ text: row.description }] }]);
+    setEditOpen(true); // เปิด Dialog แก้ไข
   };
 
   const handleEditClose = () => {
@@ -111,22 +124,6 @@ const CustomTable = () => {
       setNewEntry((prev) => ({
         ...prev,
         [name as string]: value,
-      }));
-    }
-  };
-
-  // Function specific for Select
-  const handleSelectChange = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    if (editEntry) {
-      setEditEntry((prev) => ({
-        ...prev!,
-        [name]: value,
-      }));
-    } else {
-      setNewEntry((prev) => ({
-        ...prev,
-        [name]: value,
       }));
     }
   };
@@ -152,20 +149,6 @@ const CustomTable = () => {
     }
   };
 
-  const handleDescriptionChange = (value: string) => {
-    if (editEntry) {
-      setEditEntry((prev) => ({
-        ...prev!,
-        description: value,
-      }));
-    } else {
-      setNewEntry((prev) => ({
-        ...prev,
-        description: value,
-      }));
-    }
-  };
-
   const handleSubmit = () => {
     const newId = data.length > 0 ? data[data.length - 1].id + 1 : 1;
     setData((prev) => [
@@ -173,6 +156,7 @@ const CustomTable = () => {
       {
         ...newEntry,
         id: newId,
+        description: editorValue.map((block) => block.children[0].text).join(' '),
       },
     ]);
     handleClose();
@@ -182,28 +166,28 @@ const CustomTable = () => {
   const handleEditSubmit = () => {
     if (editEntry) {
       setData((prev) =>
-        prev.map((entry) => (entry.id === editEntry.id ? editEntry : entry))
+        prev.map((entry) =>
+          entry.id === editEntry.id
+            ? { ...editEntry, description: editorValue.map((block) => block.children[0].text).join(' ') }
+            : entry
+        )
       );
     }
     handleEditClose();
   };
 
-  // Function to delete an entry
   const handleDelete = (id: number) => {
     setData((prev) => prev.filter((entry) => entry.id !== id));
   };
 
   return (
     <div>
-      {/* Header with Create Button */}
       <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>
         <AppBar position="static" style={{ backgroundColor: '#1976d2' }}>
           <Toolbar>
             <Typography variant="h6" style={{ flexGrow: 1 }}>
               Data Management
             </Typography>
-            <Typography variant="h6" style={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-             </Typography>
             <Button variant="contained" color="secondary" onClick={handleOpen}>
               Create New
             </Button>
@@ -211,7 +195,6 @@ const CustomTable = () => {
         </AppBar>
       </Box>
 
-      {/* Table Container */}
       <TableContainer
         component={Paper}
         elevation={3}
@@ -222,7 +205,7 @@ const CustomTable = () => {
             <TableRow>
               <StyledTableCell>No.</StyledTableCell>
               <StyledTableCell>Image</StyledTableCell>
-              <StyledTableCell>Position</StyledTableCell> {/* Changed category to position */}
+              <StyledTableCell>Position</StyledTableCell>
               <StyledTableCell>Name</StyledTableCell>
               <StyledTableCell>Date</StyledTableCell>
               <StyledTableCell>Edit</StyledTableCell>
@@ -234,7 +217,6 @@ const CustomTable = () => {
               <TableRow key={row.id}>
                 <StyledTableCell>{row.id}</StyledTableCell>
                 <StyledTableCell style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  {/* Center image */}
                   <input
                     accept="image/*"
                     style={{ display: 'none' }}
@@ -246,11 +228,11 @@ const CustomTable = () => {
                     <img
                       src={row.image}
                       alt={row.name}
-                      style={{ width: '150px', height: '150px', borderRadius: '4px', cursor: 'pointer' }} // Adjust size to 150x150
+                      style={{ width: '150px', height: '150px', borderRadius: '4px', cursor: 'pointer' }}
                     />
                   </label>
                 </StyledTableCell>
-                <StyledTableCell>{row.position}</StyledTableCell> {/* Changed category to position */}
+                <StyledTableCell>{row.position}</StyledTableCell>
                 <StyledTableCell>{row.name}</StyledTableCell>
                 <StyledTableCell>{row.date}</StyledTableCell>
                 <StyledTableCell>
@@ -269,18 +251,17 @@ const CustomTable = () => {
         </Table>
       </TableContainer>
 
-      {/* Dialog for New Entry */}
       <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
         <DialogTitle>Create New Entry</DialogTitle>
         <DialogContent>
           <input
             accept="image/*"
             style={{ display: 'none' }}
-            id="image-upload"
+            id={`image-upload-new`}
             type="file"
             onChange={handleImageUpload}
           />
-          <label htmlFor="image-upload">
+          <label htmlFor={`image-upload-new`}>
             <Button variant="outlined" component="span">
               Upload Image
             </Button>
@@ -288,130 +269,150 @@ const CustomTable = () => {
           <img
             src={newEntry.image}
             alt="Preview"
-            style={{ width: '60%', marginTop: '10px' }}
+            style={{
+              width: '60%',
+              height: 'auto',
+              borderRadius: '4px',
+              marginTop: '10px',
+            }}
           />
-          <FormControl fullWidth sx={{ marginTop: '20px' }}>
-            <InputLabel>Position</InputLabel>
-            <Select
-              name="position"
-              value={newEntry.position}
-              onChange={handleSelectChange}
-            >
-              <MenuItem value="1">1</MenuItem>
-              <MenuItem value="2">2</MenuItem>
-              <MenuItem value="3">3</MenuItem>
-              <MenuItem value="4">4</MenuItem>
-            </Select>
-          </FormControl>
           <TextField
-            label="Name"
+            name="position"
+            label="Position"
+            value={newEntry.position}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
             name="name"
+            label="Name"
             value={newEntry.name}
             onChange={handleChange}
             fullWidth
-            sx={{ marginTop: '20px' }}
+            margin="normal"
           />
           <TextField
-            label="Date"
             name="date"
+            label="Date"
+            type="date"
             value={newEntry.date}
             onChange={handleChange}
             fullWidth
-            sx={{ marginTop: '20px' }}
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
           />
-          <div style={{ marginTop: '20px' }}>
-            <InputLabel>Description</InputLabel>
-            <ReactQuill
-              value={newEntry.description}
-              onChange={handleDescriptionChange}
-              style={{
-                height: '300px',
-                overflowY: 'auto',
-                marginBottom: '20px',
+          <Box
+            sx={{
+              border: '1px solid #e0e0e0',
+              borderRadius: '4px',
+              padding: '10px',
+              marginTop: '10px',
+            }}
+          >
+            <Slate
+              editor={editor}
+              initialValue={editorValue} // เปลี่ยนจาก value เป็น initialValue
+              onChange={(value) => {
+                // เปลี่ยน Descendant[] เป็น CustomDescendant[]
+                setEditorValue(value as CustomDescendant[]);
               }}
-            />
-          </div>
+            >
+              <Editable placeholder="Write your description here..." />
+            </Slate>
+          </Box>
+
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="secondary">
+          <Button onClick={handleClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
+          <Button onClick={handleSubmit} color="primary">
             Submit
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Dialog for Edit Entry */}
       <Dialog open={editOpen} onClose={handleEditClose} maxWidth="lg" fullWidth>
         <DialogTitle>Edit Entry</DialogTitle>
-        {editEntry && (
-          <DialogContent>
-            <input
-              accept="image/*"
-              style={{ display: 'none' }}
-              id="edit-image-upload"
-              type="file"
-              onChange={handleImageUpload}
-            />
-            <label htmlFor="edit-image-upload">
-              <Button variant="outlined" component="span">
-                Upload Image
-              </Button>
-            </label>
-            <img
-              src={editEntry.image}
-              alt="Preview"
-              style={{ width: '60%', marginTop: '10px' }}
-            />
-            <FormControl fullWidth sx={{ marginTop: '20px' }}>
-              <InputLabel>Position</InputLabel>
-              <Select
-                name="position"
-                value={editEntry.position}
-                onChange={handleSelectChange}
-              >
-                <MenuItem value="1">1</MenuItem>
-                <MenuItem value="2">2</MenuItem>
-                <MenuItem value="3">3</MenuItem>
-                <MenuItem value="4">4</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              label="Name"
-              name="name"
-              value={editEntry.name}
-              onChange={handleChange}
-              fullWidth
-              sx={{ marginTop: '20px' }}
-            />
-            <TextField
-              label="Date"
-              name="date"
-              value={editEntry.date}
-              onChange={handleChange}
-              fullWidth
-              sx={{ marginTop: '20px' }}
-            />
-            <div style={{ marginTop: '20px' }}>
-              <InputLabel>Description</InputLabel>
-              <ReactQuill
-                value={editEntry.description}
-                onChange={handleDescriptionChange}
+        <DialogContent>
+          <input
+            accept="image/*"
+            style={{ display: 'none' }}
+            id={`image-upload-edit-${editEntry?.id}`}
+            type="file"
+            onChange={handleImageUpload}
+          />
+          <label htmlFor={`image-upload-edit-${editEntry?.id}`}>
+            <Button variant="outlined" component="span">
+              Upload Image
+            </Button>
+          </label>
+          {editEntry && (
+            <>
+              <img
+                src={editEntry.image}
+                alt="Preview"
                 style={{
-                  height: '300px',
-                  overflowY: 'auto',
-                  marginBottom: '20px',
+                  width: '60%',
+                  height: 'auto',
+                  borderRadius: '4px',
+                  marginTop: '10px',
                 }}
               />
-            </div>
-          </DialogContent>
-        )}
+              <TextField
+                name="position"
+                label="Position"
+                value={editEntry.position}
+                onChange={handleChange}
+                fullWidth
+                margin="normal"
+              />
+              <TextField
+                name="name"
+                label="Name"
+                value={editEntry.name}
+                onChange={handleChange}
+                fullWidth
+                margin="normal"
+              />
+              <TextField
+                name="date"
+                label="Date"
+                type="date"
+                value={editEntry.date}
+                onChange={handleChange}
+                fullWidth
+                margin="normal"
+                InputLabelProps={{ shrink: true }}
+              />
+              <Box
+                sx={{
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '4px',
+                  padding: '10px',
+                  marginTop: '10px',
+                }}
+              >
+                <Slate
+                  editor={editor}
+                  initialValue={editorValue} // ใช้ initialValue แทน value
+                  onChange={(value) => {
+                    // ตั้งค่า editorValue ให้เป็น CustomDescendant[]
+                    setEditorValue(value as CustomDescendant[]);
+                  }}
+                >
+                  <Editable placeholder="Write your description here..." />
+                </Slate>
+              </Box>
+            </>
+          )}
+        </DialogContent>
         <DialogActions>
-          <Button onClick={handleEditClose} color="secondary">
+          <Button onClick={handleEditClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleEditSubmit} variant="contained" color="primary">
+          <Button onClick={handleEditSubmit} color="primary">
             Submit
           </Button>
         </DialogActions>

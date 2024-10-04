@@ -3,7 +3,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 
 const QrcodeGenerator: React.FC = () => {
   const studentData = {
-    name: 'ข้าวพัด อัคนี',
+    name: 'นายเอก หล่อมาก',
     studentId: '64020383',
   };
 

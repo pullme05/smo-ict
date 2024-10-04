@@ -16,6 +16,8 @@ interface CustomEvent extends Event {
 }
 
 const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) => {
+  const allowedViews = ['month', 'agenda']; // จำกัดเฉพาะ views ที่ต้องการแสดง
+
   return (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center space-x-2">
@@ -66,7 +68,7 @@ const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) =>
         {label}
       </Typography>
       <div className="flex space-x-2">
-        {['month', 'week', 'day', 'agenda'].map(view => (
+        {allowedViews.map(view => (
           <Button
             key={view}
             variant="outlined"
@@ -171,7 +173,7 @@ const AdminCalendar: React.FC = () => {
         titleAccessor="title"
         style={{ height: 700, width: '100%' }}
         defaultView="month"
-        views={['month', 'week', 'day', 'agenda']}
+        views={['month', 'agenda']} // กำหนด views เฉพาะที่ต้องการใช้
         selectable
         onSelectSlot={openModal}
         onSelectEvent={event => {
@@ -179,7 +181,7 @@ const AdminCalendar: React.FC = () => {
           setModalIsOpen(true);
         }}
         components={{
-          toolbar: CustomToolbar,
+          toolbar: CustomToolbar, // ใช้ CustomToolbar ที่แก้ไขแล้ว
         }}
       />
 
@@ -188,8 +190,17 @@ const AdminCalendar: React.FC = () => {
         onRequestClose={closeModal}
         className="fixed inset-0 flex items-center justify-center z-50"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 z-40"
+        shouldCloseOnOverlayClick={true} // ปิด modal เมื่อคลิกพื้นหลัง
       >
-        <Box sx={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', width: '400px' }}>
+        <div
+          className="absolute inset-0"
+          onClick={closeModal} // เมื่อคลิกพื้นที่รอบ ๆ Modal จะทำการปิด
+          style={{ backgroundColor: 'transparent' }}
+        />
+        <Box
+          onClick={(e) => e.stopPropagation()} // ป้องกันการปิด Modal เมื่อคลิกภายใน Box
+          sx={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', width: '400px', zIndex: 50 }}
+        >
           {selectedEvent ? (
             <div>
               <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#996600', marginBottom: '10px' }}>
@@ -250,6 +261,7 @@ const AdminCalendar: React.FC = () => {
           )}
         </Box>
       </Modal>
+
     </div>
   );
 };

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Calendar, momentLocalizer, Event, ToolbarProps } from 'react-big-calendar';
+import React, { useState, useEffect } from 'react';
+import { Calendar, momentLocalizer, Event } from 'react-big-calendar';
 import moment from 'moment';
 import Modal from 'react-modal';
 import { Box, Typography, Button } from '@mui/material';
-import 'react-big-calendar/lib/css/react-big-calendar.css'; // TailwindCSS จะใช้แทนในภายหลัง
+import axios from 'axios';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const localizer = momentLocalizer(moment);
 
@@ -13,11 +14,10 @@ interface CustomEvent extends Event {
   details?: string;
 }
 
-const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) => {
+const CustomToolbar: React.FC<any> = ({ label, onNavigate, onView }) => {
   return (
     <div className="flex justify-between items-center mb-4">
       <div className="space-x-2">
-        {/* Custom buttons for navigation with outlined variant and custom border */}
         <Button
           variant="outlined"
           className="py-2 px-4 rounded"
@@ -65,12 +65,10 @@ const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) =>
         </Button>
       </div>
 
-      {/* Center the current month and year */}
       <Typography variant="h5" className="text-lg font-bold">
         {label}
       </Typography>
 
-      {/* Custom view buttons */}
       <div className="space-x-2">
         <Button
           variant="outlined"
@@ -98,36 +96,6 @@ const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) =>
               color: '#fff',
             },
           }}
-          onClick={() => onView('week')}
-        >
-          Week
-        </Button>
-        <Button
-          variant="outlined"
-          className="py-2 px-4 rounded"
-          sx={{
-            borderColor: '#996600',
-            color: '#996600',
-            '&:hover': {
-              backgroundColor: '#996600',
-              color: '#fff',
-            },
-          }}
-          onClick={() => onView('day')}
-        >
-          Day
-        </Button>
-        <Button
-          variant="outlined"
-          className="py-2 px-4 rounded"
-          sx={{
-            borderColor: '#996600',
-            color: '#996600',
-            '&:hover': {
-              backgroundColor: '#996600',
-              color: '#fff',
-            },
-          }}
           onClick={() => onView('agenda')}
         >
           Agenda
@@ -138,35 +106,23 @@ const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) =>
 };
 
 const UserCalendar: React.FC = () => {
-  const events: CustomEvent[] = [
-    {
-      title: 'Watch movie',
-      start: new Date(2022, 7, 8),
-      end: new Date(2022, 7, 8),
-      details: 'Watching movie with friends',
-    },
-    {
-      title: 'Play game',
-      start: new Date(2022, 7, 8),
-      end: new Date(2022, 7, 8),
-      details: 'Playing games online',
-    },
-    {
-      title: 'Video upload',
-      start: new Date(2022, 7, 9),
-      end: new Date(2022, 7, 9),
-      details: 'Uploading a YouTube video',
-    },
-    {
-      title: 'Watch money heist',
-      start: new Date(2022, 7, 17),
-      end: new Date(2022, 7, 17),
-      details: 'Watching Money Heist series',
-    },
-  ];
-
+  const [events, setEvents] = useState<CustomEvent[]>([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CustomEvent | null>(null);
+
+  // ดึงข้อมูลกิจกรรมจาก Backend
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/events');
+      setEvents(response.data);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
   const closeModal = () => {
     setModalIsOpen(false);
@@ -186,10 +142,10 @@ const UserCalendar: React.FC = () => {
         endAccessor="end"
         style={{ height: 700, width: '100%' }}
         defaultView="month"
-        views={['month', 'week', 'day', 'agenda']}
+        views={['month', 'agenda']} // แสดงเฉพาะ month และ agenda
         selectable={false}
         components={{
-          toolbar: CustomToolbar, // ใช้ custom toolbar
+          toolbar: CustomToolbar,
         }}
         onSelectEvent={event => {
           setSelectedEvent(event as CustomEvent);

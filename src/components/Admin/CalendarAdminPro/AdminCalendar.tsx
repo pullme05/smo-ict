@@ -16,7 +16,7 @@ interface CustomEvent extends Event {
 }
 
 const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) => {
-  const allowedViews = ['month', 'agenda']; // จำกัดเฉพาะ views ที่ต้องการแสดง
+  const allowedViews = ['month', 'agenda']; 
 
   return (
     <div className="flex justify-between items-center mb-4">
@@ -97,9 +97,8 @@ const AdminCalendar: React.FC = () => {
   const [newEventDetails, setNewEventDetails] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CustomEvent | null>(null);
-  const [newEventEndDate, setNewEventEndDate] = useState<Date | null>(null); // เพิ่มตัวเลือกวันจบกิจกรรม
+  const [newEventEndDate, setNewEventEndDate] = useState<Date | null>(null); 
 
-  // Fetch events from backend on component mount
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -117,7 +116,7 @@ const AdminCalendar: React.FC = () => {
     setSelectedSlot(slotInfo);
     setNewEventTitle('');
     setNewEventDetails('');
-    setNewEventEndDate(slotInfo.end); // กำหนดค่าเริ่มต้นวันจบ
+    setNewEventEndDate(slotInfo.end); 
     setModalIsOpen(true);
   };
 
@@ -128,20 +127,21 @@ const AdminCalendar: React.FC = () => {
 
   const handleAddEvent = async () => {
     if (newEventTitle && selectedSlot && newEventEndDate) {
+      const adjustedEndDate = new Date(newEventEndDate);
+      adjustedEndDate.setHours(23, 59, 59); 
+
       const newEvent = {
         title: newEventTitle,
         start: selectedSlot.start,
-        end: newEventEndDate, // ใช้วันจบที่ผู้ใช้เลือก
+        end: adjustedEndDate,
         details: newEventDetails,
       };
+
       try {
         const response = await axios.post('http://localhost:8000/api/events', newEvent);
-
-        // Fetch updated events after successfully adding a new event
         await fetchEvents();
-
-        console.log('Added Event:', response.data); // Debugging
-        closeModal(); // Close modal after adding event
+        console.log('Added Event:', response.data); 
+        closeModal(); 
       } catch (error) {
         console.error('Error adding event:', error);
       }
@@ -151,7 +151,6 @@ const AdminCalendar: React.FC = () => {
   const handleDeleteEvent = async (eventToDelete: CustomEvent) => {
     try {
       await axios.delete(`http://localhost:8000/api/events/${eventToDelete._id}`);
-      // Fetch updated events after deleting
       await fetchEvents();
       closeModal();
     } catch (error) {
@@ -173,7 +172,7 @@ const AdminCalendar: React.FC = () => {
         titleAccessor="title"
         style={{ height: 700, width: '100%' }}
         defaultView="month"
-        views={['month', 'agenda']} // กำหนด views เฉพาะที่ต้องการใช้
+        views={['month', 'agenda']} 
         selectable
         onSelectSlot={openModal}
         onSelectEvent={event => {
@@ -181,7 +180,12 @@ const AdminCalendar: React.FC = () => {
           setModalIsOpen(true);
         }}
         components={{
-          toolbar: CustomToolbar, // ใช้ CustomToolbar ที่แก้ไขแล้ว
+          toolbar: CustomToolbar,
+          event: ({ event }) => (
+            <div className="flex justify-center items-center h-full">
+              <span className="text-center">{event.title}</span>
+            </div>
+          ), 
         }}
       />
 
@@ -190,15 +194,15 @@ const AdminCalendar: React.FC = () => {
         onRequestClose={closeModal}
         className="fixed inset-0 flex items-center justify-center z-50"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 z-40"
-        shouldCloseOnOverlayClick={true} // ปิด modal เมื่อคลิกพื้นหลัง
+        shouldCloseOnOverlayClick={true} 
       >
         <div
           className="absolute inset-0"
-          onClick={closeModal} // เมื่อคลิกพื้นที่รอบ ๆ Modal จะทำการปิด
+          onClick={closeModal} 
           style={{ backgroundColor: 'transparent' }}
         />
         <Box
-          onClick={(e) => e.stopPropagation()} // ป้องกันการปิด Modal เมื่อคลิกภายใน Box
+          onClick={(e) => e.stopPropagation()} 
           sx={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', width: '400px', zIndex: 50 }}
         >
           {selectedEvent ? (
@@ -252,7 +256,7 @@ const AdminCalendar: React.FC = () => {
               <Button
                 variant="contained"
                 fullWidth
-                sx={{ backgroundColor: '#6699cc', color: '#fff', '&:hover': { backgroundColor: '#336699' } }}
+                sx={{ backgroundColor: '#996600', '&:hover': { backgroundColor: '#cc7a00' } }}
                 onClick={handleAddEvent}
               >
                 เพิ่ม
@@ -261,7 +265,6 @@ const AdminCalendar: React.FC = () => {
           )}
         </Box>
       </Modal>
-
     </div>
   );
 };

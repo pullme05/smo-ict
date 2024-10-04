@@ -1,126 +1,114 @@
-import React, { useState } from 'react';
-import { Calendar, momentLocalizer, Event, ToolbarProps, View } from 'react-big-calendar'; // นำเข้า View ด้วย
-
+import React, { useState, useEffect } from 'react';
+import { Calendar, momentLocalizer, Event, ToolbarProps, View } from 'react-big-calendar';
 import moment from 'moment';
+import axios from 'axios';
 import Modal from 'react-modal';
 import { Box, Typography, Button, TextField } from '@mui/material';
-import 'react-big-calendar/lib/css/react-big-calendar.css'; // remove this and use tailwind for calendar styles
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const localizer = momentLocalizer(moment);
 
 Modal.setAppElement('#root');
 
 interface CustomEvent extends Event {
+  _id?: string;
   details?: string;
 }
 
 const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) => {
-    return (
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outlined"
-              sx={{
-                borderColor: '#996600',
-                color: '#996600',
-                '&:hover': {
-                  backgroundColor: '#996600',
-                  color: '#fff',
-                },
-              }}
-            onClick={() => onNavigate('PREV')}
-          >
-            Back
-          </Button>
-          <Button
-            variant="outlined"
-            sx={{
-              borderColor: '#996600',
-              color: '#996600',
-              '&:hover': {
-                backgroundColor: '#996600',
-                color: '#fff',
-              },
-            }}
-            onClick={() => onNavigate('TODAY')}
-          >
-            Today
-          </Button>
-          <Button
-            variant="outlined"
-            sx={{
-              borderColor: '#996600',
-              color: '#996600',
-              '&:hover': {
-                backgroundColor: '#996600',
-                color: '#fff',
-              },
-            }}
-            onClick={() => onNavigate('NEXT')}
-          >
-            Next
-          </Button>
-        </div>
-        <Typography variant="h5" className="text-[#996600] font-bold">
-          {label}
-        </Typography>
-        <div className="flex space-x-2">
-          {['month', 'week', 'day', 'agenda'].map(view => (
-            <Button
-              key={view}
-              variant="outlined"
-              sx={{
-                borderColor: '#996600',
-                color: '#996600',
-                '&:hover': {
-                  backgroundColor: '#996600',
-                  color: '#fff',
-                },
-              }}
-              onClick={() => onView(view as View)}
-            >
-              {view.charAt(0).toUpperCase() + view.slice(1)}
-            </Button>
-          ))}
-        </div>
+  return (
+    <div className="flex justify-between items-center mb-4">
+      <div className="flex items-center space-x-2">
+        <Button
+          variant="outlined"
+          sx={{
+            borderColor: '#996600',
+            color: '#996600',
+            '&:hover': {
+              backgroundColor: '#996600',
+              color: '#fff',
+            },
+          }}
+          onClick={() => onNavigate('PREV')}
+        >
+          Back
+        </Button>
+        <Button
+          variant="outlined"
+          sx={{
+            borderColor: '#996600',
+            color: '#996600',
+            '&:hover': {
+              backgroundColor: '#996600',
+              color: '#fff',
+            },
+          }}
+          onClick={() => onNavigate('TODAY')}
+        >
+          Today
+        </Button>
+        <Button
+          variant="outlined"
+          sx={{
+            borderColor: '#996600',
+            color: '#996600',
+            '&:hover': {
+              backgroundColor: '#996600',
+              color: '#fff',
+            },
+          }}
+          onClick={() => onNavigate('NEXT')}
+        >
+          Next
+        </Button>
       </div>
-    );
-  };
-  
+      <Typography variant="h5" className="text-[#996600] font-bold">
+        {label}
+      </Typography>
+      <div className="flex space-x-2">
+        {['month', 'week', 'day', 'agenda'].map(view => (
+          <Button
+            key={view}
+            variant="outlined"
+            sx={{
+              borderColor: '#996600',
+              color: '#996600',
+              '&:hover': {
+                backgroundColor: '#996600',
+                color: '#fff',
+              },
+            }}
+            onClick={() => onView(view as View)}
+          >
+            {view.charAt(0).toUpperCase() + view.slice(1)}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const AdminCalendar: React.FC = () => {
-  const [events, setEvents] = useState<CustomEvent[]>([
-    {
-      title: 'Watch movie',
-      start: new Date(2022, 7, 8),
-      end: new Date(2022, 7, 8),
-      details: 'Watching movie with friends',
-    },
-    {
-      title: 'Play game',
-      start: new Date(2022, 7, 8),
-      end: new Date(2022, 7, 8),
-      details: 'Playing games online',
-    },
-    {
-      title: 'Video upload',
-      start: new Date(2022, 7, 9),
-      end: new Date(2022, 7, 9),
-      details: 'Uploading a YouTube video',
-    },
-    {
-      title: 'Watch money heist',
-      start: new Date(2022, 7, 17),
-      end: new Date(2022, 7, 17),
-      details: 'Watching Money Heist series',
-    },
-  ]);
-
+  const [events, setEvents] = useState<CustomEvent[]>([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDetails, setNewEventDetails] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CustomEvent | null>(null);
+
+  // Fetch events from backend on component mount
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/events');
+      setEvents(response.data);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
 
   const openModal = (slotInfo: { start: Date; end: Date }) => {
     setSelectedSlot(slotInfo);
@@ -134,24 +122,37 @@ const AdminCalendar: React.FC = () => {
     setSelectedEvent(null);
   };
 
-  const handleAddEvent = () => {
+  const handleAddEvent = async () => {
     if (newEventTitle && selectedSlot) {
-      setEvents(prevEvents => [
-        ...prevEvents,
-        {
-          title: newEventTitle,
-          start: selectedSlot.start,
-          end: selectedSlot.end,
-          details: newEventDetails,
-        },
-      ]);
+      const newEvent = {
+        title: newEventTitle,
+        start: selectedSlot.start,
+        end: selectedSlot.end,
+        details: newEventDetails,
+      };
+      try {
+        const response = await axios.post('http://localhost:8000/api/events', newEvent);
+
+        // Fetch updated events after successfully adding a new event
+        await fetchEvents();
+
+        console.log('Added Event:', response.data); // Debugging
+        closeModal(); // Close modal after adding event
+      } catch (error) {
+        console.error('Error adding event:', error);
+      }
     }
-    closeModal();
   };
 
-  const handleDeleteEvent = (eventToDelete: CustomEvent) => {
-    setEvents(prevEvents => prevEvents.filter(event => event !== eventToDelete));
-    closeModal();
+  const handleDeleteEvent = async (eventToDelete: CustomEvent) => {
+    try {
+      await axios.delete(`http://localhost:8000/api/events/${eventToDelete._id}`);
+      // Fetch updated events after deleting
+      await fetchEvents();
+      closeModal();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
   };
 
   return (
@@ -165,7 +166,8 @@ const AdminCalendar: React.FC = () => {
         events={events}
         startAccessor="start"
         endAccessor="end"
-        style={{ height: 700, width: '100%' }} // Adjust the height to fit better
+        titleAccessor="title" // Ensure title is displayed
+        style={{ height: 700, width: '100%' }}
         defaultView="month"
         views={['month', 'week', 'day', 'agenda']}
         selectable

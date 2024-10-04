@@ -31,7 +31,7 @@ const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) =>
           }}
           onClick={() => onNavigate('PREV')}
         >
-          Back
+          ย้อนกลับ
         </Button>
         <Button
           variant="outlined"
@@ -45,7 +45,7 @@ const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) =>
           }}
           onClick={() => onNavigate('TODAY')}
         >
-          Today
+          วันนี้
         </Button>
         <Button
           variant="outlined"
@@ -59,7 +59,7 @@ const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) =>
           }}
           onClick={() => onNavigate('NEXT')}
         >
-          Next
+          ถัดไป
         </Button>
       </div>
       <Typography variant="h5" className="text-[#996600] font-bold">
@@ -95,6 +95,7 @@ const AdminCalendar: React.FC = () => {
   const [newEventDetails, setNewEventDetails] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CustomEvent | null>(null);
+  const [newEventEndDate, setNewEventEndDate] = useState<Date | null>(null); // เพิ่มตัวเลือกวันจบกิจกรรม
 
   // Fetch events from backend on component mount
   useEffect(() => {
@@ -114,6 +115,7 @@ const AdminCalendar: React.FC = () => {
     setSelectedSlot(slotInfo);
     setNewEventTitle('');
     setNewEventDetails('');
+    setNewEventEndDate(slotInfo.end); // กำหนดค่าเริ่มต้นวันจบ
     setModalIsOpen(true);
   };
 
@@ -123,11 +125,11 @@ const AdminCalendar: React.FC = () => {
   };
 
   const handleAddEvent = async () => {
-    if (newEventTitle && selectedSlot) {
+    if (newEventTitle && selectedSlot && newEventEndDate) {
       const newEvent = {
         title: newEventTitle,
         start: selectedSlot.start,
-        end: selectedSlot.end,
+        end: newEventEndDate, // ใช้วันจบที่ผู้ใช้เลือก
         details: newEventDetails,
       };
       try {
@@ -166,7 +168,7 @@ const AdminCalendar: React.FC = () => {
         events={events}
         startAccessor="start"
         endAccessor="end"
-        titleAccessor="title" // Ensure title is displayed
+        titleAccessor="title"
         style={{ height: 700, width: '100%' }}
         defaultView="month"
         views={['month', 'week', 'day', 'agenda']}
@@ -177,7 +179,7 @@ const AdminCalendar: React.FC = () => {
           setModalIsOpen(true);
         }}
         components={{
-          toolbar: CustomToolbar, // Use the custom toolbar
+          toolbar: CustomToolbar,
         }}
       />
 
@@ -194,7 +196,7 @@ const AdminCalendar: React.FC = () => {
                 {selectedEvent.title}
               </Typography>
               <Typography variant="body1" sx={{ marginBottom: '20px', color: '#333333' }}>
-                {selectedEvent.details || 'No details available'}
+                {selectedEvent.details || 'ไม่มีรายละเอียด'}
               </Typography>
               <Button
                 variant="contained"
@@ -203,7 +205,7 @@ const AdminCalendar: React.FC = () => {
                 sx={{ backgroundColor: '#ff5050', '&:hover': { backgroundColor: '#ff3333' } }}
                 onClick={() => handleDeleteEvent(selectedEvent)}
               >
-                ลบ
+                ลบกิจกรรม
               </Button>
             </div>
           ) : (
@@ -212,19 +214,28 @@ const AdminCalendar: React.FC = () => {
                 เพิ่มกิจกรรม
               </Typography>
               <TextField
-                label="Event Title"
+                label="ชื่อกิจกรรม"
                 value={newEventTitle}
                 onChange={e => setNewEventTitle(e.target.value)}
                 fullWidth
                 sx={{ marginBottom: '20px', '& .MuiInputLabel-root': { color: '#996600' }, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#996600' } } }}
               />
               <TextField
-                label="Event Details"
+                label="รายละเอียดกิจกรรม"
                 value={newEventDetails}
                 onChange={e => setNewEventDetails(e.target.value)}
                 multiline
                 rows={4}
                 fullWidth
+                sx={{ marginBottom: '20px', '& .MuiInputLabel-root': { color: '#996600' }, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#996600' } } }}
+              />
+              <TextField
+                label="วันสิ้นสุดกิจกรรม"
+                type="date"
+                value={newEventEndDate ? moment(newEventEndDate).format('YYYY-MM-DD') : ''}
+                onChange={e => setNewEventEndDate(new Date(e.target.value))}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
                 sx={{ marginBottom: '20px', '& .MuiInputLabel-root': { color: '#996600' }, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#996600' } } }}
               />
               <Button

@@ -1,4 +1,4 @@
-import { useState,  } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
@@ -12,14 +12,26 @@ function App() {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loginModalOpen, setLoginModalOpen] = useState<boolean>(false);
 
+  // ดึงข้อมูลการล็อกอินจาก localStorage เมื่อโหลดหน้าเว็บใหม่
+  useEffect(() => {
+    const storedLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const storedAdmin = localStorage.getItem('isAdmin') === 'true';
+    setIsLoggedIn(storedLoggedIn);
+    setIsAdmin(storedAdmin);
+  }, []);
+
   const handleLogin = (adminLogin: boolean) => {
     setIsLoggedIn(true);
     setIsAdmin(adminLogin);
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('isAdmin', adminLogin ? 'true' : 'false');
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     setIsAdmin(false);
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('isAdmin');
   };
 
   return (

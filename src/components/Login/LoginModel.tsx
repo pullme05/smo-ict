@@ -23,12 +23,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }) => {
         username,
         password
       });
-  
+
       const user = response.data.user;
-  
+
+      // เก็บ token ไว้ใน localStorage เพื่อเช็คสถานะล็อกอิน
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userRole', user.role); // เก็บ role ของ user
+
       // หากล็อกอินสำเร็จ ให้ตรวจสอบว่าเป็น admin หรือไม่
-      onLogin(user.role === 'admin'); // ส่งค่า true หาก role เป็น 'admin'
-      onClose(); // ปิด modal
+      onLogin(user.role === 'admin');
+      handleClose(); // ปิด modal และล้างข้อมูล
     } catch (error) {
       // จัดการกับข้อผิดพลาด
       if (axios.isAxiosError(error) && error.response) {
@@ -43,18 +47,33 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }) => {
     setShowPassword(!showPassword);
   };
 
+  // รีเซ็ตฟอร์มเมื่อปิด modal
+  const resetForm = () => {
+    setUsername('');
+    setPassword('');
+    setErrorMessage('');
+  };
+
+  // ฟังก์ชันสำหรับปิด modal และล้างข้อมูล
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   // ตรวจสอบการล็อคอินจาก localStorage เมื่อโหลดครั้งแรก
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const userRole = localStorage.getItem('userRole');
+
     if (isLoggedIn === 'true') {
-      onLogin(true);
+      onLogin(userRole === 'admin');
     }
   }, [onLogin]);
 
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={handleClose} // ใช้ handleClose เพื่อให้ล้างข้อมูลก่อนปิด
       aria-labelledby="login-modal-title"
       aria-describedby="login-modal-description"
     >

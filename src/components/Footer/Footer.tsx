@@ -45,9 +45,9 @@ const Footer = () => {
                 <FacebookIcon fontSize="large" />
               </a>
               <a
-                href="YOUR_EXTERNAL_LINK_HERE"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="https://ict.up.ac.th/home"
+                target="_ICT"
+                rel="ICTUP"
               >
                 <img
                   src="/src/assets/ictlogo.png"
@@ -75,15 +75,6 @@ const Footer = () => {
               <span>|</span>
               <li>
                 <a
-                  href="/"
-                  className="transition-transform duration-300 ease-in-out transform hover:scale-110 hover:underline"
-                >
-                  เกี่ยวกับเรา
-                </a>
-              </li>
-              <span>|</span>
-              <li>
-                <a
                   href="/#ระบบของเรา"
                   className="transition-transform duration-300 ease-in-out transform hover:scale-110 hover:underline"
                 >
@@ -106,7 +97,7 @@ const Footer = () => {
 
       {/* ส่วนลิขสิทธิ์ */}
       <div className="bg-[#8d38c9] text-center text-white text-xs py-2 w-full absolute bottom-0 left-0">
-        © 2024 คณะเทคโนโลยีสารสนเทศและการสื่อสาร. สงวนลิขสิทธิ์.
+        © 2024 สโมรนิสิตคณะเทคโนโลยีสารสนเทศและการสื่อสาร. สงวนลิขสิทธิ์.
       </div>
     </footer>
   );

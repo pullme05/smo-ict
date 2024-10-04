@@ -1,7 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import SummarizeIcon from '@mui/icons-material/Summarize';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import GroupIcon from '@mui/icons-material/Group';
+import AnnouncementIcon from '@mui/icons-material/Announcement';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -31,16 +34,48 @@ const AdminDashboard = () => {
               </span>
               <span className="font-semibold">Dashboard</span>
             </li>
-
-            {/* สรุป (Summary) Menu Item */}
+            {/* ปฏิทินกิจกรรม Menu Item */}
             <li
               className="flex items-center space-x-3 text-[#996600] hover:bg-gray-200 hover:text-[#663300] p-3 rounded-lg transition-colors duration-300"
-              
+              onClick={() => navigate('/admin/AdminCalendar')}
             >
               <span className="inline-block p-2 bg-[#996600] rounded text-white">
-                <SummarizeIcon />
+                <CalendarTodayIcon />
               </span>
-              <span className="font-semibold">สรุป</span>
+              <span className="font-semibold">ปฏิทินกิจกรรม</span>
+            </li>
+
+            {/* การจองห้อง Menu Item */}
+            <li
+              className="flex items-center space-x-3 text-[#996600] hover:bg-gray-200 hover:text-[#663300] p-3 rounded-lg transition-colors duration-300"
+              onClick={() => navigate('/admin/heartAM')}
+            >
+              <span className="inline-block p-2 bg-[#996600] rounded text-white">
+                <MeetingRoomIcon />
+              </span>
+              <span className="font-semibold">การจองห้อง</span>
+            </li>
+
+            {/* สมาชิกกรรมการ Menu Item */}
+            <li
+              className="flex items-center space-x-3 text-[#996600] hover:bg-gray-200 hover:text-[#663300] p-3 rounded-lg transition-colors duration-300"
+              onClick={() => navigate('/admin/Amem')}
+            >
+              <span className="inline-block p-2 bg-[#996600] rounded text-white">
+                <GroupIcon />
+              </span>
+              <span className="font-semibold">สมาชิกกรรมการ</span>
+            </li>
+
+            {/* ข่าวประชาสัมพันธ์นิติสโมสร Menu Item */}
+            <li
+              className="flex items-center space-x-3 text-[#996600] hover:bg-gray-200 hover:text-[#663300] p-3 rounded-lg transition-colors duration-300"
+              onClick={() => navigate('/admin/NewsAM')}
+            >
+              <span className="inline-block p-2 bg-[#996600] rounded text-white">
+                <AnnouncementIcon />
+              </span>
+              <span className="font-semibold">ข่าวประชาสัมพันธ์นิติสโมสร</span>
             </li>
           </ul>
         </nav>
@@ -50,55 +85,6 @@ const AdminDashboard = () => {
       <main className="flex-1 p-6">
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
         <p className="mb-6">Hello Admin, welcome back!</p>
-
-        {/* Section for Admin Options */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Card 1 */}
-          <div className="bg-white p-4 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300">
-            <h2 className="text-xl font-semibold">ปฏิทินกิจกรรม</h2>
-            <button
-              className="mt-4 px-4 py-2 bg-[#996600] text-white rounded transition-transform duration-300 hover:scale-105"
-              onClick={() => navigate('/admin/AdminCalendar')}
-            >
-              กดปุ่ม
-            </button>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-white p-4 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300">
-            <h2 className="text-xl font-semibold">การจองห้อง</h2>
-            {/* test */}
-            <button
-              className="mt-4 px-4 py-2 bg-[#996600] text-white rounded transition-transform duration-300 hover:scale-105"
-              onClick={() => navigate('/admin/heartAM')}
-            >
-              กดปุ่ม
-            </button>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-white p-4 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold mb-4">สมาชิกกรรมการ</h2>
-          <button
-            className="mt-4 px-4 py-2 bg-[#996600] text-white rounded transition-transform duration-300 hover:scale-105"
-            onClick={() => navigate('/admin/Amem')}
-          >
-            กดปุ่ม
-          </button>
-        </div>
-        </div>
-
-        
-
-        <div className="bg-white mt-8 p-6 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300 w-full">
-          <h2 className="text-2xl font-semibold mb-4">ข่าวประชาสัมพันธ์นิติสโมสร</h2>
-          <button
-            className="mt-4 px-4 py-2 bg-[#996600] text-white rounded transition-transform duration-300 hover:scale-105"
-            onClick={() => navigate('/admin/NewsAM')}
-          >
-            กดปุ่ม
-          </button>
-        </div>
       </main>
     </div>
   );

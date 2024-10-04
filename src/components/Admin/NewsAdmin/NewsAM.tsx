@@ -37,26 +37,6 @@ interface Entry {
   description: string; // Added field for description
 }
 
-// Sample data
-const initialData: Entry[] = [
-  {
-    id: 1,
-    image: 'https://via.placeholder.com/150',
-    category: 'ข่าวทั่วไป',
-    name: 'Item 1',
-    date: '2024-01-01',
-    description: 'Description for Item 1',
-  },
-  {
-    id: 2,
-    image: 'https://via.placeholder.com/150',
-    category: 'ข่าวกิจกรรม',
-    name: 'Item 2',
-    date: '2024-02-01',
-    description: 'Description for Item 2',
-  },
-];
-
 // Style for TableCell
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   border: '1px solid #e0e0e0',
@@ -66,7 +46,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const CustomTable = () => {
-  const [data, setData] = useState<Entry[]>(initialData);
+  const [data, setData] = useState<Entry[]>([]);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [newEntry, setNewEntry] = useState<Omit<Entry, 'id'>>({
@@ -196,13 +176,13 @@ const CustomTable = () => {
     <div>
       {/* Header with Create Button */}
       <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>
-        <AppBar position="static" style={{ backgroundColor: '#1976d2' }}>
+        <AppBar position="static" style={{ backgroundColor: '#996600' }}>
           <Toolbar>
             <Typography variant="h6" style={{ flexGrow: 1 }}>
-              Data Management
+              ข่าวประชาสัมพันธ์นิติสโมสร
             </Typography>
             <Button variant="contained" color="secondary" onClick={handleOpen}>
-              Create New
+              + Create
             </Button>
           </Toolbar>
         </AppBar>
@@ -282,11 +262,13 @@ const CustomTable = () => {
               Upload Image
             </Button>
           </label>
-          <img
-            src={newEntry.image}
-            alt="Preview"
-            style={{ width: '60%', height: 'auto', marginTop: '10px', marginBottom: '10px' }} // Adjust size to 60%
-          />
+          {newEntry.image && (
+            <img
+              src={newEntry.image}
+              alt="Preview"
+              style={{ width: '60%', height: 'auto', marginTop: '10px', marginBottom: '10px' }} // Adjust size to 60%
+            />
+          )}
           <FormControl fullWidth variant="outlined" style={{ marginBottom: '10px' }}>
             <InputLabel>Category</InputLabel>
             <Select
@@ -318,91 +300,87 @@ const CustomTable = () => {
             fullWidth
             variant="outlined"
             style={{ marginBottom: '10px' }}
-            InputLabelProps={{
-              shrink: true,
-            }}
+            InputLabelProps={{ shrink: true }}
           />
-          {/* Description using Quill */}
-          <ReactQuill
-            value={newEntry.description}
-            onChange={handleDescriptionChange}
-            style={{ marginBottom: '10px' }}
-          />
+          <Typography variant="h6" style={{ marginBottom: '10px' }}>
+            Description:
+          </Typography>
+          <ReactQuill value={newEntry.description} onChange={handleDescriptionChange} />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
             Cancel
           </Button>
           <Button onClick={handleSubmit} color="primary">
-            Create
+            Submit
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Dialog for Edit Entry */}
+      {/* Dialog for Editing Entry */}
       <Dialog open={editOpen} onClose={handleEditClose} maxWidth="lg" fullWidth>
         <DialogTitle>Edit Entry</DialogTitle>
         <DialogContent>
-          <input
-            accept="image/*"
-            style={{ display: 'none' }}
-            id="image-upload-edit"
-            type="file"
-            onChange={handleImageUpload}
-          />
-          <label htmlFor="image-upload-edit">
-            <Button variant="outlined" component="span">
-              Upload Image
-            </Button>
-          </label>
-          {editEntry?.image && (
-            <img
-              src={editEntry.image}
-              alt="Preview"
-              style={{ width: '60%', height: 'auto', marginTop: '10px', marginBottom: '10px' }}
-            />
+          {editEntry && (
+            <>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="image-upload-edit"
+                type="file"
+                onChange={handleImageUpload}
+              />
+              <label htmlFor="image-upload-edit">
+                <Button variant="outlined" component="span">
+                  Upload Image
+                </Button>
+              </label>
+              {editEntry.image && (
+                <img
+                  src={editEntry.image}
+                  alt="Preview"
+                  style={{ width: '60%', height: 'auto', marginTop: '10px', marginBottom: '10px' }} // Adjust size to 60%
+                />
+              )}
+              <FormControl fullWidth variant="outlined" style={{ marginBottom: '10px' }}>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  name="category"
+                  value={editEntry.category}
+                  onChange={handleSelectChange}
+                  label="Category"
+                >
+                  <MenuItem value="ข่าวทั่วไป">ข่าวทั่วไป</MenuItem>
+                  <MenuItem value="ข่าวกิจกรรม">ข่าวกิจกรรม</MenuItem>
+                  <MenuItem value="ข่าวการศึกษา">ข่าวการศึกษา</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                name="name"
+                label="Name"
+                value={editEntry.name}
+                onChange={handleChange}
+                fullWidth
+                variant="outlined"
+                style={{ marginBottom: '10px' }}
+              />
+              <TextField
+                name="date"
+                label="Date"
+                type="date"
+                value={editEntry.date}
+                onChange={handleChange}
+                fullWidth
+                variant="outlined"
+                style={{ marginBottom: '10px' }}
+                InputLabelProps={{ shrink: true }}
+              />
+              <Typography variant="h6" style={{ marginBottom: '10px' }}>
+                Description:
+              </Typography>
+              <ReactQuill value={editEntry.description} onChange={handleDescriptionChange} />
+            </>
           )}
-          <FormControl fullWidth variant="outlined" style={{ marginBottom: '10px' }}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              name="category"
-              value={editEntry?.category || ''}
-              onChange={handleSelectChange}
-              label="Category"
-            >
-              <MenuItem value="ข่าวทั่วไป">ข่าวทั่วไป</MenuItem>
-              <MenuItem value="ข่าวกิจกรรม">ข่าวกิจกรรม</MenuItem>
-              <MenuItem value="ข่าวการศึกษา">ข่าวการศึกษา</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            name="name"
-            label="Name"
-            value={editEntry?.name || ''}
-            onChange={handleChange}
-            fullWidth
-            variant="outlined"
-            style={{ marginBottom: '10px' }}
-          />
-          <TextField
-            name="date"
-            label="Date"
-            type="date"
-            value={editEntry?.date || ''}
-            onChange={handleChange}
-            fullWidth
-            variant="outlined"
-            style={{ marginBottom: '10px' }}
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-          {/* Description using Quill */}
-          <ReactQuill
-            value={editEntry?.description || ''}
-            onChange={handleDescriptionChange}
-            style={{ marginBottom: '10px' }}
-          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleEditClose} color="primary">

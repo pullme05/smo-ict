@@ -3,7 +3,8 @@ import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import { Typography, Box, Modal, Paper, TextField, Button, MenuItem } from '@mui/material';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
+
 const localizer = momentLocalizer(moment);
 
 const MeetingRoomUser = () => {
@@ -95,8 +96,8 @@ const MeetingRoomUser = () => {
       minute: parseInt(endTime.split(':')[1]),
     });
 
-    return !pendingBookings.some((booking) => {
-      if (booking.room !== room) return false;
+    return !approvedBookings.some((booking) => {
+      if (booking.room !== room || booking.status !== 'อนุมัติแล้ว') return false;  // ตรวจสอบสถานะว่าเป็น "อนุมัติแล้ว"
 
       const existingStart = moment(booking.date).set({
         hour: parseInt(booking.startTime.split(':')[0]),
@@ -114,12 +115,20 @@ const MeetingRoomUser = () => {
   function getBookedTimesForRoom(room: string | null, selectedDate: Date | null) {
     if (!room || !selectedDate) return [];
 
-    const bookedTimes = pendingBookings
-      .filter((booking) => booking.room === room && moment(booking.date).isSame(selectedDate, 'day'))
-      .map((booking) => ({
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-      }));
+    const bookedTimes = [
+      ...pendingBookings
+        .filter((booking) => booking.room === room && moment(booking.date).isSame(selectedDate, 'day'))
+        .map((booking) => ({
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+        })),
+      ...approvedBookings
+        .filter((booking) => booking.room === room && moment(booking.date).isSame(selectedDate, 'day'))
+        .map((booking) => ({
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+        })),
+    ];
 
     return bookedTimes;
   }
@@ -193,7 +202,7 @@ const MeetingRoomUser = () => {
           events={eventsWithStatus}
           startAccessor="start"
           endAccessor="end"
-          views={[Views.MONTH, Views.AGENDA]} // เอา WEEK, DAY ออก และเพิ่ม AGENDA
+          views={[Views.MONTH]} // เอา WEEK, DAY ออก และเพิ่ม AGENDA
           defaultView={Views.MONTH} // กำหนดมุมมองเริ่มต้นเป็น MONTH
           style={{
             height: '90vh',
@@ -222,99 +231,109 @@ const MeetingRoomUser = () => {
             </Typography>
             {getBookedTimesForRoom(selectedRoom, selectedDate).map((time, index) => (
               <Typography key={index} variant="body2">
-                {time.startTime} - {time.endTime}
+                {`${time.startTime} - ${time.endTime}`}
               </Typography>
             ))}
           </Box>
 
-          <TextField label="ชื่อนิสิต" variant="outlined" fullWidth value={studentName} onChange={(e) => setStudentName(e.target.value)} sx={{ mt: 2 }} />
-          <TextField label="รหัสนิสิต" variant="outlined" fullWidth value={studentID} onChange={(e) => setStudentID(e.target.value)} sx={{ mt: 2 }} />
           <TextField
-            label="เวลาเริ่มต้น"
-            variant="outlined"
+            label="ชื่อ"
             fullWidth
+            margin="normal"
+            value={studentName}
+            onChange={(e) => setStudentName(e.target.value)}
+          />
+          <TextField
+            label="รหัสนิสิต (8 หลัก)"
+            fullWidth
+            margin="normal"
+            value={studentID}
+            onChange={(e) => setStudentID(e.target.value)}
+          />
+          <TextField
+            label="เวลาเริ่ม"
+            fullWidth
+            margin="normal"
             select
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            sx={{ mt: 2 }}
           >
             {times.map((time) => (
-              <MenuItem key={uuidv4()} value={time}>
+              <MenuItem key={time} value={time}>
                 {time}
               </MenuItem>
             ))}
           </TextField>
-
           <TextField
-            label="เวลาสิ้นสุด"
-            variant="outlined"
+            label="เวลาเสร็จ"
             fullWidth
+            margin="normal"
             select
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            sx={{ mt: 2 }}
           >
             {times.map((time) => (
-              <MenuItem key={uuidv4()} value={time}>
+              <MenuItem key={time} value={time}>
                 {time}
               </MenuItem>
             ))}
           </TextField>
-
-          <TextField label="วัตถุประสงค์" variant="outlined" fullWidth multiline rows={3} value={purpose} onChange={(e) => setPurpose(e.target.value)} sx={{ mt: 2 }} />
-
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-            <Button onClick={handleFormSubmit} variant="contained" color="primary">
-              จอง
-            </Button>
-          </Box>
+          <TextField
+            label="วัตถุประสงค์"
+            fullWidth
+            margin="normal"
+            value={purpose}
+            onChange={(e) => setPurpose(e.target.value)}
+          />
+          <Button variant="contained" color="primary" fullWidth onClick={handleFormSubmit} sx={{ marginTop: 2 }}>
+            ส่งคำขอจอง
+          </Button>
         </Paper>
       </Modal>
-
-      {/* ส่วนของรายการการจองที่รอการอนุมัติ */}
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h5">รายการการจองที่รอการอนุมัติ</Typography>
-        {pendingBookings.map((booking, index) => (
-          <Box key={index} sx={{ mt: 2, border: '1px solid #ccc', padding: '8px', borderRadius: '4px' }}>
-            <Typography variant="subtitle1">
-              ห้อง: {booking.room} | วันที่: {moment(booking.date).format('DD MMM YYYY')} | เวลา: {booking.startTime} - {booking.endTime}
-            </Typography>
-            <Typography variant="body2">ชื่อผู้จอง: {booking.studentName} | รหัสนิสิต: {booking.studentID}</Typography>
-            <Typography variant="body2">วัตถุประสงค์: {booking.purpose}</Typography>
-            <Typography variant="body2">สถานะ: รอการอนุมัติ</Typography>
-          </Box>
-        ))}
+    {/* ส่วนของรายการการจองที่รอการอนุมัติ */}
+    <Box sx={{ mt: 4 }}>
+    <Typography variant="h5">รายการการจองที่รอการอนุมัติ</Typography>
+    {pendingBookings.map((booking, index) => (
+      <Box key={index} sx={{ mt: 2, border: '1px solid #ccc', padding: '8px', borderRadius: '4px' }}>
+        <Typography variant="subtitle1" sx={{ color: 'orange' }}>
+          ห้อง: {booking.room} | วันที่: {moment(booking.date).format('DD MMM YYYY')} | เวลา: {booking.startTime} - {booking.endTime}
+        </Typography>
+        <Typography variant="body2">ชื่อผู้จอง: {booking.studentName} | รหัสนิสิต: {booking.studentID}</Typography>
+        <Typography variant="body2">วัตถุประสงค์: {booking.purpose}</Typography>
+        <Typography variant="body2" sx={{ color: 'orange' }}>สถานะ: รอการอนุมัติจากผู้ดูแล</Typography>
       </Box>
+    ))}
+    </Box>
 
-      {/* ส่วนของรายการการจองที่อนุมัติแล้ว */}
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h5">รายการการจองที่อนุมัติแล้ว</Typography>
-        {approvedBookings.map((booking, index) => (
-          <Box key={index} sx={{ mt: 2, border: '1px solid #ccc', padding: '8px', borderRadius: '4px' }}>
-            <Typography variant="subtitle1">
-              ห้อง: {booking.room} | วันที่: {moment(booking.date).format('DD MMM YYYY')} | เวลา: {booking.startTime} - {booking.endTime}
-            </Typography>
-            <Typography variant="body2">ชื่อผู้จอง: {booking.studentName} | รหัสนิสิต: {booking.studentID}</Typography>
-            <Typography variant="body2">วัตถุประสงค์: {booking.purpose}</Typography>
-            <Typography variant="body2">สถานะ: อนุมัติแล้ว</Typography>
-          </Box>
-        ))}
+    {/* ส่วนของรายการการจองที่อนุมัติแล้ว */}
+    <Box sx={{ mt: 4 }}>
+    <Typography variant="h5">รายการการจองที่อนุมัติแล้ว</Typography>
+    {approvedBookings.map((booking, index) => (
+      <Box key={index} sx={{ mt: 2, border: '1px solid #ccc', padding: '8px', borderRadius: '4px' }}>
+        <Typography variant="subtitle1" sx={{color: 'green'}}>
+          ห้อง: {booking.room} | วันที่: {moment(booking.date).format('DD MMM YYYY')} | เวลา: {booking.startTime} - {booking.endTime}
+        </Typography>
+        <Typography variant="body2">ชื่อผู้จอง: {booking.studentName} | รหัสนิสิต: {booking.studentID}</Typography>
+        <Typography variant="body2">วัตถุประสงค์: {booking.purpose}</Typography>
+        <Typography variant="body2" sx={{ color: 'green' }}>สถานะ: อนุมัติแล้ว</Typography>
       </Box>
+    ))}
+    </Box>
 
-      {/* ส่วนของรายการการจองที่ถูกปฏิเสธ */}
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h5">รายการการจองที่ถูกปฏิเสธ</Typography>
-        {rejectedBookings.map((booking, index) => (
-          <Box key={index} sx={{ mt: 2, border: '1px solid #ccc', padding: '8px', borderRadius: '4px' }}>
-            <Typography variant="subtitle1">
-              ห้อง: {booking.room} | วันที่: {moment(booking.date).format('DD MMM YYYY')} | เวลา: {booking.startTime} - {booking.endTime}
-            </Typography>
-            <Typography variant="body2">ชื่อผู้จอง: {booking.studentName} | รหัสนิสิต: {booking.studentID}</Typography>
-            <Typography variant="body2">วัตถุประสงค์: {booking.purpose}</Typography>
-            <Typography variant="body2">สถานะ: ถูกปฏิเสธ</Typography>
-          </Box>
-        ))}
+    {/* ส่วนของรายการการจองที่ถูกปฏิเสธ */}
+    <Box sx={{ mt: 4 }}>
+    <Typography variant="h5">รายการการจองที่ถูกปฏิเสธ</Typography>
+    {rejectedBookings.map((booking, index) => (
+      <Box key={index} sx={{ mt: 2, border: '1px solid #ccc', padding: '8px', borderRadius: '4px' }}>
+        <Typography variant="subtitle1" sx={{ color: 'red' }}>
+          ห้อง: {booking.room} | วันที่: {moment(booking.date).format('DD MMM YYYY')} | เวลา: {booking.startTime} - {booking.endTime}
+        </Typography>
+        <Typography variant="body2">ชื่อผู้จอง: {booking.studentName} | รหัสนิสิต: {booking.studentID}</Typography>
+        <Typography variant="body2">วัตถุประสงค์: {booking.purpose}</Typography>
+        <Typography variant="body2" sx={{ color: 'red' }}>สถานะ: ถูกปฏิเสธ</Typography>
       </Box>
+    ))}
+    </Box>
     </div>
   );
 };

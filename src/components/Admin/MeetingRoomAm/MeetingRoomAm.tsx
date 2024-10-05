@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Calendar, momentLocalizer} from 'react-big-calendar';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { Typography, Box, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
+import { Typography, Box, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, Divider, TextField } from '@mui/material';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import Modal from '@mui/material/Modal';
 
 const localizer = momentLocalizer(moment);
 
@@ -15,6 +16,12 @@ const MeetingRoomAM = () => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string>('');
+
+  // เพิ่ม state สำหรับ modal
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const handleClose = () => setOpen(false);
 
   // ดึงข้อมูลการจองที่รออนุมัติจาก server
   async function fetchPendingBookings() {
@@ -41,6 +48,8 @@ const MeetingRoomAM = () => {
           title: `${booking.room} - ${booking.studentName}`,
           start: new Date(booking.date),
           end: new Date(booking.date),
+          studentID: booking.studentID,
+          description: booking.purpose, // เพิ่มรายละเอียด
         }))); // เพิ่มข้อมูลการจองเข้าไปในปฏิทิน
       } else {
         alert('ไม่สามารถดึงข้อมูลประวัติการจองได้');
@@ -71,6 +80,12 @@ const MeetingRoomAM = () => {
     fetchApprovedBookings(); // ดึงข้อมูลการจองที่อนุมัติแล้ว
     fetchRejectedBookings(); // ดึงข้อมูลการจองที่ถูกปฏิเสธ
   }, []);
+
+  // เมื่อคลิกเลือกเหตุการณ์
+  const handleSelectEvent = (event: any) => {
+    setSelectedEvent(event);
+    setOpen(true); // เปิด modal แสดงรายละเอียด
+  };
 
   async function handleApproveBooking(bookingId: string) {
     try {
@@ -130,96 +145,139 @@ const MeetingRoomAM = () => {
       <Box mb={5}>
         <Typography variant="h6" sx={{ mb: 2 }}>ตารางปฏิทินการจอง:</Typography>
         <Calendar
-        localizer={localizer}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        style={{ height: 500 }}
-        views={['month']} // แสดงเฉพาะมุมมอง month และ agenda
-        defaultView="month" // กำหนดให้เริ่มต้นด้วยมุมมอง month
-      />
-
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 500 }}
+          views={['month']}
+          defaultView="month"
+          popup={true} // เปิดการแสดงผล popup เมื่อมีหลายเหตุการณ์ในวันเดียวกัน
+          onSelectEvent={handleSelectEvent} // เมื่อคลิกเหตุการณ์
+        />
       </Box>
 
-      {/* ส่วนของการจองที่รออนุมัติ */}
-      <Box mt={3}>
-        <Typography variant="h6" sx={{ mb: 2 }}>การจองที่รอการอนุมัติ:</Typography>
-        {pendingBookings.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-            {pendingBookings.map((booking) => (
-              <Paper key={uuidv4()} elevation={4} style={{ padding: '16px', margin: '8px', width: '30%' }}>
-                <Typography>ห้อง: {booking.room}</Typography>
-                <Typography>วันที่จอง: {moment(booking.date).format('DD MMMM YYYY')}</Typography>
-                <Typography>ชื่อนิสิต: {booking.studentName}</Typography>
-                <Typography>รหัสนิสิต: {booking.studentID}</Typography>
-                <Typography>เวลา: {booking.startTime} - {booking.endTime}</Typography>
-                <Typography>วัตถุประสงค์: {booking.purpose}</Typography>
-                <Typography color={booking.status === 'อนุมัติแล้ว' ? 'green' : 'orange'} sx={{ mt: 1 }}>สถานะ: {booking.status}</Typography>
-                <Box mt={2} display="flex" justifyContent="space-between">
-                  {booking.status === 'รอการอนุมัติจากผู้ดูแล' && (
-                    <>
-                      <Button variant="contained" color="success" onClick={() => handleApproveBooking(booking._id)}>อนุมัติ</Button>
-                      <Button variant="contained" color="error" onClick={() => handleOpenRejectDialog(booking._id)}>ปฎิเสธ</Button>
-                    </>
-                  )}
-                </Box>
-              </Paper>
-            ))}
-          </div>
-        ) : <Typography variant="body1">ไม่มีการจองที่รอการอนุมัติ</Typography>}
-      </Box>
+      {/* Modal สำหรับแสดงรายละเอียด */}
+      <Modal open={open} onClose={handleClose}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            borderRadius: 2, // ทำให้มุมโมดาลกลม
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          {selectedEvent && (
+            <>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center', color: '#1976d2' }}>
+                {selectedEvent.title}
+              </Typography>
+              <Divider sx={{ mb: 2 }} /> 
+              <Typography>
+                <strong>วันที่:</strong> {moment(selectedEvent.start).format('dddd, MMMM D, YYYY')}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                <strong>รายละเอียด:</strong> {selectedEvent.description}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                <strong>รหัสนิสิต:</strong> {selectedEvent.studentID}
+              </Typography>
+              <Divider sx={{ my: 2 }} /> {/* เส้นแบ่งที่เพิ่มเข้ามา */}
+              <Box display="flex" justifyContent="center">
+                <Button variant="contained" color="primary" onClick={handleClose}>ปิด</Button>
+              </Box>
+            </>
+          )}
+        </Box>
+      </Modal>
 
-      {/* ส่วนของประวัติการจองที่อนุมัติแล้ว */}
-      <Box mt={5}>
-        <Typography variant="h6" sx={{ mb: 2 }}>ประวัติการจองที่อนุมัติแล้ว:</Typography>
-        {bookingHistory.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-            {bookingHistory.map((history) => (
-              <Paper key={uuidv4()} elevation={4} style={{ padding: '16px', margin: '8px', width: '30%' }}>
-                <Typography>ห้อง: {history.room}</Typography>
-                <Typography>วันที่จอง: {moment(history.date).format('DD MMMM YYYY')}</Typography>
-                <Typography>ชื่อนิสิต: {history.studentName}</Typography>
-                <Typography>รหัสนิสิต: {history.studentID}</Typography>
-                <Typography>เวลา: {history.startTime} - {history.endTime}</Typography>
-                <Typography>วัตถุประสงค์: {history.purpose}</Typography>
-                <Typography color="green" sx={{ mt: 1 }}>สถานะ: อนุมัติแล้ว</Typography>
-              </Paper>
-            ))}
-          </div>
-        ) : <Typography variant="body1">ไม่มีประวัติการจองที่อนุมัติแล้ว</Typography>}
-      </Box>
+      
 
-      {/* ส่วนของประวัติการจองที่ถูกปฏิเสธ */}
-      <Box mt={5}>
-        <Typography variant="h6" sx={{ mb: 2 }}>ประวัติการจองที่ถูกปฏิเสธ:</Typography>
-        {rejectedBookingHistory.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-            {rejectedBookingHistory.map((history) => (
-              <Paper key={uuidv4()} elevation={4} style={{ padding: '16px', margin: '8px', width: '30%' }}>
-                <Typography>ห้อง: {history.room}</Typography>
-                <Typography>วันที่จอง: {moment(history.date).format('DD MMMM YYYY')}</Typography>
-                <Typography>ชื่อนิสิต: {history.studentName}</Typography>
-                <Typography>รหัสนิสิต: {history.studentID}</Typography>
-                <Typography>เวลา: {history.startTime} - {history.endTime}</Typography>
-                <Typography>วัตถุประสงค์: {history.purpose}</Typography>
-                <Typography color="red" sx={{ mt: 1 }}>สถานะ: ถูกปฏิเสธ</Typography>
-              </Paper>
-            ))}
-          </div>
-        ) : <Typography variant="body1">ไม่มีประวัติการจองที่ถูกปฏิเสธ</Typography>}
-      </Box>
+    {/* ส่วนของการจองที่รออนุมัติ */}
+    <Box mt={3}>
+    <Typography variant="h6" sx={{ mb: 2 }}>การจองที่รอการอนุมัติ:</Typography>
+    {pendingBookings.length > 0 ? (
+      <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+        {pendingBookings.map((booking) => (
+          <Paper key={uuidv4()} elevation={4} style={{ padding: '16px', margin: '8px', width: '30%' }}>
+            <Typography>ห้อง: {booking.room}</Typography>
+            <Typography>วันที่จอง: {moment(booking.date).format('DD MMMM YYYY')}</Typography>
+            <Typography>ชื่อนิสิต: {booking.studentName}</Typography>
+            <Typography>รหัสนิสิต: {booking.studentID}</Typography>
+            <Typography>เวลา: {booking.startTime} - {booking.endTime}</Typography>
+            <Typography>วัตถุประสงค์: {booking.purpose}</Typography>
+            <Typography color={booking.status === 'อนุมัติแล้ว' ? 'green' : 'orange'} sx={{ mt: 1 }}>สถานะ: {booking.status}</Typography>
+            <Box mt={2} display="flex" justifyContent="space-between">
+              {booking.status === 'รอการอนุมัติจากผู้ดูแล' && (
+                <>
+                  <Button variant="contained" color="success" onClick={() => handleApproveBooking(booking._id)}>อนุมัติ</Button>
+                  <Button variant="contained" color="error" onClick={() => handleOpenRejectDialog(booking._id)}>ปฎิเสธ</Button>
+                </>
+              )}
+            </Box>
+          </Paper>
+        ))}
+      </div>
+    ) : <Typography variant="body1">ไม่มีการจองที่รอการอนุมัติ</Typography>}
+    </Box>
 
-      {/* Popup for rejection reason */}
-      <Dialog open={rejectDialogOpen} onClose={handleCloseRejectDialog}>
-        <DialogTitle>ป้อนเหตุผลในการปฏิเสธ</DialogTitle>
-        <DialogContent>
-          <TextField autoFocus margin="dense" label="เหตุผล" type="text" fullWidth value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseRejectDialog}>ยกเลิก</Button>
-          <Button onClick={handleRejectBooking} color="primary">ปฏิเสธ</Button>
-        </DialogActions>
-      </Dialog>
+    {/* ส่วนของประวัติการจองที่อนุมัติแล้ว */}
+    <Box mt={5}>
+    <Typography variant="h6" sx={{ mb: 2 }}>ประวัติการจองที่อนุมัติแล้ว:</Typography>
+    {bookingHistory.length > 0 ? (
+      <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+        {bookingHistory.map((history) => (
+          <Paper key={uuidv4()} elevation={4} style={{ padding: '16px', margin: '8px', width: '30%' }}>
+            <Typography>ห้อง: {history.room}</Typography>
+            <Typography>วันที่จอง: {moment(history.date).format('DD MMMM YYYY')}</Typography>
+            <Typography>ชื่อนิสิต: {history.studentName}</Typography>
+            <Typography>รหัสนิสิต: {history.studentID}</Typography>
+            <Typography>เวลา: {history.startTime} - {history.endTime}</Typography>
+            <Typography>วัตถุประสงค์: {history.purpose}</Typography>
+            <Typography color="green" sx={{ mt: 1 }}>สถานะ: อนุมัติแล้ว</Typography>
+          </Paper>
+        ))}
+      </div>
+    ) : <Typography variant="body1">ไม่มีประวัติการจองที่อนุมัติแล้ว</Typography>}
+    </Box>
+
+    {/* ส่วนของประวัติการจองที่ถูกปฏิเสธ */}
+    <Box mt={5}>
+    <Typography variant="h6" sx={{ mb: 2 }}>ประวัติการจองที่ถูกปฏิเสธ:</Typography>
+    {rejectedBookingHistory.length > 0 ? (
+      <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+        {rejectedBookingHistory.map((history) => (
+          <Paper key={uuidv4()} elevation={4} style={{ padding: '16px', margin: '8px', width: '30%' }}>
+            <Typography>ห้อง: {history.room}</Typography>
+            <Typography>วันที่จอง: {moment(history.date).format('DD MMMM YYYY')}</Typography>
+            <Typography>ชื่อนิสิต: {history.studentName}</Typography>
+            <Typography>รหัสนิสิต: {history.studentID}</Typography>
+            <Typography>เวลา: {history.startTime} - {history.endTime}</Typography>
+            <Typography>วัตถุประสงค์: {history.purpose}</Typography>
+            <Typography color="red" sx={{ mt: 1 }}>สถานะ: ถูกปฏิเสธ</Typography>
+          </Paper>
+        ))}
+      </div>
+    ) : <Typography variant="body1">ไม่มีประวัติการจองที่ถูกปฏิเสธ</Typography>}
+    </Box>
+
+    {/* Popup for rejection reason */}
+    <Dialog open={rejectDialogOpen} onClose={handleCloseRejectDialog}>
+    <DialogTitle>ป้อนเหตุผลในการปฏิเสธ</DialogTitle>
+    <DialogContent>
+      <TextField autoFocus margin="dense" label="เหตุผล" type="text" fullWidth value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} />
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleCloseRejectDialog}>ยกเลิก</Button>
+      <Button onClick={handleRejectBooking} color="primary">ปฏิเสธ</Button>
+    </DialogActions>
+    </Dialog>
+      
     </div>
   );
 };

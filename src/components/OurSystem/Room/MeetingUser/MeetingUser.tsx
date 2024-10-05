@@ -15,6 +15,8 @@ const MeetingRoomUser = () => {
   const [endTime, setEndTime] = useState('');
   const [purpose, setPurpose] = useState('');
   const [pendingBookings, setPendingBookings] = useState<any[]>([]);
+  const [approvedBookings, setApprovedBookings] = useState<any[]>([]);
+  const [rejectedBookings, setRejectedBookings] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const [bookings] = useState([
@@ -24,21 +26,30 @@ const MeetingRoomUser = () => {
   ]);
 
   useEffect(() => {
-    async function fetchPendingBookings() {
+    async function fetchBookings() {
       try {
-        const response = await axios.get('http://localhost:8000/api/bookings/pending');
-        if (response.status === 200) {
-          setPendingBookings(response.data);
-        } else {
-          alert('ไม่สามารถดึงข้อมูลการจองที่รอการอนุมัติได้');
+        const [pendingResponse, approvedResponse, rejectedResponse] = await Promise.all([
+          axios.get('http://localhost:8000/api/bookings/pending'),
+          axios.get('http://localhost:8000/api/bookings/approved'),
+          axios.get('http://localhost:8000/api/bookings/rejected'),
+        ]);
+
+        if (pendingResponse.status === 200) {
+          setPendingBookings(pendingResponse.data);
+        }
+        if (approvedResponse.status === 200) {
+          setApprovedBookings(approvedResponse.data);
+        }
+        if (rejectedResponse.status === 200) {
+          setRejectedBookings(rejectedResponse.data);
         }
       } catch (error) {
-        console.error('Error fetching pending bookings:', error);
-        alert('เกิดข้อผิดพลาดในการดึงข้อมูลการจองที่รอการอนุมัติ');
+        console.error('Error fetching bookings:', error);
+        alert('เกิดข้อผิดพลาดในการดึงข้อมูลการจอง');
       }
     }
 
-    fetchPendingBookings();
+    fetchBookings();
   }, []);
 
   function recurringBookings(room: string, title: string) {
@@ -72,12 +83,7 @@ const MeetingRoomUser = () => {
     setModalOpen(true);
   }
 
-  function isTimeSlotAvailable(
-    room: string | null,
-    startTime: string,
-    endTime: string,
-    selectedDate: Date | null
-  ) {
+  function isTimeSlotAvailable(room: string | null, startTime: string, endTime: string, selectedDate: Date | null) {
     if (!room || !selectedDate) return false;
 
     const newStart = moment(selectedDate).set({
@@ -141,7 +147,7 @@ const MeetingRoomUser = () => {
 
     try {
       const response = await axios.post('http://localhost:8000/api/bookings/create', bookingData);
-      
+
       if (response.status === 201) {
         alert('การจองสำเร็จ');
         // Update the pending bookings without refreshing the page
@@ -156,22 +162,6 @@ const MeetingRoomUser = () => {
     }
   }
 
-  async function handleCancelBooking(id: string) {
-    try {
-      const response = await axios.delete(`http://localhost:8000/api/bookings/delete/${id}`);
-      if (response.status === 200) {
-        alert('ยกเลิกการจองสำเร็จ');
-        // ลบการจองออกจากรายการที่รอการอนุมัติ
-        setPendingBookings((prev) => prev.filter((booking) => booking._id !== id));
-      } else {
-        alert('ไม่สามารถยกเลิกการจองได้');
-      }
-    } catch (error) {
-      console.error('Error cancelling booking:', error);
-      alert('เกิดข้อผิดพลาดในการยกเลิกการจอง');
-    }
-  }
-
   const eventsWithStatus = bookings.map((booking) => ({
     title: `${booking.room}: ${booking.title}`,
     start: booking.start,
@@ -179,9 +169,7 @@ const MeetingRoomUser = () => {
     room: booking.room,
   }));
 
-  const times = [
-    '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00',
-  ];
+  const times = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
 
   return (
     <div className="w-full h-full p-4">
@@ -205,8 +193,8 @@ const MeetingRoomUser = () => {
           events={eventsWithStatus}
           startAccessor="start"
           endAccessor="end"
-          views={[Views.MONTH, Views.AGENDA]}  // เอา WEEK, DAY ออก และเพิ่ม AGENDA
-          defaultView={Views.MONTH}  // กำหนดมุมมองเริ่มต้นเป็น MONTH
+          views={[Views.MONTH, Views.AGENDA]} // เอา WEEK, DAY ออก และเพิ่ม AGENDA
+          defaultView={Views.MONTH} // กำหนดมุมมองเริ่มต้นเป็น MONTH
           style={{
             height: '90vh',
             width: '95%',
@@ -218,12 +206,7 @@ const MeetingRoomUser = () => {
         />
       </div>
 
-      <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
             การจองห้อง {selectedRoom}
@@ -244,95 +227,94 @@ const MeetingRoomUser = () => {
             ))}
           </Box>
 
+          <TextField label="ชื่อนิสิต" variant="outlined" fullWidth value={studentName} onChange={(e) => setStudentName(e.target.value)} sx={{ mt: 2 }} />
+          <TextField label="รหัสนิสิต" variant="outlined" fullWidth value={studentID} onChange={(e) => setStudentID(e.target.value)} sx={{ mt: 2 }} />
           <TextField
-            label="ชื่อนิสิต"
+            label="เวลาเริ่มต้น"
             variant="outlined"
             fullWidth
-            value={studentName}
-            onChange={(e) => setStudentName(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="รหัสนิสิต"
-            variant="outlined"
-            fullWidth
-            value={studentID}
-            onChange={(e) => setStudentID(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            label="เวลาเริ่ม"
             select
-            fullWidth
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
             sx={{ mt: 2 }}
           >
             {times.map((time) => (
-              <MenuItem key={time} value={time}>
+              <MenuItem key={uuidv4()} value={time}>
                 {time}
               </MenuItem>
             ))}
           </TextField>
+
           <TextField
             label="เวลาสิ้นสุด"
-            select
+            variant="outlined"
             fullWidth
+            select
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
             sx={{ mt: 2 }}
           >
             {times.map((time) => (
-              <MenuItem key={time} value={time}>
+              <MenuItem key={uuidv4()} value={time}>
                 {time}
               </MenuItem>
             ))}
           </TextField>
-          <TextField
-            label="วัตถุประสงค์ในการใช้"
-            variant="outlined"
-            fullWidth
-            value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
-            sx={{ mt: 2 }}
-          />
 
-          <Box mt={3}>
-            <Button onClick={handleFormSubmit} variant="contained" color="primary" fullWidth>
-              ยืนยันการจอง
+          <TextField label="วัตถุประสงค์" variant="outlined" fullWidth multiline rows={3} value={purpose} onChange={(e) => setPurpose(e.target.value)} sx={{ mt: 2 }} />
+
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+            <Button onClick={handleFormSubmit} variant="contained" color="primary">
+              จอง
             </Button>
           </Box>
         </Paper>
       </Modal>
 
-      {/* ส่วนแสดงการจองที่รอการอนุมัติ */}
-<Box mt={3}>
-  <Typography variant="h6" sx={{ mb: 2 }}>
-    การจองที่รอการอนุมัติ:
-  </Typography>
-  {pendingBookings.length > 0 ? (
-    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-      {pendingBookings.map((booking) => (
-        <Paper key={uuidv4()} elevation={4} style={{ padding: '16px', margin: '8px', width: '30%' }}>
-          <Typography>ห้อง: {booking.room}</Typography>
-          <Typography>วันที่จอง: {moment(booking.date).format('DD MMMM YYYY')}</Typography>
-          <Typography>ชื่อนิสิต: {booking.studentName}</Typography>
-          <Typography>รหัสนิสิต: {booking.studentID}</Typography>
-          <Typography>เวลา: {booking.startTime} - {booking.endTime}</Typography>
-          <Typography>วัตถุประสงค์: {booking.purpose}</Typography>
-          <Typography color="orange" sx={{ mt: 1 }}>สถานะ: {booking.status}</Typography>
-          <Button onClick={() => handleCancelBooking(booking._id)} variant="contained" color="secondary" sx={{ mt: 2 }}>
-            ยกเลิกการจอง
-          </Button>
-        </Paper>
-      ))}
-    </div>
-  ) : (
-    <Typography variant="body1">ไม่มีการจองที่รอการอนุมัติ</Typography>
-  )}
-</Box>
+      {/* ส่วนของรายการการจองที่รอการอนุมัติ */}
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h5">รายการการจองที่รอการอนุมัติ</Typography>
+        {pendingBookings.map((booking, index) => (
+          <Box key={index} sx={{ mt: 2, border: '1px solid #ccc', padding: '8px', borderRadius: '4px' }}>
+            <Typography variant="subtitle1">
+              ห้อง: {booking.room} | วันที่: {moment(booking.date).format('DD MMM YYYY')} | เวลา: {booking.startTime} - {booking.endTime}
+            </Typography>
+            <Typography variant="body2">ชื่อผู้จอง: {booking.studentName} | รหัสนิสิต: {booking.studentID}</Typography>
+            <Typography variant="body2">วัตถุประสงค์: {booking.purpose}</Typography>
+            <Typography variant="body2">สถานะ: รอการอนุมัติ</Typography>
+          </Box>
+        ))}
+      </Box>
 
+      {/* ส่วนของรายการการจองที่อนุมัติแล้ว */}
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h5">รายการการจองที่อนุมัติแล้ว</Typography>
+        {approvedBookings.map((booking, index) => (
+          <Box key={index} sx={{ mt: 2, border: '1px solid #ccc', padding: '8px', borderRadius: '4px' }}>
+            <Typography variant="subtitle1">
+              ห้อง: {booking.room} | วันที่: {moment(booking.date).format('DD MMM YYYY')} | เวลา: {booking.startTime} - {booking.endTime}
+            </Typography>
+            <Typography variant="body2">ชื่อผู้จอง: {booking.studentName} | รหัสนิสิต: {booking.studentID}</Typography>
+            <Typography variant="body2">วัตถุประสงค์: {booking.purpose}</Typography>
+            <Typography variant="body2">สถานะ: อนุมัติแล้ว</Typography>
+          </Box>
+        ))}
+      </Box>
 
+      {/* ส่วนของรายการการจองที่ถูกปฏิเสธ */}
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h5">รายการการจองที่ถูกปฏิเสธ</Typography>
+        {rejectedBookings.map((booking, index) => (
+          <Box key={index} sx={{ mt: 2, border: '1px solid #ccc', padding: '8px', borderRadius: '4px' }}>
+            <Typography variant="subtitle1">
+              ห้อง: {booking.room} | วันที่: {moment(booking.date).format('DD MMM YYYY')} | เวลา: {booking.startTime} - {booking.endTime}
+            </Typography>
+            <Typography variant="body2">ชื่อผู้จอง: {booking.studentName} | รหัสนิสิต: {booking.studentID}</Typography>
+            <Typography variant="body2">วัตถุประสงค์: {booking.purpose}</Typography>
+            <Typography variant="body2">สถานะ: ถูกปฏิเสธ</Typography>
+          </Box>
+        ))}
+      </Box>
     </div>
   );
 };

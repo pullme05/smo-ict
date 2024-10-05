@@ -105,25 +105,27 @@ const MeetingRoomAM = () => {
       </Box>
 
       <div className="mb-6">
-        <Calendar
-          localizer={localizer}
-          events={bookings.map((booking) => ({
-            ...booking,
-            title: `${booking.room} ${booking.approved ? '(อนุมัติแล้ว)' : booking.rejected ? '(ปฏิเสธ)' : ''}`,
-            style: { backgroundColor: booking.approved ? 'green' : booking.rejected ? 'grey' : 'red' },
-          }))}
-          startAccessor="start"
-          endAccessor="end"
-          views={[Views.MONTH, Views.WEEK, Views.DAY]}
-          defaultView={Views.MONTH}
-          style={{
-            height: '85vh',
-            width: '100%',
-            fontSize: '16px',
-            border: '2px solid #996600',
-          }}
-          onSelectEvent={handleEventClick}
-        />
+      <Calendar
+  localizer={localizer}
+  events={bookings.map((booking) => ({
+    ...booking,
+    title: `${booking.room} ${booking.approved ? '(อนุมัติแล้ว)' : booking.rejected ? '(ปฏิเสธ)' : ''}`,
+    style: { backgroundColor: booking.approved ? 'green' : booking.rejected ? 'grey' : 'red' },
+  }))}
+  startAccessor="start"
+  endAccessor="end"
+  views={[Views.MONTH, Views.WEEK, Views.DAY]}
+  defaultView={Views.MONTH}
+  style={{
+    height: '90vh',  // เพิ่มความสูงเป็น 90% ของความสูงหน้าจอ
+    width: '95vw',   // เพิ่มความกว้างเป็น 95% ของความกว้างหน้าจอ
+    fontSize: '16px',
+    border: '2px solid #996600',
+  }}
+  popup={true}
+  onSelectEvent={handleEventClick}
+/>
+
       </div>
 
       <Box sx={{ padding: '16px', marginTop: '16px' }}>

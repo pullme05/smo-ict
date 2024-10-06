@@ -2,7 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import Banner from '../components/Banner/Banner';
 import OurSystem from '../components/OurSystem/OurSystem';
 import News from '../components/News/News';
-import NewsActi from '../components/News/NewsActi';
+// import NewsActi from '../components/News/NewsActi';
 import Allnews from '../components/News/Allnews/Allnews';
 import UserCalendar from '../components/Calendar/UserCalendar';
 import MemberUser from '../components/MemberUser/MemberUser';
@@ -17,7 +17,7 @@ const UserRoutes = () => (
           <Banner />
           <OurSystem />
           <News />
-          <NewsActi />
+          {/* <NewsActi /> */}
         </>
       }
     />

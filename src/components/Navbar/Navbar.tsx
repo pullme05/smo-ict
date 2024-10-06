@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Logo from "../../assets/smoictmain.png";
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+// import NotificationsIcon from '@mui/icons-material/Notifications';
 import QrcodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import { Button } from "@mui/material";
 import { Link as ScrollLink } from 'react-scroll';
@@ -141,9 +141,9 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                   >
                     <QrcodeScannerIcon sx={{ fontSize: 20 }} />
                   </div>
-                  <div className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300">
+                  {/* <div className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300">
                     <NotificationsIcon sx={{ fontSize: 20 }} />
-                  </div>
+                  </div> */}
                 </div>
               </>
             ) : (
@@ -188,9 +188,9 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, isAdmin, onLogout, onLoginC
                     >
                       <QrcodeScannerIcon sx={{ fontSize: 20 }} />
                     </div>
-                    <div className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300">
+                    {/* <div className="bg-smoIct text-white text-xs rounded-full p-2 flex items-center justify-center hover:bg-yellow-500 transition duration-300">
                       <NotificationsIcon sx={{ fontSize: 20 }} />
-                    </div>
+                    </div> */}
                   </div>
                 )}
                 <CloseIcon className="h-8 w-8 text-smoIct cursor-pointer" onClick={toggleMenu} />

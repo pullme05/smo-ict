@@ -1,112 +1,43 @@
-import React, { useState } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-  styled,
-  AppBar,
-  Toolbar,
-  Typography,
-  Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
-} from '@mui/material';
-import ReactQuill from 'react-quill'; // Import Quill
-import 'react-quill/dist/quill.snow.css'; // Import Quill CSS
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { TextField, Typography, Box, Paper, MenuItem, IconButton, Dialog, DialogContent, DialogTitle, Button } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
-// Define the type for data
-interface Entry {
-  id: number;
+interface News {
+  _id?: string;
   image: string;
   category: string;
   name: string;
   date: string;
-  description: string; // Added field for description
+  description: string;
 }
 
-// Style for TableCell
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  border: '1px solid #e0e0e0',
-  padding: '10px',
-  backgroundColor: theme.palette.background.paper,
-  textAlign: 'center', // Center align
-}));
-
-const CustomTable = () => {
-  const [data, setData] = useState<Entry[]>([]);
-  const [open, setOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [newEntry, setNewEntry] = useState<Omit<Entry, 'id'>>({
+const NewsAM: React.FC = () => {
+  const [newsList, setNewsList] = useState<News[]>([]);
+  const [formData, setFormData] = useState<News>({
     image: '',
     category: '',
     name: '',
     date: '',
-    description: '', // Content field
+    description: '',
   });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<News | null>(null);
+  const [selectedNews, setSelectedNews] = useState<News | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false); // Add state for edit dialog
 
-  const [editEntry, setEditEntry] = useState<Entry | null>(null);
+  useEffect(() => {
+    fetchNews();
+  }, []);
 
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleEditOpen = (row: Entry) => {
-    setEditEntry(row);
-    setEditOpen(true);
-  };
-
-  const handleEditClose = () => {
-    setEditOpen(false);
-    setEditEntry(null);
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
-  ) => {
-    const { name, value } = e.target;
-    if (editEntry) {
-      setEditEntry((prev) => ({
-        ...prev!,
-        [name as string]: value,
-      }));
-    } else {
-      setNewEntry((prev) => ({
-        ...prev,
-        [name as string]: value,
-      }));
-    }
-  };
-
-  // Function specific for Select
-  const handleSelectChange = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    if (editEntry) {
-      setEditEntry((prev) => ({
-        ...prev!,
-        [name]: value,
-      }));
-    } else {
-      setNewEntry((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+  const fetchNews = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/news');
+      setNewsList(response.data);
+    } catch (error) {
+      console.error('Error fetching news:', error);
     }
   };
 
@@ -115,284 +46,315 @@ const CustomTable = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        if (editEntry) {
-          setEditEntry((prev) => ({
-            ...prev!,
-            image: reader.result as string,
-          }));
-        } else {
-          setNewEntry((prev) => ({
-            ...prev,
-            image: reader.result as string,
-          }));
-        }
+        setFormData({ ...formData, image: reader.result as string });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleDescriptionChange = (value: string) => {
-    if (editEntry) {
-      setEditEntry((prev) => ({
-        ...prev!,
-        description: value,
-      }));
-    } else {
-      setNewEntry((prev) => ({
-        ...prev,
-        description: value,
-      }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (isEditing && editingId) {
+        await axios.put(`http://localhost:8000/api/news/${editingId}`, formData);
+      } else {
+        await axios.post('http://localhost:8000/api/news', formData);
+      }
+      setFormData({ image: '', category: '', name: '', date: '', description: '' });
+      setIsEditing(false);
+      setEditingId(null);
+      fetchNews();
+      setPreview(null);
+      setEditDialogOpen(false); // Close the edit dialog after submission
+    } catch (error) {
+      console.error('Error saving news:', error);
     }
   };
 
-  const handleSubmit = () => {
-    const newId = data.length > 0 ? data[data.length - 1].id + 1 : 1;
-    setData((prev) => [
-      ...prev,
-      {
-        ...newEntry,
-        id: newId,
-      },
-    ]);
-    handleClose();
-    setNewEntry({ image: '', category: '', name: '', date: '', description: '' });
+  const handlePreview = () => {
+    setPreview(formData);
   };
 
-  const handleEditSubmit = () => {
-    if (editEntry) {
-      setData((prev) =>
-        prev.map((entry) => (entry.id === editEntry.id ? editEntry : entry))
-      );
+  const handleClosePreview = () => {
+    setPreview(null);
+  };
+
+  const handleEdit = (news: News) => {
+    setFormData(news);
+    setIsEditing(true);
+    setEditingId(news._id || null);
+    setEditDialogOpen(true); // Open the edit dialog
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await axios.delete(`http://localhost:8000/api/news/${id}`);
+      fetchNews();
+    } catch (error) {
+      console.error('Error deleting news:', error);
     }
-    handleEditClose();
   };
 
-  // Function to delete an entry
-  const handleDelete = (id: number) => {
-    setData((prev) => prev.filter((entry) => entry.id !== id));
+  const handleViewFullNews = (news: News) => {
+    setSelectedNews(news);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setSelectedNews(null);
   };
 
   return (
-    <div>
-      {/* Header with Create Button */}
-      <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>
-        <AppBar position="static" style={{ backgroundColor: '#996600' }}>
-          <Toolbar>
-            <Typography variant="h6" style={{ flexGrow: 1 }}>
-              ข่าวประชาสัมพันธ์นิติสโมสร
-            </Typography>
-            <Button variant="contained" color="secondary" onClick={handleOpen}>
-              + Create
-            </Button>
-          </Toolbar>
-        </AppBar>
-      </Box>
+    <Box className="p-5 max-w-6xl mx-auto">
+      <Paper className="p-5 mb-5">
+        <Typography variant="h4" gutterBottom>
+          ข่าวประชาสัมพันธ์นิติสโมสร Admin
+        </Typography>
 
-      {/* Table Container */}
-      <TableContainer
-        component={Paper}
-        elevation={3}
-        style={{ marginTop: '20px', maxWidth: '1600px', marginLeft: 'auto', marginRight: 'auto' }}
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <StyledTableCell>No.</StyledTableCell>
-              <StyledTableCell>Image</StyledTableCell>
-              <StyledTableCell>Category</StyledTableCell>
-              <StyledTableCell>Name</StyledTableCell>
-              <StyledTableCell>Date</StyledTableCell>
-              <StyledTableCell>Edit</StyledTableCell>
-              <StyledTableCell>Delete</StyledTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.map((row) => (
-              <TableRow key={row.id}>
-                <StyledTableCell>{row.id}</StyledTableCell>
-                <StyledTableCell style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  {/* Center image */}
-                  <input
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    id={`image-upload-${row.id}`}
-                    type="file"
-                    onChange={handleImageUpload}
-                  />
-                  <label htmlFor={`image-upload-${row.id}`}>
-                    <img
-                      src={row.image}
-                      alt={row.name}
-                      style={{ width: '150px', height: '150px', borderRadius: '4px', cursor: 'pointer' }} // Adjust size to 150x150
-                    />
-                  </label>
-                </StyledTableCell>
-                <StyledTableCell>{row.category}</StyledTableCell>
-                <StyledTableCell>{row.name}</StyledTableCell>
-                <StyledTableCell>{row.date}</StyledTableCell>
-                <StyledTableCell>
-                  <Button variant="outlined" color="primary" onClick={() => handleEditOpen(row)}>
-                    Edit
-                  </Button>
-                </StyledTableCell>
-                <StyledTableCell>
-                  <Button variant="outlined" color="error" onClick={() => handleDelete(row.id)}>
-                    Delete
-                  </Button>
-                </StyledTableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Dialog for New Entry */}
-      <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
-        <DialogTitle>Create New Entry</DialogTitle>
-        <DialogContent>
+        <form onSubmit={handleSubmit}>
           <input
             accept="image/*"
-            style={{ display: 'none' }}
-            id="image-upload"
             type="file"
             onChange={handleImageUpload}
+            className="block mb-5"
           />
-          <label htmlFor="image-upload">
-            <Button variant="outlined" component="span">
-              Upload Image
-            </Button>
-          </label>
-          {newEntry.image && (
-            <img
-              src={newEntry.image}
-              alt="Preview"
-              style={{ width: '60%', height: 'auto', marginTop: '10px', marginBottom: '10px' }} // Adjust size to 60%
-            />
-          )}
-          <FormControl fullWidth variant="outlined" style={{ marginBottom: '10px' }}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              name="category"
-              value={newEntry.category}
-              onChange={handleSelectChange}
-              label="Category"
-            >
-              <MenuItem value="ข่าวทั่วไป">ข่าวทั่วไป</MenuItem>
-              <MenuItem value="ข่าวกิจกรรม">ข่าวกิจกรรม</MenuItem>
-              <MenuItem value="ข่าวการศึกษา">ข่าวการศึกษา</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            name="name"
-            label="Name"
-            value={newEntry.name}
-            onChange={handleChange}
-            fullWidth
-            variant="outlined"
-            style={{ marginBottom: '10px' }}
-          />
-          <TextField
-            name="date"
-            label="Date"
-            type="date"
-            value={newEntry.date}
-            onChange={handleChange}
-            fullWidth
-            variant="outlined"
-            style={{ marginBottom: '10px' }}
-            InputLabelProps={{ shrink: true }}
-          />
-          <Typography variant="h6" style={{ marginBottom: '10px' }}>
-            Description:
-          </Typography>
-          <ReactQuill value={newEntry.description} onChange={handleDescriptionChange} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} color="primary">
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
+          {formData.image && <img src={formData.image} alt="Uploaded Preview" className="max-w-full mb-5" />}
 
-      {/* Dialog for Editing Entry */}
-      <Dialog open={editOpen} onClose={handleEditClose} maxWidth="lg" fullWidth>
-        <DialogTitle>Edit Entry</DialogTitle>
-        <DialogContent>
-          {editEntry && (
-            <>
-              <input
-                accept="image/*"
-                style={{ display: 'none' }}
-                id="image-upload-edit"
-                type="file"
-                onChange={handleImageUpload}
-              />
-              <label htmlFor="image-upload-edit">
-                <Button variant="outlined" component="span">
-                  Upload Image
-                </Button>
-              </label>
-              {editEntry.image && (
-                <img
-                  src={editEntry.image}
-                  alt="Preview"
-                  style={{ width: '60%', height: 'auto', marginTop: '10px', marginBottom: '10px' }} // Adjust size to 60%
-                />
-              )}
-              <FormControl fullWidth variant="outlined" style={{ marginBottom: '10px' }}>
-                <InputLabel>Category</InputLabel>
-                <Select
-                  name="category"
-                  value={editEntry.category}
-                  onChange={handleSelectChange}
-                  label="Category"
+          <TextField
+            label="หมวดหมู่"
+            name="category"
+            fullWidth
+            select
+            margin="normal"
+            value={formData.category}
+            onChange={handleChange}
+          >
+            <MenuItem value="ข่าวทั่วไป">ข่าวทั่วไป</MenuItem>
+            <MenuItem value="ข่าวกิจกรรม">ข่าวกิจกรรม</MenuItem>
+            <MenuItem value="ข่าวการศึกษา">ข่าวการศึกษา</MenuItem>
+          </TextField>
+
+          <TextField
+            label="หัวข้อ"
+            name="name"
+            fullWidth
+            margin="normal"
+            value={formData.name}
+            onChange={handleChange}
+          />
+          <TextField
+            label="วันที่"
+            name="date"
+            type="date"
+            fullWidth
+            margin="normal"
+            value={formData.date}
+            InputLabelProps={{ shrink: true }}
+            onChange={handleChange}
+          />
+          <TextField
+            label="Description"
+            name="description"
+            multiline
+            rows={4}
+            fullWidth
+            margin="normal"
+            value={formData.description}
+            onChange={handleChange}
+          />
+
+          <div className="flex gap-3 mt-5">
+            <button type="submit" className="bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600">
+              {isEditing ? 'Update News' : 'Create News'}
+            </button>
+            <button type="button" onClick={handlePreview} className="bg-gray-500 text-white px-5 py-2 rounded-md hover:bg-gray-600">
+              Preview
+            </button>
+          </div>
+        </form>
+      </Paper>
+
+      {/* Preview Section */}
+      {preview && (
+        <Paper className="p-5 mb-5 relative">
+          <IconButton
+            onClick={handleClosePreview}
+            className="absolute top-2 right-2"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography variant="h5" gutterBottom>
+            Preview News
+          </Typography>
+          <img src={preview.image} alt="Preview" className="max-w-full" />
+          <Typography variant="h6">{preview.name}</Typography>
+          <Typography>{preview.category}</Typography>
+          <Typography>{preview.date}</Typography>
+          <Typography>{preview.description.length > 100 ? preview.description.substring(0, 100) + '...' : preview.description}</Typography>
+        </Paper>
+      )}
+
+      <Typography variant="h5" gutterBottom>
+        All News
+      </Typography>
+      <Box className="grid lg:grid-cols-3 gap-8 mb-8">
+        {newsList.map((news) => (
+          <div
+            key={news._id}
+            className="bg-white shadow-md rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
+          >
+            <img
+              src={news.image}
+              alt={news.name}
+              className="w-full h-64 object-cover"
+            />
+            <div className="p-4">
+              <div className="mb-2">
+                <span className="text-sm bg-smoIct text-white px-2 py-1 rounded-md">{news.category}</span>
+              </div>
+              <h3 className="text-2xl font-semibold mb-2 text-[#996600]">{news.name}</h3>
+              <p className="text-sm text-gray-500 mb-4">{news.date}</p>
+              <p className="text-gray-700 mb-4">
+                {news.description.length > 50 ? news.description.substring(0, 50) + '...' : news.description}
+              </p>
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={() => handleEdit(news)} 
+                  className="bg-yellow-500 text-white px-5 py-2 rounded-md hover:bg-yellow-600"
                 >
-                  <MenuItem value="ข่าวทั่วไป">ข่าวทั่วไป</MenuItem>
-                  <MenuItem value="ข่าวกิจกรรม">ข่าวกิจกรรม</MenuItem>
-                  <MenuItem value="ข่าวการศึกษา">ข่าวการศึกษา</MenuItem>
-                </Select>
-              </FormControl>
-              <TextField
-                name="name"
-                label="Name"
-                value={editEntry.name}
-                onChange={handleChange}
-                fullWidth
-                variant="outlined"
-                style={{ marginBottom: '10px' }}
-              />
-              <TextField
-                name="date"
-                label="Date"
-                type="date"
-                value={editEntry.date}
-                onChange={handleChange}
-                fullWidth
-                variant="outlined"
-                style={{ marginBottom: '10px' }}
-                InputLabelProps={{ shrink: true }}
-              />
-              <Typography variant="h6" style={{ marginBottom: '10px' }}>
-                Description:
-              </Typography>
-              <ReactQuill value={editEntry.description} onChange={handleDescriptionChange} />
-            </>
-          )}
+                  Edit
+                </button>
+                <button 
+                  onClick={() => handleViewFullNews(news)} 
+                  className="bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600"
+                >
+                  View Full
+                </button>
+                <button 
+                  onClick={() => handleDelete(news._id!)} 
+                  className="bg-red-500 text-white px-5 py-2 rounded-md hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </Box>
+
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogContent dividers>
+        {selectedNews && (
+          <>
+            <Typography variant="h4" gutterBottom>
+              {selectedNews.name}
+            </Typography>
+            <img src={selectedNews.image} alt={selectedNews.name} className="w-full h-96 object-cover mb-5" />
+            <Typography variant="h6" gutterBottom>
+              {selectedNews.category}
+            </Typography>
+            <Typography gutterBottom>{selectedNews.date}</Typography>
+            <Typography className="whitespace-pre-line break-words max-w-full">
+              {selectedNews.description}
+            </Typography>
+          </>
+        )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleEditSubmit} color="primary">
-            Save Changes
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+    </Dialog>
+
+      
+      {/* Edit News Dialog */}
+<Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
+  <DialogTitle>
+    {isEditing ? 'Edit News' : 'Create News'}
+    <IconButton
+      onClick={() => setEditDialogOpen(false)}
+      className="absolute top-2 right-2"
+    >
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
+  <DialogContent>
+    <form onSubmit={handleSubmit}>
+      <input
+        accept="image/*"
+        type="file"
+        onChange={handleImageUpload}
+        className="block mb-5"
+      />
+      {formData.image && <img src={formData.image} alt="Uploaded Preview" className="max-w-full mb-5" />}
+
+      <TextField
+        label="หมวดหมู่"
+        name="category"
+        fullWidth
+        select
+        margin="normal"
+        value={formData.category}
+        onChange={handleChange}
+      >
+        <MenuItem value="ข่าวทั่วไป">ข่าวทั่วไป</MenuItem>
+        <MenuItem value="ข่าวกิจกรรม">ข่าวกิจกรรม</MenuItem>
+        <MenuItem value="ข่าวการศึกษา">ข่าวการศึกษา</MenuItem>
+      </TextField>
+
+      <TextField
+        label="หัวข้อ"
+        name="name"
+        fullWidth
+        margin="normal"
+        value={formData.name}
+        onChange={handleChange}
+      />
+      <TextField
+        label="วันที่"
+        name="date"
+        type="date"
+        fullWidth
+        margin="normal"
+        value={formData.date}
+        InputLabelProps={{ shrink: true }}
+        onChange={handleChange}
+      />
+      <TextField
+        label="Description"
+        name="description"
+        multiline
+        rows={4}
+        fullWidth
+        margin="normal"
+        value={formData.description}
+        onChange={handleChange}
+      />
+
+      <div className="flex gap-3 mt-5">
+        <Button type="submit" variant="contained" color="primary">
+          {isEditing ? 'Update News' : 'Create News'}
+        </Button>
+        <Button
+          type="button"
+          variant="outlined"
+          color="secondary"
+          onClick={() => {
+            setFormData({ image: '', category: '', name: '', date: '', description: '' }); // Reset form data
+            setIsEditing(false);
+            setEditDialogOpen(false); // Close the dialog
+          }}
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+
+    </Box>
   );
 };
 
-export default CustomTable;
+export default NewsAM;

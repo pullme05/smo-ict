@@ -24,9 +24,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }) => {
         password
       });
 
-      const user = response.data.user;
+      const { token, user } = response.data; // รับ JWT token และข้อมูลผู้ใช้จากการตอบกลับของ backend
 
       // เก็บ token ไว้ใน localStorage เพื่อเช็คสถานะล็อกอิน
+      localStorage.setItem('token', token); // เก็บ JWT token
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('userRole', user.role); // เก็บ role ของ user
 

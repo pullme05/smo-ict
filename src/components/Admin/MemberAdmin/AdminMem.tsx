@@ -1,424 +1,279 @@
-import React, { useState, useMemo } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-  styled,
-  AppBar,
-  Toolbar,
-  Typography,
-  Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-} from '@mui/material';
-import { createEditor } from 'slate';
-import { Slate, Editable, withReact } from 'slate-react';
+import React, { useState, useEffect } from 'react';
+import { Box, TextField, Button, Avatar, Typography, IconButton } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
-// สร้าง interface สำหรับ CustomDescendant
-interface CustomText {
-  text: string; // เพิ่ม text ที่นี่
-}
-
-interface CustomDescendant {
-  type: 'paragraph' | 'heading'; // กำหนดประเภทที่ต้องการ
-  children: CustomText[]; // เปลี่ยนให้ children เป็น CustomText[]
-}
-
-// สร้าง interface สำหรับ entry
-interface Entry {
-  id: number;
-  image: string;
-  position: string;
+type MemberProps = {
+  _id?: string;
   name: string;
-  date: string;
-  description: string;
-}
+  position: string;
+  email: string;
+  avatarUrl?: string;
+  avatarFile?: File;
+  phoneNumber?: string;
+};
 
-// ข้อมูลเริ่มต้น
-const initialData: Entry[] = [
-  {
-    id: 1,
-    image: 'https://via.placeholder.com/150',
-    position: '1',
-    name: 'Item 1',
-    date: '2024-01-01',
-    description: 'Description for Item 1',
-  },
-  {
-    id: 2,
-    image: 'https://via.placeholder.com/150',
-    position: '2',
-    name: 'Item 2',
-    date: '2024-02-01',
-    description: 'Description for Item 2',
-  },
-];
-
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  border: '1px solid #e0e0e0',
-  padding: '10px',
-  backgroundColor: theme.palette.background.paper,
-  textAlign: 'center',
-}));
-
-const CustomTable = () => {
-  const [data, setData] = useState<Entry[]>(initialData);
-  const [open, setOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [newEntry, setNewEntry] = useState<Omit<Entry, 'id'>>({
-    image: '',
-    position: '',
+const MemberForm: React.FC = () => {
+  const [formData, setFormData] = useState<MemberProps>({
     name: '',
-    date: '',
-    description: '',
+    position: '',
+    email: '',
+    avatarUrl: '',
+    phoneNumber: '',
+    avatarFile: undefined,
   });
-  const [editEntry, setEditEntry] = useState<Entry | null>(null);
-  const editor = useMemo(() => withReact(createEditor()), []);
 
-  // ใช้ CustomDescendant แทน Descendant
-  const [editorValue, setEditorValue] = useState<CustomDescendant[]>([
-    {
-      type: 'paragraph',
-      children: [{ text: '' }],
-    },
-  ]);
+  const [members, setMembers] = useState<MemberProps[]>([]);
+  const [editMode, setEditMode] = useState(false);
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
 
-  const handleOpen = () => {
-    setOpen(true);
+  // ดึงข้อมูลสมาชิกทั้งหมดจากเซิร์ฟเวอร์
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/members');
+        const data = await response.json();
+        setMembers(data);
+      } catch (error) {
+        console.error('Error fetching members:', error);
+      }
+    };
+
+    fetchMembers();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    setEditorValue([{ type: 'paragraph', children: [{ text: '' }] }]); // reset editor
-  };
-
-  const handleEditOpen = (row: Entry) => {
-    setEditEntry(row);
-    setEditorValue([{ type: 'paragraph', children: [{ text: row.description }] }]);
-    setEditOpen(true); // เปิด Dialog แก้ไข
-  };
-
-  const handleEditClose = () => {
-    setEditOpen(false);
-    setEditEntry(null);
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
-  ) => {
-    const { name, value } = e.target;
-    if (editEntry) {
-      setEditEntry((prev) => ({
-        ...prev!,
-        [name as string]: value,
-      }));
-    } else {
-      setNewEntry((prev) => ({
-        ...prev,
-        [name as string]: value,
-      }));
-    }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (editEntry) {
-          setEditEntry((prev) => ({
-            ...prev!,
-            image: reader.result as string,
-          }));
-        } else {
-          setNewEntry((prev) => ({
-            ...prev,
-            image: reader.result as string,
-          }));
-        }
-      };
-      reader.readAsDataURL(file);
+      setFormData({
+        ...formData,
+        avatarFile: file,
+        avatarUrl: URL.createObjectURL(file),
+      });
     }
   };
 
-  const handleSubmit = () => {
-    const newId = data.length > 0 ? data[data.length - 1].id + 1 : 1;
-    setData((prev) => [
-      ...prev,
-      {
-        ...newEntry,
-        id: newId,
-        description: editorValue.map((block) => block.children[0].text).join(' '),
-      },
-    ]);
-    handleClose();
-    setNewEntry({ image: '', position: '', name: '', date: '', description: '' });
-  };
+  // เพิ่มหรืออัปเดตสมาชิก
+  const handleSubmit = async () => {
+    const formDataToSend = new FormData();
 
-  const handleEditSubmit = () => {
-    if (editEntry) {
-      setData((prev) =>
-        prev.map((entry) =>
-          entry.id === editEntry.id
-            ? { ...editEntry, description: editorValue.map((block) => block.children[0].text).join(' ') }
-            : entry
-        )
-      );
+    // เพิ่มข้อมูลใน FormData
+    formDataToSend.append('name', formData.name);
+    formDataToSend.append('position', formData.position);
+    formDataToSend.append('email', formData.email);
+    formDataToSend.append('phoneNumber', formData.phoneNumber || '');
+    if (formData.avatarFile) {
+      formDataToSend.append('avatar', formData.avatarFile); // ส่งไฟล์รูปภาพ
     }
-    handleEditClose();
+
+    try {
+      const response = editMode
+        ? await fetch(`http://localhost:8000/api/members/${editingMemberId}`, {
+            method: 'PUT',
+            body: formDataToSend, // ส่งข้อมูลเป็น FormData
+          })
+        : await fetch('http://localhost:8000/api/members', {
+            method: 'POST',
+            body: formDataToSend, // ส่งข้อมูลเป็น FormData
+          });
+
+      if (response.ok) {
+        const updatedMember = await response.json();
+        setMembers((prev) =>
+          editMode
+            ? prev.map((member) =>
+                member._id === editingMemberId ? updatedMember : member
+              )
+            : [...prev, updatedMember]
+        );
+        setEditMode(false);
+        setEditingMemberId(null);
+        setFormData({
+          name: '',
+          position: '',
+          email: '',
+          avatarUrl: '',
+          phoneNumber: '',
+          avatarFile: undefined,
+        });
+      } else {
+        console.error('Error adding/updating member:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error connecting to server:', error);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setData((prev) => prev.filter((entry) => entry.id !== id));
+  // ลบสมาชิก
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/members/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setMembers((prev) => prev.filter((member) => member._id !== id));
+      } else {
+        console.error('Error deleting member:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error connecting to server:', error);
+    }
+  };
+
+  // ตั้งค่าโหมดแก้ไข
+  const handleEdit = (member: MemberProps) => {
+    setFormData({
+      name: member.name,
+      position: member.position,
+      email: member.email,
+      avatarUrl: member.avatarUrl,
+      phoneNumber: member.phoneNumber,
+      avatarFile: undefined,
+    });
+    setEditMode(true);
+    setEditingMemberId(member._id || null);
   };
 
   return (
-    <div>
-      <Box sx={{ maxWidth: '1600px', margin: '0 auto' }}>
-        <AppBar position="static" style={{ backgroundColor: '#1976d2' }}>
-          <Toolbar>
-            <Typography variant="h6" style={{ flexGrow: 1 }}>
-              Data Management
-            </Typography>
-            <Button variant="contained" color="secondary" onClick={handleOpen}>
-              Create New
-            </Button>
-          </Toolbar>
-        </AppBar>
+    <div className="flex flex-col items-center space-y-4">
+      <Box
+        sx={{
+          backgroundColor: '#996600',
+          color: '#fff',
+          padding: '16px',
+          textAlign: 'center',
+          marginBottom: '16px',
+          width: '100vw',
+          position: 'relative',
+          left: 'calc(-50vw + 50%)',
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          จัดการสมาชิกนิสิตสโมสร
+        </Typography>
       </Box>
 
-      <TableContainer
-        component={Paper}
-        elevation={3}
-        style={{ marginTop: '20px', maxWidth: '1600px', marginLeft: 'auto', marginRight: 'auto' }}
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <StyledTableCell>No.</StyledTableCell>
-              <StyledTableCell>Image</StyledTableCell>
-              <StyledTableCell>Position</StyledTableCell>
-              <StyledTableCell>Name</StyledTableCell>
-              <StyledTableCell>Date</StyledTableCell>
-              <StyledTableCell>Edit</StyledTableCell>
-              <StyledTableCell>Delete</StyledTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.map((row) => (
-              <TableRow key={row.id}>
-                <StyledTableCell>{row.id}</StyledTableCell>
-                <StyledTableCell style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <input
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    id={`image-upload-${row.id}`}
-                    type="file"
-                    onChange={handleImageUpload}
-                  />
-                  <label htmlFor={`image-upload-${row.id}`}>
-                    <img
-                      src={row.image}
-                      alt={row.name}
-                      style={{ width: '150px', height: '150px', borderRadius: '4px', cursor: 'pointer' }}
-                    />
-                  </label>
-                </StyledTableCell>
-                <StyledTableCell>{row.position}</StyledTableCell>
-                <StyledTableCell>{row.name}</StyledTableCell>
-                <StyledTableCell>{row.date}</StyledTableCell>
-                <StyledTableCell>
-                  <Button variant="outlined" color="primary" onClick={() => handleEditOpen(row)}>
-                    Edit
-                  </Button>
-                </StyledTableCell>
-                <StyledTableCell>
-                  <Button variant="outlined" color="error" onClick={() => handleDelete(row.id)}>
-                    Delete
-                  </Button>
-                </StyledTableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Box className="max-w-sm mx-auto mt-4 p-4 shadow-lg rounded-lg">
+        <Typography variant="h5" sx={{ marginBottom: '16px', fontWeight: 'bold' }}>
+          {editMode ? 'แก้ไขสมาชิก' : 'เพิ่มสมาชิกใหม่'}
+        </Typography>
 
-      <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
-        <DialogTitle>Create New Entry</DialogTitle>
-        <DialogContent>
-          <input
-            accept="image/*"
-            style={{ display: 'none' }}
-            id={`image-upload-new`}
-            type="file"
-            onChange={handleImageUpload}
+        <TextField
+          label="ชื่อ"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          fullWidth
+          className="mb-4"
+        />
+        <TextField
+          label="ตำแหน่ง"
+          name="position"
+          value={formData.position}
+          onChange={handleChange}
+          fullWidth
+          className="mb-4"
+        />
+        <TextField
+          label="Email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          fullWidth
+          className="mb-4"
+        />
+        <TextField
+          label="เบอร์โทร"
+          name="phoneNumber"
+          value={formData.phoneNumber}
+          onChange={handleChange}
+          fullWidth
+          className="mb-4"
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="mb-4"
+        />
+        {formData.avatarUrl && (
+          <Avatar
+            alt="Avatar Preview"
+            src={formData.avatarUrl}
+            sx={{ width: 128, height: 128, borderRadius: '8px', marginBottom: '16px' }}
           />
-          <label htmlFor={`image-upload-new`}>
-            <Button variant="outlined" component="span">
-              Upload Image
-            </Button>
-          </label>
-          <img
-            src={newEntry.image}
-            alt="Preview"
-            style={{
-              width: '60%',
-              height: 'auto',
-              borderRadius: '4px',
-              marginTop: '10px',
-            }}
-          />
-          <TextField
-            name="position"
-            label="Position"
-            value={newEntry.position}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            name="name"
-            label="Name"
-            value={newEntry.name}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            name="date"
-            label="Date"
-            type="date"
-            value={newEntry.date}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-          />
-          <Box
-            sx={{
-              border: '1px solid #e0e0e0',
-              borderRadius: '4px',
-              padding: '10px',
-              marginTop: '10px',
-            }}
-          >
-            <Slate
-              editor={editor}
-              initialValue={editorValue} // เปลี่ยนจาก value เป็น initialValue
-              onChange={(value) => {
-                // เปลี่ยน Descendant[] เป็น CustomDescendant[]
-                setEditorValue(value as CustomDescendant[]);
+        )}
+        <Button variant="contained" color="primary" onClick={handleSubmit} fullWidth>
+          {editMode ? 'อัปเดตสมาชิก' : 'เพิ่มสมาชิก'}
+        </Button>
+      </Box>
+
+      {/* ส่วนสำหรับแสดงรายชื่อสมาชิก */}
+      <Box className="w-full mt-4">
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: '16px',
+          }}
+        >
+          {members.map((member) => (
+            <Box
+              key={member._id}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px',
+                borderRadius: '8px',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                backgroundColor: '#fff',
+                textAlign: 'center',
+                transition: 'transform 0.3s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                },
               }}
             >
-              <Editable placeholder="Write your description here..." />
-            </Slate>
-          </Box>
+              <Avatar
+                src={member.avatarUrl || 'https://via.placeholder.com/150'}
+                alt={member.name}
+                sx={{ width: 150, height: 150, marginBottom: '16px' }}
+              />
+              <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: '8px' }}>
+                {member.name}
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#666', marginBottom: '8px' }}>
+                ตำแหน่ง: {member.position}
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#999', marginBottom: '8px' }}>
+                Email: {member.email}
+              </Typography>
+              {member.phoneNumber && (
+                <Typography variant="body2" sx={{ color: '#999' }}>
+                  เบอร์โทร: {member.phoneNumber}
+                </Typography>
+              )}
 
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} color="primary">
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={editOpen} onClose={handleEditClose} maxWidth="lg" fullWidth>
-        <DialogTitle>Edit Entry</DialogTitle>
-        <DialogContent>
-          <input
-            accept="image/*"
-            style={{ display: 'none' }}
-            id={`image-upload-edit-${editEntry?.id}`}
-            type="file"
-            onChange={handleImageUpload}
-          />
-          <label htmlFor={`image-upload-edit-${editEntry?.id}`}>
-            <Button variant="outlined" component="span">
-              Upload Image
-            </Button>
-          </label>
-          {editEntry && (
-            <>
-              <img
-                src={editEntry.image}
-                alt="Preview"
-                style={{
-                  width: '60%',
-                  height: 'auto',
-                  borderRadius: '4px',
-                  marginTop: '10px',
-                }}
-              />
-              <TextField
-                name="position"
-                label="Position"
-                value={editEntry.position}
-                onChange={handleChange}
-                fullWidth
-                margin="normal"
-              />
-              <TextField
-                name="name"
-                label="Name"
-                value={editEntry.name}
-                onChange={handleChange}
-                fullWidth
-                margin="normal"
-              />
-              <TextField
-                name="date"
-                label="Date"
-                type="date"
-                value={editEntry.date}
-                onChange={handleChange}
-                fullWidth
-                margin="normal"
-                InputLabelProps={{ shrink: true }}
-              />
-              <Box
-                sx={{
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '4px',
-                  padding: '10px',
-                  marginTop: '10px',
-                }}
-              >
-                <Slate
-                  editor={editor}
-                  initialValue={editorValue} // ใช้ initialValue แทน value
-                  onChange={(value) => {
-                    // ตั้งค่า editorValue ให้เป็น CustomDescendant[]
-                    setEditorValue(value as CustomDescendant[]);
-                  }}
-                >
-                  <Editable placeholder="Write your description here..." />
-                </Slate>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px' }}>
+                <IconButton onClick={() => handleEdit(member)} sx={{ marginRight: '8px' }}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton onClick={() => handleDelete(member._id || '')} sx={{ color: '#f00' }}>
+                  <DeleteIcon />
+                </IconButton>
               </Box>
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleEditSubmit} color="primary">
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
+            </Box>
+          ))}
+        </Box>
+      </Box>
     </div>
   );
 };
 
-export default CustomTable;
+export default MemberForm;

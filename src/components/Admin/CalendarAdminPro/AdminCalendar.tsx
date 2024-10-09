@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, momentLocalizer, Event, ToolbarProps, View } from 'react-big-calendar';
+import { Calendar, momentLocalizer, Event } from 'react-big-calendar';
 import moment from 'moment';
 import axios from 'axios';
 import Modal from 'react-modal';
 import { Box, Typography, Button, TextField } from '@mui/material';
+import { Bar } from 'react-chartjs-2';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import 'chart.js/auto';
 
 const localizer = momentLocalizer(moment);
 
@@ -15,81 +17,6 @@ interface CustomEvent extends Event {
   details?: string;
 }
 
-const CustomToolbar: React.FC<ToolbarProps> = ({ label, onNavigate, onView }) => {
-  const allowedViews = ['month', 'agenda']; 
-
-  return (
-    <div className="flex justify-between items-center mb-4">
-      <div className="flex items-center space-x-2">
-        <Button
-          variant="outlined"
-          sx={{
-            borderColor: '#996600',
-            color: '#996600',
-            '&:hover': {
-              backgroundColor: '#996600',
-              color: '#fff',
-            },
-          }}
-          onClick={() => onNavigate('PREV')}
-        >
-          ย้อนกลับ
-        </Button>
-        <Button
-          variant="outlined"
-          sx={{
-            borderColor: '#996600',
-            color: '#996600',
-            '&:hover': {
-              backgroundColor: '#996600',
-              color: '#fff',
-            },
-          }}
-          onClick={() => onNavigate('TODAY')}
-        >
-          วันนี้
-        </Button>
-        <Button
-          variant="outlined"
-          sx={{
-            borderColor: '#996600',
-            color: '#996600',
-            '&:hover': {
-              backgroundColor: '#996600',
-              color: '#fff',
-            },
-          }}
-          onClick={() => onNavigate('NEXT')}
-        >
-          ถัดไป
-        </Button>
-      </div>
-      <Typography variant="h5" className="text-[#996600] font-bold">
-        {label}
-      </Typography>
-      <div className="flex space-x-2">
-        {allowedViews.map(view => (
-          <Button
-            key={view}
-            variant="outlined"
-            sx={{
-              borderColor: '#996600',
-              color: '#996600',
-              '&:hover': {
-                backgroundColor: '#996600',
-                color: '#fff',
-              },
-            }}
-            onClick={() => onView(view as View)}
-          >
-            {view.charAt(0).toUpperCase() + view.slice(1)}
-          </Button>
-        ))}
-      </div>
-    </div>
-  );
-};
-
 const AdminCalendar: React.FC = () => {
   const [events, setEvents] = useState<CustomEvent[]>([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -97,7 +24,9 @@ const AdminCalendar: React.FC = () => {
   const [newEventDetails, setNewEventDetails] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<{ start: Date; end: Date } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CustomEvent | null>(null);
-  const [newEventEndDate, setNewEventEndDate] = useState<Date | null>(null); 
+  const [newEventEndDate, setNewEventEndDate] = useState<Date | null>(null);
+  const [monthlySummary, setMonthlySummary] = useState<Record<string, CustomEvent[]>>({});
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -106,17 +35,32 @@ const AdminCalendar: React.FC = () => {
   const fetchEvents = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/events');
-      setEvents(response.data);
+      const eventData = response.data;
+      setEvents(eventData);
+      calculateMonthlySummary(eventData);
     } catch (error) {
       console.error('Error fetching events:', error);
     }
+  };
+
+  const calculateMonthlySummary = (events: CustomEvent[]) => {
+    const summary = events.reduce((acc: Record<string, CustomEvent[]>, event) => {
+      const month = moment(event.start).format('MMMM YYYY');
+      if (!acc[month]) {
+        acc[month] = [];
+      }
+      acc[month].push(event);
+      return acc;
+    }, {});
+
+    setMonthlySummary(summary);
   };
 
   const openModal = (slotInfo: { start: Date; end: Date }) => {
     setSelectedSlot(slotInfo);
     setNewEventTitle('');
     setNewEventDetails('');
-    setNewEventEndDate(slotInfo.end); 
+    setNewEventEndDate(slotInfo.end);
     setModalIsOpen(true);
   };
 
@@ -128,7 +72,7 @@ const AdminCalendar: React.FC = () => {
   const handleAddEvent = async () => {
     if (newEventTitle && selectedSlot && newEventEndDate) {
       const adjustedEndDate = new Date(newEventEndDate);
-      adjustedEndDate.setHours(23, 59, 59); 
+      adjustedEndDate.setHours(23, 59, 59);
 
       const newEvent = {
         title: newEventTitle,
@@ -138,10 +82,9 @@ const AdminCalendar: React.FC = () => {
       };
 
       try {
-        const response = await axios.post('http://localhost:8000/api/events', newEvent);
+        await axios.post('http://localhost:8000/api/events', newEvent);
         await fetchEvents();
-        console.log('Added Event:', response.data); 
-        closeModal(); 
+        closeModal();
       } catch (error) {
         console.error('Error adding event:', error);
       }
@@ -158,10 +101,80 @@ const AdminCalendar: React.FC = () => {
     }
   };
 
+  const getChartData = () => {
+    const labels = Object.keys(monthlySummary);
+    const data = Object.values(monthlySummary).map((events) => events.length);
+
+    const backgroundColors = labels.map(() => '#' + Math.floor(Math.random() * 16777215).toString(16));
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'จำนวนกิจกรรม',
+          data,
+          backgroundColor: backgroundColors.slice(0, data.length),
+        },
+      ],
+    };
+  };
+
+  const options = {
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0, // Display integers only
+        },
+      },
+    },
+  };
+
+  const renderEventDetails = (month: string, events: CustomEvent[]) => {
+    return (
+      <div key={month} style={{ marginBottom: '20px' }}>
+        <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: '10px' }}>
+          {month} - {events.length} กิจกรรม
+        </Typography>
+        {events.map((event, index) => (
+          <Typography key={index} variant="body1" sx={{ marginBottom: '5px' }}>
+            {event.title} - {moment(event.start).format('DD/MM/YYYY')}
+          </Typography>
+        ))}
+        <hr style={{ marginTop: '20px', marginBottom: '20px', borderColor: '#996600' }} />
+      </div>
+    );
+  };
+
   return (
-    <div className="h-screen p-4">
-      <Box sx={{ backgroundColor: '#996600', color: '#fff', padding: '16px', textAlign: 'center', marginBottom: '16px' }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>ปฏิทิน</Typography>
+    <div className="h-screen p-4" style={{ overflowY: 'auto' }}>
+      <Box
+        sx={{
+          backgroundColor: '#996600',
+          color: '#fff',
+          padding: '16px',
+          marginBottom: '16px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          position: 'relative',
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          ปฏิทิน
+        </Typography>
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: '#fff',
+            color: '#996600',
+            position: 'absolute',
+            right: 10,
+          }}
+          onClick={() => setSummaryModalOpen(true)}
+        >
+          ดูสรุปกิจกรรมรายเดือน
+        </Button>
       </Box>
 
       <Calendar
@@ -172,20 +185,12 @@ const AdminCalendar: React.FC = () => {
         titleAccessor="title"
         style={{ height: 700, width: '100%' }}
         defaultView="month"
-        views={['month', 'agenda']} 
+        views={['month', 'agenda']}
         selectable
         onSelectSlot={openModal}
-        onSelectEvent={event => {
+        onSelectEvent={(event) => {
           setSelectedEvent(event as CustomEvent);
           setModalIsOpen(true);
-        }}
-        components={{
-          toolbar: CustomToolbar,
-          event: ({ event }) => (
-            <div className="flex justify-center items-center h-full">
-              <span className="text-center">{event.title}</span>
-            </div>
-          ), 
         }}
       />
 
@@ -194,16 +199,18 @@ const AdminCalendar: React.FC = () => {
         onRequestClose={closeModal}
         className="fixed inset-0 flex items-center justify-center z-50"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 z-40"
-        shouldCloseOnOverlayClick={true} 
+        shouldCloseOnOverlayClick={true}
       >
-        <div
-          className="absolute inset-0"
-          onClick={closeModal} 
-          style={{ backgroundColor: 'transparent' }}
-        />
+        <div className="absolute inset-0" onClick={closeModal} style={{ backgroundColor: 'transparent' }} />
         <Box
-          onClick={(e) => e.stopPropagation()} 
-          sx={{ backgroundColor: 'white', padding: '20px', borderRadius: '10px', width: '400px', zIndex: 50 }}
+          onClick={(e) => e.stopPropagation()}
+          sx={{
+            backgroundColor: 'white',
+            padding: '20px',
+            borderRadius: '10px',
+            width: '400px',
+            zIndex: 50,
+          }}
         >
           {selectedEvent ? (
             <div>
@@ -231,38 +238,65 @@ const AdminCalendar: React.FC = () => {
               <TextField
                 label="ชื่อกิจกรรม"
                 value={newEventTitle}
-                onChange={e => setNewEventTitle(e.target.value)}
+                onChange={(e) => setNewEventTitle(e.target.value)}
                 fullWidth
-                sx={{ marginBottom: '20px', '& .MuiInputLabel-root': { color: '#996600' }, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#996600' } } }}
+                sx={{
+                  marginBottom: '20px',
+                  '& .MuiInputLabel-root': { color: '#996600' },
+                  '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#996600' } },
+                }}
               />
               <TextField
                 label="รายละเอียดกิจกรรม"
                 value={newEventDetails}
-                onChange={e => setNewEventDetails(e.target.value)}
+                onChange={(e) => setNewEventDetails(e.target.value)}
+                fullWidth
                 multiline
                 rows={4}
-                fullWidth
-                sx={{ marginBottom: '20px', '& .MuiInputLabel-root': { color: '#996600' }, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#996600' } } }}
+                sx={{
+                  marginBottom: '20px',
+                  '& .MuiInputLabel-root': { color: '#996600' },
+                  '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#996600' } },
+                }}
               />
-              <TextField
-                label="วันสิ้นสุดกิจกรรม"
-                type="date"
-                value={newEventEndDate ? moment(newEventEndDate).format('YYYY-MM-DD') : ''}
-                onChange={e => setNewEventEndDate(new Date(e.target.value))}
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                sx={{ marginBottom: '20px', '& .MuiInputLabel-root': { color: '#996600' }, '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#996600' } } }}
-              />
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{ backgroundColor: '#996600', '&:hover': { backgroundColor: '#cc7a00' } }}
-                onClick={handleAddEvent}
-              >
-                เพิ่ม
+              <Button variant="contained" sx={{ backgroundColor: '#996600', width: '100%' }} onClick={handleAddEvent}>
+                เพิ่มกิจกรรม
               </Button>
             </div>
           )}
+        </Box>
+      </Modal>
+
+      <Modal
+        isOpen={summaryModalOpen}
+        onRequestClose={() => setSummaryModalOpen(false)}
+        className="fixed inset-0 flex items-center justify-center z-50"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 z-40"
+        shouldCloseOnOverlayClick={true}
+      >
+        <div className="absolute inset-0" onClick={() => setSummaryModalOpen(false)} style={{ backgroundColor: 'transparent' }} />
+        <Box
+          onClick={(e) => e.stopPropagation()}
+          sx={{
+            backgroundColor: 'white',
+            padding: '20px',
+            borderRadius: '10px',
+            width: '800px',
+            maxHeight: '80%',
+            overflowY: 'auto',
+            zIndex: 50,
+          }}
+        >
+          {/* แสดงกราฟ Bar อยู่ด้านบน */}
+          <Box sx={{ marginBottom: '40px' }}>
+            <Bar data={getChartData()} options={options} />
+          </Box>
+
+          {/* ข้อมูลกิจกรรมรายเดือนอยู่ด้านล่าง */}
+          <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#996600', marginBottom: '20px' }}>
+            สรุปกิจกรรมรายเดือน
+          </Typography>
+          {Object.entries(monthlySummary).map(([month, events]) => renderEventDetails(month, events))}
         </Box>
       </Modal>
     </div>

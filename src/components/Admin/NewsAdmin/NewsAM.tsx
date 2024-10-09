@@ -113,7 +113,7 @@ const NewsAM: React.FC = () => {
     <Box className="p-5 max-w-6xl mx-auto">
       <Paper className="p-5 mb-5">
         <Typography variant="h4" gutterBottom>
-          ข่าวประชาสัมพันธ์นิติสโมสร Admin
+          ข่าวประชาสัมพันธ์นิสิตสโมสร Admin
         </Typography>
 
         <form onSubmit={handleSubmit}>

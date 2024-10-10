@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { TextField, Typography, Box, Paper, MenuItem, IconButton, Dialog, DialogContent, DialogTitle, Button } from '@mui/material';
+import { TextField, Typography, Box, Paper, MenuItem, IconButton, Dialog, DialogContent, DialogTitle, Button, Divider } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface News {
   _id?: string;
@@ -26,7 +27,8 @@ const NewsAM: React.FC = () => {
   const [preview, setPreview] = useState<News | null>(null);
   const [selectedNews, setSelectedNews] = useState<News | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false); // Add state for edit dialog
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [chartDialogOpen, setChartDialogOpen] = useState(false); // Popup สำหรับกราฟ
 
   useEffect(() => {
     fetchNews();
@@ -69,7 +71,7 @@ const NewsAM: React.FC = () => {
       setEditingId(null);
       fetchNews();
       setPreview(null);
-      setEditDialogOpen(false); // Close the edit dialog after submission
+      setEditDialogOpen(false);
     } catch (error) {
       console.error('Error saving news:', error);
     }
@@ -87,7 +89,7 @@ const NewsAM: React.FC = () => {
     setFormData(news);
     setIsEditing(true);
     setEditingId(news._id || null);
-    setEditDialogOpen(true); // Open the edit dialog
+    setEditDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -109,13 +111,34 @@ const NewsAM: React.FC = () => {
     setSelectedNews(null);
   };
 
+  // ฟังก์ชันสำหรับสร้างข้อมูลกราฟ
+  const summarizeNewsByCategory = (newsList: News[]) => {
+    const summary = newsList.reduce((acc, news) => {
+      acc[news.category] = (acc[news.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.keys(summary).map(category => ({
+      category,
+      count: summary[category],
+    }));
+  };
+
+  // ข้อมูลสำหรับกราฟ
+  const dataForChart = summarizeNewsByCategory(newsList);
+
+  // ข้อมูลกราฟจำนวนข่าวทั้งหมด
+  const totalNewsData = [
+    { name: 'Total News', count: newsList.length },
+  ];
+
   return (
     <Box className="p-5 max-w-6xl mx-auto">
       <Paper className="p-5 mb-5">
         <Typography variant="h4" gutterBottom>
           ข่าวประชาสัมพันธ์นิสิตสโมสร Admin
         </Typography>
-
+        
         <form onSubmit={handleSubmit}>
           <input
             accept="image/*"
@@ -175,6 +198,14 @@ const NewsAM: React.FC = () => {
             <button type="button" onClick={handlePreview} className="bg-gray-500 text-white px-5 py-2 rounded-md hover:bg-gray-600">
               Preview
             </button>
+            {/* ปุ่มสำหรับสรุปข้อมูล */}
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setChartDialogOpen(true)} // เปิด popup dialog สำหรับกราฟ
+      >
+        ดู สรุปยอดข่าว
+      </Button>
           </div>
         </form>
       </Paper>
@@ -233,10 +264,10 @@ const NewsAM: React.FC = () => {
                   onClick={() => handleViewFullNews(news)} 
                   className="bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600"
                 >
-                  View Full
+                  View
                 </button>
                 <button 
-                  onClick={() => handleDelete(news._id!)} 
+                  onClick={() => handleDelete(news._id as string)} 
                   className="bg-red-500 text-white px-5 py-2 rounded-md hover:bg-red-600"
                 >
                   Delete
@@ -247,112 +278,162 @@ const NewsAM: React.FC = () => {
         ))}
       </Box>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogContent dividers>
-        {selectedNews && (
-          <>
-            <Typography variant="h4" gutterBottom>
-              {selectedNews.name}
+      {/* Dialog สำหรับแสดงกราฟ */}
+      <Dialog open={chartDialogOpen} onClose={() => setChartDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          สรุปยอดข่าว
+          <IconButton onClick={() => setChartDialogOpen(false)} className="absolute top-8px right-8px">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {/* ข่าวทั้งหมด */}
+          <Box>
+            <Typography variant="subtitle2" style={{ color: '#757575' }} gutterBottom>
+              จำนวนข่าวทั้งหมด: <strong>{newsList.length}</strong> ข่าว
             </Typography>
-            <img src={selectedNews.image} alt={selectedNews.name} className="w-full h-96 object-cover mb-5" />
+            <Divider /> {/* เส้นแบ่ง */}
+          </Box>
+
+          {/* แสดงจำนวนข่าวตามหมวดหมู่ */}
+          <Box marginY={3}>
+            <Typography variant="subtitle2" style={{ color: '#757575' }} gutterBottom>
+              ข่าวแบ่งตามหมวดหมู่:
+            </Typography>
+            {dataForChart.map((item) => (
+              <Typography key={item.category} variant="body2" style={{ marginLeft: '20px', color: '#757575' }}>
+                <strong>{item.category}</strong>: {item.count} ข่าว
+              </Typography>
+            ))}
+            <Divider style={{ marginTop: '16px' }} /> {/* เส้นแบ่ง */}
+          </Box>
+
+          {/* กราฟแท่งสรุปข่าวตามหมวดหมู่ */}
+          <Typography variant="h6" gutterBottom align="center">
+            กราฟแสดงจำนวนข่าวตามหมวดหมู่
+          </Typography>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={dataForChart}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="category" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+
+          <Divider style={{ marginTop: '20px', marginBottom: '20px' }} /> {/* เส้นแบ่ง */}
+          
+          {/* กราฟแท่งสรุปจำนวนข่าวทั้งหมด */}
+          <Typography variant="h6" gutterBottom align="center">
+            กราฟแสดงข่าวทั้งหมด
+          </Typography>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={totalNewsData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#82ca9d" />
+            </BarChart>
+          </ResponsiveContainer>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog สำหรับแสดงข่าวเต็ม */}
+      {selectedNews && (
+        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+          <DialogTitle>{selectedNews.name}</DialogTitle>
+          <DialogContent>
+            <img
+              src={selectedNews.image}
+              alt={selectedNews.name}
+              className="w-full h-64 object-cover mb-5"
+            />
             <Typography variant="h6" gutterBottom>
               {selectedNews.category}
             </Typography>
-            <Typography gutterBottom>{selectedNews.date}</Typography>
-            <Typography className="whitespace-pre-line break-words max-w-full">
+            <Typography variant="body1" gutterBottom>
+              {selectedNews.date}
+            </Typography>
+            <Typography variant="body2">
               {selectedNews.description}
             </Typography>
-          </>
-        )}
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Edit News
+          <IconButton
+            onClick={() => setEditDialogOpen(false)}
+            className="absolute top-2 right-2"
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <form onSubmit={handleSubmit}>
+            <input
+              accept="image/*"
+              type="file"
+              onChange={handleImageUpload}
+              className="block mb-5"
+            />
+            {formData.image && <img src={formData.image} alt="Uploaded Preview" className="max-w-full mb-5" />}
+            <TextField
+              label="หมวดหมู่"
+              name="category"
+              fullWidth
+              select
+              margin="normal"
+              value={formData.category}
+              onChange={handleChange}
+            >
+              <MenuItem value="ข่าวทั่วไป">ข่าวทั่วไป</MenuItem>
+              <MenuItem value="ข่าวกิจกรรม">ข่าวกิจกรรม</MenuItem>
+              <MenuItem value="ข่าวการศึกษา">ข่าวการศึกษา</MenuItem>
+            </TextField>
+            <TextField
+              label="หัวข้อ"
+              name="name"
+              fullWidth
+              margin="normal"
+              value={formData.name}
+              onChange={handleChange}
+            />
+            <TextField
+              label="วันที่"
+              name="date"
+              type="date"
+              fullWidth
+              margin="normal"
+              value={formData.date}
+              InputLabelProps={{ shrink: true }}
+              onChange={handleChange}
+            />
+            <TextField
+              label="Description"
+              name="description"
+              multiline
+              rows={4}
+              fullWidth
+              margin="normal"
+              value={formData.description}
+              onChange={handleChange}
+            />
+            <div className="flex gap-3 mt-5">
+              <button type="submit" className="bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600">
+                Update News
+              </button>
+            </div>
+          </form>
         </DialogContent>
-    </Dialog>
-
-      
-      {/* Edit News Dialog */}
-<Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
-  <DialogTitle>
-    {isEditing ? 'Edit News' : 'Create News'}
-    <IconButton
-      onClick={() => setEditDialogOpen(false)}
-      className="absolute top-2 right-2"
-    >
-      <CloseIcon />
-    </IconButton>
-  </DialogTitle>
-  <DialogContent>
-    <form onSubmit={handleSubmit}>
-      <input
-        accept="image/*"
-        type="file"
-        onChange={handleImageUpload}
-        className="block mb-5"
-      />
-      {formData.image && <img src={formData.image} alt="Uploaded Preview" className="max-w-full mb-5" />}
-
-      <TextField
-        label="หมวดหมู่"
-        name="category"
-        fullWidth
-        select
-        margin="normal"
-        value={formData.category}
-        onChange={handleChange}
-      >
-        <MenuItem value="ข่าวทั่วไป">ข่าวทั่วไป</MenuItem>
-        <MenuItem value="ข่าวกิจกรรม">ข่าวกิจกรรม</MenuItem>
-        <MenuItem value="ข่าวการศึกษา">ข่าวการศึกษา</MenuItem>
-      </TextField>
-
-      <TextField
-        label="หัวข้อ"
-        name="name"
-        fullWidth
-        margin="normal"
-        value={formData.name}
-        onChange={handleChange}
-      />
-      <TextField
-        label="วันที่"
-        name="date"
-        type="date"
-        fullWidth
-        margin="normal"
-        value={formData.date}
-        InputLabelProps={{ shrink: true }}
-        onChange={handleChange}
-      />
-      <TextField
-        label="Description"
-        name="description"
-        multiline
-        rows={4}
-        fullWidth
-        margin="normal"
-        value={formData.description}
-        onChange={handleChange}
-      />
-
-      <div className="flex gap-3 mt-5">
-        <Button type="submit" variant="contained" color="primary">
-          {isEditing ? 'Update News' : 'Create News'}
-        </Button>
-        <Button
-          type="button"
-          variant="outlined"
-          color="secondary"
-          onClick={() => {
-            setFormData({ image: '', category: '', name: '', date: '', description: '' }); // Reset form data
-            setIsEditing(false);
-            setEditDialogOpen(false); // Close the dialog
-          }}
-        >
-          Cancel
-        </Button>
-      </div>
-    </form>
-  </DialogContent>
-</Dialog>
-
+      </Dialog>
     </Box>
   );
 };

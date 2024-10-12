@@ -194,7 +194,6 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <main className="flex-1 p-6">
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-        <p className="mb-6">Hello Admin, welcome back!</p>
 
         {/* กราฟสรุปกิจกรรมรายเดือน และสรุปข่าว */}
         <div className="flex space-x-6">

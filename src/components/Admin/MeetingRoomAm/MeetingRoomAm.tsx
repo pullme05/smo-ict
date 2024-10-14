@@ -9,6 +9,7 @@ moment.tz.setDefault('Asia/Bangkok');
 const localizer = momentLocalizer(moment);
 
 interface Booking {
+  _id: string;
   room: string;
   studentName: string;
   studentID: string;
@@ -21,6 +22,7 @@ interface Booking {
 }
 
 interface CustomEvent {
+  _id: string;
   title: string;
   start: Date;
   end: Date;
@@ -47,6 +49,8 @@ const MeetingRoomAM = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [cancellationModalOpen, setCancellationModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<CustomEvent | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
 
   const availableRooms = ['ห้อง 1', 'ห้อง 2', 'ห้อง 3'];
 
@@ -112,6 +116,7 @@ const MeetingRoomAM = () => {
     }
 
     const bookingData: Booking = {
+      _id: '',
       room: selectedRoom!,
       studentName,
       studentID,
@@ -186,8 +191,8 @@ const MeetingRoomAM = () => {
     }
   }
   // เพิ่มฟังก์ชันสำหรับปฏิเสธการจอง
-async function handleRejectBooking() {
-  if (selectedBooking) {
+  async function handleRejectBooking() {
+    if (selectedBooking) {
     try {
       const response = await axios.post(`http://localhost:8000/api/bookings/reject/${selectedBooking.studentID}`, {
         startTime: selectedBooking.startTime,
@@ -213,6 +218,48 @@ async function handleRejectBooking() {
       console.error('Error rejecting booking:', error);
       alert('เกิดข้อผิดพลาดในการปฏิเสธการจอง');
     }
+  }
+}
+
+async function handleEditBooking() {
+  if (selectedBooking) {
+    if (!selectedBooking.studentID) {
+      alert('ไม่พบ Student ID การจองที่ต้องการแก้ไข');
+      return;
+    }
+
+    const updatedBooking = {
+      startTime,
+      endTime,
+      room: selectedRoom || selectedBooking.room,
+      // เพิ่มฟิลด์อื่นๆ ที่ต้องการอัปเดตที่นี่
+    };
+
+    try {
+      const studentID = selectedBooking.studentID.toString();  // เปลี่ยน studentID เป็น string ก่อนส่ง (ถ้าจำเป็น)
+      const url = `http://localhost:8000/api/bookings/update/${studentID}`;
+      console.log('Updating booking with URL:', url);  // Debugging URL
+
+      const response = await axios.put(url, updatedBooking);
+      
+      if (response.status === 200) {
+        alert('แก้ไขข้อมูลการจองสำเร็จ');
+        setPendingBookings((prev) =>
+          prev.map((booking) =>
+            booking.studentID === selectedBooking.studentID ? { ...booking, ...updatedBooking } : booking
+          )
+        );
+        setEditModalOpen(false);
+        setCancellationModalOpen(false);
+      } else {
+        alert('เกิดข้อผิดพลาดในการอัปเดตข้อมูล');
+      }
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      alert('เกิดข้อผิดพลาดในการแก้ไขการจอง');
+    }
+  } else {
+    alert('กรุณาเลือกการจองที่ต้องการแก้ไข');
   }
 }
 
@@ -302,9 +349,9 @@ async function handleRejectBooking() {
       />
       </div>
 
-      {/* Modal สำหรับยกเลิกและอนุมัติการจอง */}
+      {/* Modal สำหรับยกเลิกและอนุมัติการจองและปฎิเสธ */}
 <Modal open={cancellationModalOpen} onClose={() => setCancellationModalOpen(false)}>
-  <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
+  <Paper sx={{ padding: '16px', maxWidth: '650px', margin: 'auto' }}>
     <Typography variant="h6">การจองห้อง {selectedBooking?.room}</Typography>
     <Typography>
       วันที่จอง: {selectedBooking?.start ? moment(selectedBooking.start).format('DD MMMM YYYY') : 'ไม่ระบุ'}
@@ -321,12 +368,14 @@ async function handleRejectBooking() {
       <Button variant="contained" color="primary" onClick={handleApproveBooking}>
         อนุมัติการจอง
       </Button>
-      <Button variant="contained" color="error" onClick={handleCancelBooking}>
-        ยกเลิกการจอง
-      </Button>
-      {/* ปุ่มปฏิเสธการจอง */}
       <Button variant="contained" color="warning" onClick={handleRejectBooking}>
         ปฏิเสธการจอง
+      </Button>
+      <Button variant="contained" color="info" onClick={() => setEditModalOpen(true)}>
+        แก้ไขการจองห้อง
+      </Button>
+      <Button variant="contained" color="error" onClick={handleCancelBooking}>
+        ยกเลิกการจอง
       </Button>
     </Box>
   </Paper>
@@ -431,7 +480,66 @@ async function handleRejectBooking() {
         </Paper>
       </Modal>
 
-      
+      {/* Modal สำหรับแก้ไขการจอง */}
+<Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
+  <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
+    <Typography variant="h6">แก้ไขการจอง</Typography>
+
+    <TextField
+      label="เลือกห้อง"
+      value={selectedRoom ?? selectedBooking?.room ?? ''}
+      onChange={(e) => setSelectedRoom(e.target.value)}
+      select
+      fullWidth
+      sx={{ marginTop: '16px' }}
+    >
+      {availableRooms.map((room) => (
+        <MenuItem key={room} value={room}>
+          {room}
+        </MenuItem>
+      ))}
+    </TextField>
+
+    <TextField
+  label="เวลาเริ่ม"
+  select
+  value={startTime}
+  onChange={(e) => setStartTime(e.target.value)}
+  fullWidth
+  sx={{ marginTop: '16px' }}
+  InputLabelProps={{ shrink: true }}
+>
+  {times.map((time) => (
+    <MenuItem key={time} value={time}>
+      {time}
+    </MenuItem>
+  ))}
+</TextField>
+
+<TextField
+  label="เวลาสิ้นสุด"
+  select
+  value={endTime}
+  onChange={(e) => setEndTime(e.target.value)}
+  fullWidth
+  sx={{ marginTop: '16px' }}
+  InputLabelProps={{ shrink: true }}
+>
+  {times.map((time) => (
+    <MenuItem key={time} value={time}>
+      {time}
+    </MenuItem>
+  ))}
+</TextField>
+
+    <Box display="flex" justifyContent="flex-end" mt={2}>
+      <Button variant="contained" color="primary" onClick={handleEditBooking}>
+        บันทึกการแก้ไข
+      </Button>
+    </Box>
+  </Paper>
+</Modal>
+
     </div>
   );
 };

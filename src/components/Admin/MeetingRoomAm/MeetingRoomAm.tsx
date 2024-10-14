@@ -185,7 +185,37 @@ const MeetingRoomAM = () => {
       }
     }
   }
-  
+  // เพิ่มฟังก์ชันสำหรับปฏิเสธการจอง
+async function handleRejectBooking() {
+  if (selectedBooking) {
+    try {
+      const response = await axios.post(`http://localhost:8000/api/bookings/reject/${selectedBooking.studentID}`, {
+        startTime: selectedBooking.startTime,
+        endTime: selectedBooking.endTime,
+        status: 'ปฏิเสธการจอง',
+      });
+
+      if (response.status === 200) {
+        alert('ปฏิเสธการจองสำเร็จ');
+        // อัปเดตสถานะการจองใน state
+        setPendingBookings((prev) =>
+          prev.map((booking) =>
+            booking.studentID === selectedBooking.studentID
+              ? { ...booking, status: 'ปฏิเสธการจอง' }
+              : booking
+          )
+        );
+        setCancellationModalOpen(false);
+      } else {
+        alert('ไม่สามารถอัปเดตฐานข้อมูลได้');
+      }
+    } catch (error) {
+      console.error('Error rejecting booking:', error);
+      alert('เกิดข้อผิดพลาดในการปฏิเสธการจอง');
+    }
+  }
+}
+
   const times = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
   return (
@@ -253,38 +283,55 @@ const MeetingRoomAM = () => {
           setModalOpen(true);
         }}
         eventPropGetter={(event) => {
-          const backgroundColor = event.status === 'รอการอนุมัติจากผู้ดูแล' ? '#FFFFFF' : '#008000';
-          const color = event.status === 'รอการอนุมัติจากผู้ดูแล' ? '#FFA500' : '#FFFFFF';
+          let backgroundColor = '#FFCCCC';
+          let color = '#FF0000';
+        
+          if (event.status === 'รอการอนุมัติจากผู้ดูแล') {
+            backgroundColor = '#FFFFFF';
+            color = '#FFA500';
+          } else if (event.status === 'อนุมัติแล้ว') {
+            backgroundColor = '#008000';
+            color = '#FFFFFF';
+          } else if (event.status === 'ปฏิเสธการจอง') {
+            backgroundColor = '#FFCCCC'; // สีแดงอ่อน
+            color = '#FF0000'; // สีแดง
+          }
+        
           return { style: { backgroundColor, color, border: '1px solid #FFA500' } };
         }}
       />
       </div>
 
       {/* Modal สำหรับยกเลิกและอนุมัติการจอง */}
-      <Modal open={cancellationModalOpen} onClose={() => setCancellationModalOpen(false)}>
-        <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
-          <Typography variant="h6">การจองห้อง {selectedBooking?.room}</Typography>
-          <Typography>
-            วันที่จอง: {selectedBooking?.start ? moment(selectedBooking.start).format('DD MMMM YYYY') : 'ไม่ระบุ'}
-          </Typography>
-          <Typography>
-            เวลา: {selectedBooking?.start ? moment(selectedBooking.start).format('HH:mm') : 'ไม่ระบุ'} - {selectedBooking?.end ? moment(selectedBooking.end).format('HH:mm') : 'ไม่ระบุ'}
-          </Typography>
-          <Typography>ชื่อผู้จอง: {selectedBooking?.studentName}</Typography>
-          <Typography>รหัสนิสิต: {selectedBooking?.studentID}</Typography>
-          <Typography>หมายเลขโทรศัพท์: {selectedBooking?.phoneNumber}</Typography>
-          <Typography>วัตถุประสงค์: {selectedBooking?.purpose || 'ไม่ระบุ'}</Typography>
-          
-          <Box display="flex" justifyContent="space-between" mt={2}>
-            <Button variant="contained" color="primary" onClick={handleApproveBooking}>
-              อนุมัติการจอง
-            </Button>
-            <Button variant="contained" color="error" onClick={handleCancelBooking}>
-              ยกเลิกการจอง
-            </Button>
-          </Box>
-        </Paper>
-      </Modal>
+<Modal open={cancellationModalOpen} onClose={() => setCancellationModalOpen(false)}>
+  <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
+    <Typography variant="h6">การจองห้อง {selectedBooking?.room}</Typography>
+    <Typography>
+      วันที่จอง: {selectedBooking?.start ? moment(selectedBooking.start).format('DD MMMM YYYY') : 'ไม่ระบุ'}
+    </Typography>
+    <Typography>
+      เวลา: {selectedBooking?.start ? moment(selectedBooking.start).format('HH:mm') : 'ไม่ระบุ'} - {selectedBooking?.end ? moment(selectedBooking.end).format('HH:mm') : 'ไม่ระบุ'}
+    </Typography>
+    <Typography>ชื่อผู้จอง: {selectedBooking?.studentName}</Typography>
+    <Typography>รหัสนิสิต: {selectedBooking?.studentID}</Typography>
+    <Typography>หมายเลขโทรศัพท์: {selectedBooking?.phoneNumber}</Typography>
+    <Typography>วัตถุประสงค์: {selectedBooking?.purpose || 'ไม่ระบุ'}</Typography>
+    
+    <Box display="flex" justifyContent="space-between" mt={2}>
+      <Button variant="contained" color="primary" onClick={handleApproveBooking}>
+        อนุมัติการจอง
+      </Button>
+      <Button variant="contained" color="error" onClick={handleCancelBooking}>
+        ยกเลิกการจอง
+      </Button>
+      {/* ปุ่มปฏิเสธการจอง */}
+      <Button variant="contained" color="warning" onClick={handleRejectBooking}>
+        ปฏิเสธการจอง
+      </Button>
+    </Box>
+  </Paper>
+</Modal>
+
 
       {/* Modal สำหรับจองห้อง */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">

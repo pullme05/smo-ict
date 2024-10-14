@@ -241,8 +241,20 @@ const sortedBookings = [...pendingBookings].sort((a, b) => {
             setModalOpen(true); // เปิด Modal สำหรับการกรอกข้อมูลจอง
           }}
           eventPropGetter={(event) => {
-            const backgroundColor = event.status === 'รอการอนุมัติจากผู้ดูแล' ? '#FFFFFF' : '#008000';
-            const color = event.status === 'รอการอนุมัติจากผู้ดูแล' ? '#FFA500' : '#FFFFFF';
+            let backgroundColor = '#FFCCCC';
+            let color = '#FF0000';
+          
+            if (event.status === 'รอการอนุมัติจากผู้ดูแล') {
+              backgroundColor = '#FFFFFF';
+              color = '#FFA500';
+            } else if (event.status === 'อนุมัติแล้ว') {
+              backgroundColor = '#008000';
+              color = '#FFFFFF';
+            } else if (event.status === 'ปฏิเสธการจอง') {
+              backgroundColor = '#FFCCCC'; // สีแดงอ่อน
+              color = '#FF0000'; // สีแดง
+            }
+        
             return { style: { backgroundColor, color, border: '1px solid #FFA500' } };
           }}
         />

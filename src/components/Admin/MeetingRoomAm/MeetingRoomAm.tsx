@@ -1,347 +1,389 @@
 import { useState, useEffect } from 'react';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
-import { Typography, Box, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, Divider, TextField } from '@mui/material';
+import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
+import moment from 'moment-timezone';
+import { Typography, Box, Modal, Paper, TextField, Button, MenuItem } from '@mui/material';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
-import Modal from '@mui/material/Modal';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 
+moment.tz.setDefault('Asia/Bangkok');
 const localizer = momentLocalizer(moment);
 
+interface Booking {
+  room: string;
+  studentName: string;
+  studentID: string;
+  startTime: string;
+  endTime: string;
+  purpose: string;
+  phoneNumber: string;
+  date: Date;
+  status: string;
+}
+
+interface CustomEvent {
+  title: string;
+  start: Date;
+  end: Date;
+  room: string;
+  studentName: string;
+  studentID: string;
+  startTime: string;
+  endTime: string;
+  phoneNumber: string;
+  purpose: string;
+  status: string;
+}
+
 const MeetingRoomAM = () => {
-  const [events, setEvents] = useState<any[]>([]);
-  const [pendingBookings, setPendingBookings] = useState<any[]>([]);
-  const [bookingHistory, setBookingHistory] = useState<any[]>([]);
-  const [rejectedBookingHistory, setRejectedBookingHistory] = useState<any[]>([]);
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState<string>('');
-  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
-  const [open, setOpen] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [studentName, setStudentName] = useState('');
+  const [studentID, setStudentID] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [purpose, setPurpose] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [cancellationModalOpen, setCancellationModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<CustomEvent | null>(null);
 
-  const handleClose = () => setOpen(false);
-
-  async function fetchPendingBookings() {
-    try {
-      const response = await axios.get('http://localhost:8000/api/bookings/pending');
-      if (response.status === 200) {
-        setPendingBookings(response.data);
-      } else {
-        alert('ไม่สามารถดึงข้อมูลการจองที่รอการอนุมัติได้');
-      }
-    } catch (error) {
-      console.error('Error fetching pending bookings:', error);
-      alert('เกิดข้อผิดพลาดในการดึงข้อมูลการจองที่รอการอนุมัติ');
-    }
-  }
-
-  async function fetchApprovedBookings() {
-    try {
-      const response = await axios.get('http://localhost:8000/api/bookings/approved');
-      if (response.status === 200) {
-        setBookingHistory(response.data);
-        setEvents(response.data.map((booking: any) => ({
-          title: `${booking.room} - ${booking.studentName}`,
-          start: new Date(booking.date),
-          end: new Date(booking.date),
-          studentID: booking.studentID,
-          description: booking.purpose,
-        })));
-      } else {
-        alert('ไม่สามารถดึงข้อมูลประวัติการจองได้');
-      }
-    } catch (error) {
-      console.error('Error fetching approved bookings:', error);
-      alert('เกิดข้อผิดพลาดในการดึงข้อมูลประวัติการจอง');
-    }
-  }
-
-  async function fetchRejectedBookings() {
-    try {
-      const response = await axios.get('http://localhost:8000/api/bookings/rejected');
-      if (response.status === 200) {
-        setRejectedBookingHistory(response.data);
-      } else {
-        alert('ไม่สามารถดึงข้อมูลการจองที่ถูกปฏิเสธได้');
-      }
-    } catch (error) {
-      console.error('Error fetching rejected bookings:', error);
-      alert('เกิดข้อผิดพลาดในการดึงข้อมูลการจองที่ถูกปฏิเสธ');
-    }
-  }
+  const availableRooms = ['ห้อง 1', 'ห้อง 2', 'ห้อง 3'];
 
   useEffect(() => {
+    async function fetchPendingBookings() {
+      try {
+        const pendingResponse = await axios.get('http://localhost:8000/api/bookings/pending');
+        if (pendingResponse.status === 200) {
+          setPendingBookings(pendingResponse.data);
+        }
+      } catch (error) {
+        console.error('Error fetching pending bookings:', error);
+        alert('เกิดข้อผิดพลาดในการดึงข้อมูลการจองที่รอการอนุมัติ');
+      }
+    }
+
     fetchPendingBookings();
-    fetchApprovedBookings();
-    fetchRejectedBookings();
   }, []);
 
-  const handleSelectEvent = (event: any) => {
-    setSelectedEvent(event);
-    setOpen(true);
-  };
+  function isTimeSlotAvailable(
+    room: string | null,
+    startTime: string,
+    endTime: string,
+    selectedDate: Date | null
+  ) {
+    if (!room || !selectedDate) return false;
 
-  async function handleApproveBooking(bookingId: string) {
-    try {
-      const response = await axios.post(`http://localhost:8000/api/bookings/approve/${bookingId}`);
-      if (response.status === 200) {
-        alert('อนุมัติการจองสำเร็จ');
-        fetchPendingBookings();
-        fetchApprovedBookings();
-      } else {
-        alert(response.data.message || 'เกิดข้อผิดพลาดในการอนุมัติการจอง');
-      }
-    } catch (error) {
-      console.error('Error approving booking:', error);
-      alert('เกิดข้อผิดพลาดในการอนุมัติการจอง');
-    }
-  }
+    const newStart = moment.tz(selectedDate, 'Asia/Bangkok').set({
+      hour: parseInt(startTime.split(':')[0]),
+      minute: parseInt(startTime.split(':')[1]),
+    });
+    const newEnd = moment.tz(selectedDate, 'Asia/Bangkok').set({
+      hour: parseInt(endTime.split(':')[0]),
+      minute: parseInt(endTime.split(':')[1]),
+    });
 
-  async function handleRejectBooking() {
-    if (!selectedBookingId) return;
-    try {
-      const response = await axios.post(`http://localhost:8000/api/bookings/reject/${selectedBookingId}`, {
-        reason: rejectionReason,
+    return !pendingBookings.some((booking) => {
+      if (booking.room !== room || booking.status !== 'รอการอนุมัติจากผู้ดูแล') return false;
+
+      const existingStart = moment.tz(booking.date, 'Asia/Bangkok').set({
+        hour: parseInt(booking.startTime.split(':')[0]),
+        minute: parseInt(booking.startTime.split(':')[1]),
       });
-      if (response.status === 200) {
-        alert('ยกเลิกการจองสำเร็จ');
-        fetchPendingBookings();
-        fetchRejectedBookings();
-        setRejectDialogOpen(false);
-        setRejectionReason('');
+      const existingEnd = moment.tz(booking.date, 'Asia/Bangkok').set({
+        hour: parseInt(booking.endTime.split(':')[0]),
+        minute: parseInt(booking.endTime.split(':')[1]),
+      });
+
+      return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
+    });
+  }
+
+  async function handleFormSubmit() {
+    if (studentID.length !== 8 || isNaN(Number(studentID))) {
+      alert('รหัสนิสิตต้องมี 8 หลักและเป็นตัวเลขเท่านั้น');
+      return;
+    }
+
+    if (!isTimeSlotAvailable(selectedRoom, startTime, endTime, selectedDate)) {
+      alert('เวลาและห้องที่เลือกมีการจองอยู่แล้ว');
+      return;
+    }
+
+    const bookingData: Booking = {
+      room: selectedRoom!,
+      studentName,
+      studentID,
+      startTime,
+      endTime,
+      purpose,
+      phoneNumber,
+      date: selectedDate!,
+      status: 'รอการอนุมัติจากผู้ดูแล',
+    };
+
+    try {
+      const response = await axios.post('http://localhost:8000/api/bookings/create', bookingData);
+
+      if (response.status === 201) {
+        alert('ส่งคำขอจองสำเร็จแล้ว รอการอนุมัติจากผู้ดูแล');
+        setPendingBookings((prev) => [...prev, bookingData]);
+        setModalOpen(false);
       } else {
-        alert(response.data.message || 'เกิดข้อผิดพลาดในการยกเลิกการจอง');
+        alert(response.data.message || 'เกิดข้อผิดพลาด');
       }
     } catch (error) {
-      console.error('Error rejecting booking:', error);
-      alert('เกิดข้อผิดพลาดในการยกเลิกการจอง');
+      console.error('Error:', error);
+      alert('เกิดข้อผิดพลาดในการจอง');
     }
   }
 
-  function handleOpenRejectDialog(bookingId: string) {
-    setSelectedBookingId(bookingId);
-    setRejectDialogOpen(true);
+  async function handleCancelBooking() {
+    if (selectedBooking) {
+      try {
+        const response = await axios.delete(`http://localhost:8000/api/bookings/delete/${selectedBooking.studentID}`); // เปลี่ยนเป็น bookingID
+        if (response.status === 200) {
+          alert('ยกเลิกการจองสำเร็จ');
+          setPendingBookings((prev) => prev.filter((booking) => booking.studentID !== selectedBooking.studentID)); // ใช้ bookingID เพื่อลบการจองเฉพาะเจาะจง
+          setCancellationModalOpen(false);
+        }
+      } catch (error) {
+        console.error('Error cancelling booking:', error);
+        alert('เกิดข้อผิดพลาดในการยกเลิกการจอง');
+      }
+    }
   }
-
-  function handleCloseRejectDialog() {
-    setSelectedBookingId(null);
-    setRejectionReason('');
-    setRejectDialogOpen(false);
+  
+  // เรียกใช้ API อนุมัติการจอง
+  async function handleApproveBooking() {
+    if (selectedBooking) {
+      try {
+        const response = await axios.post(`http://localhost:8000/api/bookings/approve/${selectedBooking.studentID}`, {
+          startTime: selectedBooking.startTime, // ส่งเวลาที่เฉพาะเจาะจง
+          endTime: selectedBooking.endTime,
+          status: 'อนุมัติแล้ว',
+        });
+  
+        if (response.status === 200) {
+          alert('อนุมัติการจองสำเร็จ');
+          setPendingBookings((prev) =>
+            prev.map((booking) =>
+              booking.studentID === selectedBooking.studentID
+                ? { ...booking, status: 'อนุมัติแล้ว' }
+                : booking
+            )
+          );
+          setCancellationModalOpen(false);
+        } else {
+          alert('ไม่สามารถอัปเดตฐานข้อมูลได้');
+        }
+      } catch (error) {
+        console.error('Error approving booking:', error);
+        alert('เกิดข้อผิดพลาดในการอนุมัติการจอง');
+      }
+    }
   }
+  
 
-  // คำนวณสรุปรายเดือน
-  const currentMonth = moment().month();
-  const bookingsThisMonth = [...bookingHistory, ...rejectedBookingHistory].filter(
-    (booking) => moment(booking.date).month() === currentMonth
-  );
 
-  const approvedThisMonth = bookingHistory.filter(
-    (booking) => moment(booking.date).month() === currentMonth
-  );
 
-  const rejectedThisMonth = rejectedBookingHistory.filter(
-    (booking) => moment(booking.date).month() === currentMonth
-  );
+  const times = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
   return (
     <div className="w-full h-full p-4">
-      <Box sx={{ backgroundColor: '#996600', color: '#fff', padding: '16px', textAlign: 'center', marginBottom: '16px' }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>การจัดการการจองห้องประชุม (Admin)</Typography>
+      <Box
+        sx={{
+          backgroundColor: '#996600',
+          color: '#fff',
+          padding: '16px',
+          textAlign: 'center',
+          marginBottom: '16px',
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          จองห้องประชุม
+        </Typography>
       </Box>
 
-      <Box mb={5}>
-        <Typography variant="h6" sx={{ mb: 2 }}>ตารางปฏิทินการจอง:</Typography>
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: 500 }}
-          views={['month']}
-          defaultView="month"
-          popup={true}
-          onSelectEvent={handleSelectEvent}
-        />
-      </Box>
+      <div className="mb-6">
+      <Calendar
+  localizer={localizer}
+  events={pendingBookings.map((booking) => ({
+    title: `${booking.room} รหัสนิสิต ${booking.studentID} ณ เวลา ${booking.startTime} - ${booking.endTime} (${booking.status})`,
+    start: moment
+      .tz(booking.date, 'Asia/Bangkok')
+      .set({
+        hour: parseInt(booking.startTime.split(':')[0]),
+        minute: parseInt(booking.startTime.split(':')[1]),
+      })
+      .toDate(),
+    end: moment
+      .tz(booking.date, 'Asia/Bangkok')
+      .set({
+        hour: parseInt(booking.endTime.split(':')[0]),
+        minute: parseInt(booking.endTime.split(':')[1]),
+      })
+      .add(1, 'minutes')
+      .toDate(),
+    room: booking.room,
+    studentName: booking.studentName,
+    studentID: booking.studentID,
+    phoneNumber: booking.phoneNumber,
+    purpose: booking.purpose,
+    status: booking.status,
+    startTime: booking.startTime, // เพิ่ม startTime
+    endTime: booking.endTime, // เพิ่ม endTime
+  } as CustomEvent))}
+  startAccessor="start"
+  endAccessor="end"
+  views={[Views.AGENDA, Views.DAY, Views.MONTH]}
+  defaultView={Views.AGENDA}
+  style={{ height: '85vh', width: '100%', fontSize: '12px', border: '2px solid #996600' }}
+  popup={true}
+  selectable={true}
+  onSelectEvent={(event) => {
+    setSelectedBooking({
+      ...event,
+      startTime: moment(event.start).format('HH:mm'), // แปลง start เป็น startTime
+      endTime: moment(event.end).format('HH:mm'),     // แปลง end เป็น endTime
+    } as CustomEvent); // ตั้งค่า CustomEvent ใหม่
+    setCancellationModalOpen(true);
+  }}
+  onSelectSlot={(slotInfo) => {
+    setSelectedDate(slotInfo.start);
+    setModalOpen(true);
+  }}
+  eventPropGetter={(event) => {
+    const backgroundColor = event.status === 'รอการอนุมัติจากผู้ดูแล' ? '#FFFFFF' : '#008000';
+    const color = event.status === 'รอการอนุมัติจากผู้ดูแล' ? '#FFA500' : '#FFFFFF';
+    return { style: { backgroundColor, color, border: '1px solid #FFA500' } };
+  }}
+/>
+      </div>
 
-      <Modal open={open} onClose={handleClose}>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-            bgcolor: 'background.paper',
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          {selectedEvent && (
-            <>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center', color: '#1976d2' }}>
-                {selectedEvent.title}
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              <Typography>
-                <strong>วันที่:</strong> {moment(selectedEvent.start).format('dddd, MMMM D, YYYY')}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                <strong>รายละเอียด:</strong> {selectedEvent.description}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                <strong>รหัสนิสิต:</strong> {selectedEvent.studentID}
-              </Typography>
-              <Divider sx={{ my: 2 }} />
-              <Box display="flex" justifyContent="center">
-                <Button variant="contained" color="primary" onClick={handleClose}>ปิด</Button>
-              </Box>
-            </>
-          )}
-        </Box>
+      {/* Modal สำหรับยกเลิกและอนุมัติการจอง */}
+      <Modal open={cancellationModalOpen} onClose={() => setCancellationModalOpen(false)}>
+        <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
+          <Typography variant="h6">การจองห้อง {selectedBooking?.room}</Typography>
+          <Typography>
+            วันที่จอง: {selectedBooking?.start ? moment(selectedBooking.start).format('DD MMMM YYYY') : 'ไม่ระบุ'}
+          </Typography>
+          <Typography>
+            เวลา: {selectedBooking?.start ? moment(selectedBooking.start).format('HH:mm') : 'ไม่ระบุ'} - {selectedBooking?.end ? moment(selectedBooking.end).format('HH:mm') : 'ไม่ระบุ'}
+          </Typography>
+          <Typography>ชื่อผู้จอง: {selectedBooking?.studentName}</Typography>
+          <Typography>รหัสนิสิต: {selectedBooking?.studentID}</Typography>
+          <Typography>หมายเลขโทรศัพท์: {selectedBooking?.phoneNumber}</Typography>
+          <Typography>วัตถุประสงค์: {selectedBooking?.purpose || 'ไม่ระบุ'}</Typography>
+          
+          <Box display="flex" justifyContent="space-between" mt={2}>
+            <Button variant="contained" color="error" onClick={handleCancelBooking}>
+              ยกเลิกการจอง
+            </Button>
+            <Button variant="contained" color="primary" onClick={handleApproveBooking}>
+              อนุมัติการจอง
+            </Button>
+          </Box>
+        </Paper>
       </Modal>
 
-      <Box mt={3}>
-        <Typography variant="h6" sx={{ mb: 2 }}>การจองที่รอการอนุมัติ:</Typography>
-        {pendingBookings.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-            {pendingBookings.map((booking) => (
-              <Paper key={uuidv4()} elevation={4} style={{ padding: '16px', margin: '8px', width: '30%' }}>
-                <Typography>ห้อง: {booking.room}</Typography>
-                <Typography>วันที่จอง: {moment(booking.date).format('DD MMMM YYYY')}</Typography>
-                <Typography>ชื่อนิสิต: {booking.studentName}</Typography>
-                <Typography>รหัสนิสิต: {booking.studentID}</Typography>
-                <Typography>เวลา: {booking.startTime} - {booking.endTime}</Typography>
-                <Typography>วัตถุประสงค์: {booking.purpose}</Typography>
-                <Typography color={booking.status === 'อนุมัติแล้ว' ? 'green' : 'orange'} sx={{ fontWeight: 'bold' }}>สถานะ: {booking.status}</Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  style={{ marginRight: '8px' }}
-                  onClick={() => handleApproveBooking(booking._id)}
-                >
-                  อนุมัติ
-                </Button>
-                <Button variant="contained" color="error" onClick={() => handleOpenRejectDialog(booking._id)}>ปฏิเสธ</Button>
-              </Paper>
-            ))}
-          </div>
-        ) : (
-          <Typography>ไม่มีการจองที่รอการอนุมัติ</Typography>
-        )}
-      </Box>
+      {/* Modal สำหรับจองห้อง */}
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+        <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            การจองห้อง {selectedRoom}
+          </Typography>
+          <Typography variant="body1" sx={{ marginTop: 1 }}>
+            วันที่จอง: {selectedDate ? moment.tz(selectedDate, 'Asia/Bangkok').format('DD MMMM YYYY') : 'ไม่ระบุ'}
+          </Typography>
 
-      <Dialog open={rejectDialogOpen} onClose={handleCloseRejectDialog}>
-        <DialogTitle>ปฏิเสธการจอง</DialogTitle>
-        <DialogContent>
-          <Typography>กรุณาระบุเหตุผลในการปฏิเสธ:</Typography>
           <TextField
-            autoFocus
-            margin="dense"
-            label="เหตุผล"
+            label="เลือกห้อง"
+            value={selectedRoom ?? ''}
+            onChange={(e) => setSelectedRoom(e.target.value)}
+            select
             fullWidth
-            multiline
-            rows={4}
-            value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
+            sx={{ marginTop: '16px' }}
+          >
+            {availableRooms.map((room) => (
+              <MenuItem key={room} value={room}>
+                {room}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            label="ชื่อผู้จอง"
+            value={studentName}
+            onChange={(e) => setStudentName(e.target.value)}
+            fullWidth
+            sx={{ marginTop: '16px' }}
           />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseRejectDialog} color="primary">ยกเลิก</Button>
-          <Button onClick={handleRejectBooking} color="error">ปฏิเสธการจอง</Button>
-        </DialogActions>
-      </Dialog>
 
-      <Box mt={3}>
-        <Typography variant="h6">ประวัติการจองที่อนุมัติแล้ว:</Typography>
-        {bookingHistory.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-            {bookingHistory.map((booking) => (
-              <Paper key={uuidv4()} elevation={4} style={{ padding: '16px', margin: '8px', width: '30%' }}>
-                <Typography>ห้อง: {booking.room}</Typography>
-                <Typography>วันที่จอง: {moment(booking.date).format('DD MMMM YYYY')}</Typography>
-                <Typography>ชื่อนิสิต: {booking.studentName}</Typography>
-                <Typography>รหัสนิสิต: {booking.studentID}</Typography>
-                <Typography>เวลา: {booking.startTime} - {booking.endTime}</Typography>
-                <Typography>วัตถุประสงค์: {booking.purpose}</Typography>
-                <Typography color="green" sx={{ fontWeight: 'bold' }}>สถานะ: อนุมัติแล้ว</Typography>
-              </Paper>
+          <TextField
+            label="รหัสนิสิต"
+            value={studentID}
+            onChange={(e) => setStudentID(e.target.value)}
+            fullWidth
+            sx={{ marginTop: '16px' }}
+          />
+
+          <TextField
+            label="หมายเลขโทรศัพท์"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            fullWidth
+            sx={{ marginTop: '16px' }}
+          />
+
+          <TextField
+            label="วัตถุประสงค์การจอง"
+            value={purpose}
+            onChange={(e) => setPurpose(e.target.value)}
+            fullWidth
+            sx={{ marginTop: '16px' }}
+          />
+
+          <TextField
+            label="เวลาเริ่ม"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            select
+            fullWidth
+            sx={{ marginTop: '16px' }}
+          >
+            {times.map((time) => (
+              <MenuItem key={time} value={time}>
+                {time}
+              </MenuItem>
             ))}
-          </div>
-        ) : (
-          <Typography>ไม่มีประวัติการจองที่อนุมัติแล้ว</Typography>
-        )}
-      </Box>
+          </TextField>
 
-      <Box mt={3}>
-        <Typography variant="h6">ประวัติการจองที่ถูกปฏิเสธ:</Typography>
-        {rejectedBookingHistory.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-            {rejectedBookingHistory.map((booking) => (
-              <Paper key={uuidv4()} elevation={4} style={{ padding: '16px', margin: '8px', width: '30%' }}>
-                <Typography>ห้อง: {booking.room}</Typography>
-                <Typography>วันที่จอง: {moment(booking.date).format('DD MMMM YYYY')}</Typography>
-                <Typography>ชื่อนิสิต: {booking.studentName}</Typography>
-                <Typography>รหัสนิสิต: {booking.studentID}</Typography>
-                <Typography>เวลา: {booking.startTime} - {booking.endTime}</Typography>
-                <Typography>วัตถุประสงค์: {booking.purpose}</Typography>
-                <Typography color="red" sx={{ fontWeight: 'bold' }}>สถานะ: ถูกปฏิเสธ</Typography>
-              </Paper>
+          <TextField
+            label="เวลาสิ้นสุด"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            select
+            fullWidth
+            sx={{ marginTop: '16px' }}
+          >
+            {times.map((time) => (
+              <MenuItem key={time} value={time}>
+                {time}
+              </MenuItem>
             ))}
-          </div>
-        ) : (
-          <Typography>ไม่มีประวัติการจองที่ถูกปฏิเสธ</Typography>
-        )}
-      </Box>
+          </TextField>
 
-      <Box mt={3}>
-  <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>สรุปรายเดือน:</Typography>
-  <Paper elevation={4} sx={{ padding: '16px', backgroundColor: '#f5f5f5' }}>
-    {/* การจองทั้งหมด */}
-    <Box display="flex" flexDirection="row" justifyContent="space-between" alignItems="center" mb={2}>
-      <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#1976d2' }}>การจองทั้งหมดในเดือนนี้:</Typography>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>{bookingsThisMonth.length}</Typography>
-    </Box>
-    <Box mb={2}>
-      {bookingsThisMonth.map((booking) => (
-        <Typography key={booking._id}>
-          {booking.studentName} - ห้อง: {booking.room}, วันที่: {moment(booking.date).format('DD MMMM YYYY')}
-        </Typography>
-      ))}
-    </Box>
-    <Divider />
-
-    {/* การจองที่อนุมัติ */}
-    <Box display="flex" flexDirection="row" justifyContent="space-between" alignItems="center" my={2}>
-      <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#4caf50' }}>การจองที่อนุมัติในเดือนนี้:</Typography>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>{approvedThisMonth.length}</Typography>
-    </Box>
-    <Box mb={2}>
-      {approvedThisMonth.map((booking) => (
-        <Typography key={booking._id}>
-          {booking.studentName} - ห้อง: {booking.room}, วันที่: {moment(booking.date).format('DD MMMM YYYY')}
-        </Typography>
-      ))}
-    </Box>
-    <Divider />
-
-    {/* การจองที่ถูกปฏิเสธ */}
-    <Box display="flex" flexDirection="row" justifyContent="space-between" alignItems="center" my={2}>
-      <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#f44336' }}>การจองที่ถูกปฏิเสธในเดือนนี้:</Typography>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>{rejectedThisMonth.length}</Typography>
-    </Box>
-    <Box mb={2}>
-      {rejectedThisMonth.map((booking) => (
-        <Typography key={booking._id}>
-          {booking.studentName} - ห้อง: {booking.room}, วันที่: {moment(booking.date).format('DD MMMM YYYY')}
-        </Typography>
-      ))}
-    </Box>
-  </Paper>
-</Box>
-
-
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{ marginTop: '16px' }}
+            onClick={handleFormSubmit}
+          >
+            ยืนยันการจอง
+          </Button>
+        </Paper>
+      </Modal>
     </div>
   );
 };

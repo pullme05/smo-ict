@@ -54,13 +54,13 @@ const MeetingRoomUser = () => {
   useEffect(() => {
     async function fetchPendingBookings() {
       try {
-        const pendingResponse = await axios.get('http://localhost:8000/api/bookings/pending');
-        if (pendingResponse.status === 200) {
-          setPendingBookings(pendingResponse.data);
+        const response = await axios.get('http://localhost:8000/api/bookings');
+        if (response.status === 200) {
+          setPendingBookings(response.data); // ดึงข้อมูลการจองทั้งหมด
         }
       } catch (error) {
-        console.error('Error fetching pending bookings:', error);
-        alert('เกิดข้อผิดพลาดในการดึงข้อมูลการจองที่รอการอนุมัติ');
+        console.error('Error fetching bookings:', error);
+        alert('เกิดข้อผิดพลาดในการดึงข้อมูลการจอง');
       }
     }
 

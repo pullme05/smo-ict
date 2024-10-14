@@ -51,20 +51,21 @@ const MeetingRoomAM = () => {
   const availableRooms = ['ห้อง 1', 'ห้อง 2', 'ห้อง 3'];
 
   useEffect(() => {
-    async function fetchPendingBookings() {
+    async function fetchAllBookings() {
       try {
-        const pendingResponse = await axios.get('http://localhost:8000/api/bookings/pending');
-        if (pendingResponse.status === 200) {
-          setPendingBookings(pendingResponse.data);
+        const response = await axios.get('http://localhost:8000/api/bookings');
+        if (response.status === 200) {
+          setPendingBookings(response.data); // ดึงข้อมูลการจองทั้งหมด
         }
       } catch (error) {
-        console.error('Error fetching pending bookings:', error);
-        alert('เกิดข้อผิดพลาดในการดึงข้อมูลการจองที่รอการอนุมัติ');
+        console.error('Error fetching bookings:', error);
+        alert('เกิดข้อผิดพลาดในการดึงข้อมูลการจอง');
       }
     }
-
-    fetchPendingBookings();
+  
+    fetchAllBookings(); // เรียกใช้ฟังก์ชันนี้เมื่อหน้าโหลด
   }, []);
+  
 
   function isTimeSlotAvailable(
     room: string | null,
@@ -137,7 +138,7 @@ const MeetingRoomAM = () => {
       alert('เกิดข้อผิดพลาดในการจอง');
     }
   }
-
+  // เรียกใช้ API ยกเลิกการจอง
   async function handleCancelBooking() {
     if (selectedBooking) {
       try {
@@ -159,13 +160,14 @@ const MeetingRoomAM = () => {
     if (selectedBooking) {
       try {
         const response = await axios.post(`http://localhost:8000/api/bookings/approve/${selectedBooking.studentID}`, {
-          startTime: selectedBooking.startTime, // ส่งเวลาที่เฉพาะเจาะจง
+          startTime: selectedBooking.startTime,
           endTime: selectedBooking.endTime,
           status: 'อนุมัติแล้ว',
         });
   
         if (response.status === 200) {
           alert('อนุมัติการจองสำเร็จ');
+          // อัปเดตสถานะการจองใน state
           setPendingBookings((prev) =>
             prev.map((booking) =>
               booking.studentID === selectedBooking.studentID
@@ -184,9 +186,6 @@ const MeetingRoomAM = () => {
     }
   }
   
-
-
-
   const times = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
   return (
@@ -207,58 +206,58 @@ const MeetingRoomAM = () => {
 
       <div className="mb-6">
       <Calendar
-  localizer={localizer}
-  events={pendingBookings.map((booking) => ({
-    title: `${booking.room} รหัสนิสิต ${booking.studentID} ณ เวลา ${booking.startTime} - ${booking.endTime} (${booking.status})`,
-    start: moment
-      .tz(booking.date, 'Asia/Bangkok')
-      .set({
-        hour: parseInt(booking.startTime.split(':')[0]),
-        minute: parseInt(booking.startTime.split(':')[1]),
-      })
-      .toDate(),
-    end: moment
-      .tz(booking.date, 'Asia/Bangkok')
-      .set({
-        hour: parseInt(booking.endTime.split(':')[0]),
-        minute: parseInt(booking.endTime.split(':')[1]),
-      })
-      .add(1, 'minutes')
-      .toDate(),
-    room: booking.room,
-    studentName: booking.studentName,
-    studentID: booking.studentID,
-    phoneNumber: booking.phoneNumber,
-    purpose: booking.purpose,
-    status: booking.status,
-    startTime: booking.startTime, // เพิ่ม startTime
-    endTime: booking.endTime, // เพิ่ม endTime
-  } as CustomEvent))}
-  startAccessor="start"
-  endAccessor="end"
-  views={[Views.AGENDA, Views.DAY, Views.MONTH]}
-  defaultView={Views.AGENDA}
-  style={{ height: '85vh', width: '100%', fontSize: '12px', border: '2px solid #996600' }}
-  popup={true}
-  selectable={true}
-  onSelectEvent={(event) => {
-    setSelectedBooking({
-      ...event,
-      startTime: moment(event.start).format('HH:mm'), // แปลง start เป็น startTime
-      endTime: moment(event.end).format('HH:mm'),     // แปลง end เป็น endTime
-    } as CustomEvent); // ตั้งค่า CustomEvent ใหม่
-    setCancellationModalOpen(true);
-  }}
-  onSelectSlot={(slotInfo) => {
-    setSelectedDate(slotInfo.start);
-    setModalOpen(true);
-  }}
-  eventPropGetter={(event) => {
-    const backgroundColor = event.status === 'รอการอนุมัติจากผู้ดูแล' ? '#FFFFFF' : '#008000';
-    const color = event.status === 'รอการอนุมัติจากผู้ดูแล' ? '#FFA500' : '#FFFFFF';
-    return { style: { backgroundColor, color, border: '1px solid #FFA500' } };
-  }}
-/>
+        localizer={localizer}
+        events={pendingBookings.map((booking) => ({
+          title: `${booking.room} รหัสนิสิต ${booking.studentID} ณ เวลา ${booking.startTime} - ${booking.endTime} (${booking.status})`,
+          start: moment
+            .tz(booking.date, 'Asia/Bangkok')
+            .set({
+              hour: parseInt(booking.startTime.split(':')[0]),
+              minute: parseInt(booking.startTime.split(':')[1]),
+            })
+            .toDate(),
+          end: moment
+            .tz(booking.date, 'Asia/Bangkok')
+            .set({
+              hour: parseInt(booking.endTime.split(':')[0]),
+              minute: parseInt(booking.endTime.split(':')[1]),
+            })
+            .add(1, 'minutes')
+            .toDate(),
+          room: booking.room,
+          studentName: booking.studentName,
+          studentID: booking.studentID,
+          phoneNumber: booking.phoneNumber,
+          purpose: booking.purpose,
+          status: booking.status,
+          startTime: booking.startTime, // เพิ่ม startTime
+          endTime: booking.endTime, // เพิ่ม endTime
+        } as CustomEvent))}
+        startAccessor="start"
+        endAccessor="end"
+        views={[Views.AGENDA, Views.DAY, Views.MONTH]}
+        defaultView={Views.AGENDA}
+        style={{ height: '85vh', width: '100%', fontSize: '12px', border: '2px solid #996600' }}
+        popup={true}
+        selectable={true}
+        onSelectEvent={(event) => {
+          setSelectedBooking({
+            ...event,
+            startTime: moment(event.start).format('HH:mm'), // แปลง start เป็น startTime
+            endTime: moment(event.end).format('HH:mm'),     // แปลง end เป็น endTime
+          } as CustomEvent); // ตั้งค่า CustomEvent ใหม่
+          setCancellationModalOpen(true);
+        }}
+        onSelectSlot={(slotInfo) => {
+          setSelectedDate(slotInfo.start);
+          setModalOpen(true);
+        }}
+        eventPropGetter={(event) => {
+          const backgroundColor = event.status === 'รอการอนุมัติจากผู้ดูแล' ? '#FFFFFF' : '#008000';
+          const color = event.status === 'รอการอนุมัติจากผู้ดูแล' ? '#FFA500' : '#FFFFFF';
+          return { style: { backgroundColor, color, border: '1px solid #FFA500' } };
+        }}
+      />
       </div>
 
       {/* Modal สำหรับยกเลิกและอนุมัติการจอง */}
@@ -277,11 +276,11 @@ const MeetingRoomAM = () => {
           <Typography>วัตถุประสงค์: {selectedBooking?.purpose || 'ไม่ระบุ'}</Typography>
           
           <Box display="flex" justifyContent="space-between" mt={2}>
-            <Button variant="contained" color="error" onClick={handleCancelBooking}>
-              ยกเลิกการจอง
-            </Button>
             <Button variant="contained" color="primary" onClick={handleApproveBooking}>
               อนุมัติการจอง
+            </Button>
+            <Button variant="contained" color="error" onClick={handleCancelBooking}>
+              ยกเลิกการจอง
             </Button>
           </Box>
         </Paper>
@@ -384,6 +383,8 @@ const MeetingRoomAM = () => {
           </Button>
         </Paper>
       </Modal>
+
+      
     </div>
   );
 };

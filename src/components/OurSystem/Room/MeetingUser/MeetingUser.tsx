@@ -389,11 +389,11 @@ const sortedBookings = [...pendingBookings].sort((a, b) => {
 
   {/* Modal สำหรับแสดงการจองห้องประชุมทั้งหมด */}
   <Modal open={viewBookingsOpen} onClose={handleViewBookingsClose}>
-  <Paper sx={{ padding: '16px', maxWidth: '1200px', maxHeight: '90vh', width: '95%', margin: 'auto', overflowY: 'auto' }}>
-    <Typography variant="h6">เวลาว่างและการจองห้องประชุม</Typography>
-    
-    {/* ใช้ Grid เพื่อแบ่งคอลัมน์ */}
-    <Grid container spacing={2}>
+    <Paper sx={{ padding: '16px', maxWidth: '1200px', maxHeight: '90vh', width: '95%', margin: 'auto', overflowY: 'auto' }}>
+      <Typography variant="h6">เวลาว่างและการจองห้องประชุม</Typography>
+      
+      {/* ใช้ Grid เพื่อแบ่งคอลัมน์ */}
+      <Grid container spacing={2}>
       
       {/* คอลัมน์สำหรับเวลาว่างของห้องประชุม */}
       <Grid item xs={12} md={5}>
@@ -535,8 +535,8 @@ const sortedBookings = [...pendingBookings].sort((a, b) => {
     <Button onClick={handleViewBookingsClose} variant="contained" fullWidth sx={{ marginTop: '16px' }}>
       ปิด
     </Button>
-  </Paper>
-</Modal>
+    </Paper>
+  </Modal>
     </div>
   );
 };

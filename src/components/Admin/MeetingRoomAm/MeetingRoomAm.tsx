@@ -4,10 +4,13 @@
   import { Typography, Box, Modal, Paper, TextField, Button, MenuItem,Divider, Grid, Card } from '@mui/material';
   import axios from 'axios';
   import 'react-big-calendar/lib/css/react-big-calendar.css';
-  
+  import { Bar } from 'react-chartjs-2';
+  import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
   moment.tz.setDefault('Asia/Bangkok');
   const localizer = momentLocalizer(moment);
-
+  
+  // ลงทะเบียนกราฟที่ใช้
+  ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
   interface Booking {
     
     room: string;
@@ -49,11 +52,9 @@
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [cancellationModalOpen, setCancellationModalOpen] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<CustomEvent | Booking | null>(null);
-
     const [editModalOpen, setEditModalOpen] = useState(false);
-
-
     const availableRooms = ['ห้อง 1', 'ห้อง 2', 'ห้อง 3'];
+    
 
     useEffect(() => {
       async function fetchAllBookings() {
@@ -289,8 +290,35 @@
     return timeA.diff(timeB);
   });
 
-  
     const times = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+
+    // State สำหรับควบคุมการแสดง Modal
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
+
+  // เปิด/ปิด Modal
+  const handleSummaryModalOpen = () => setSummaryModalOpen(true);
+  const handleSummaryModalClose = () => setSummaryModalOpen(false);
+
+  // ดึงข้อมูลการจองและสรุปจำนวนห้อง
+  const totalBookings = pendingBookings.length;
+  const room1Bookings = pendingBookings.filter((booking) => booking.room === 'ห้อง 1').length;
+  const room2Bookings = pendingBookings.filter((booking) => booking.room === 'ห้อง 2').length;
+  const room3Bookings = pendingBookings.filter((booking) => booking.room === 'ห้อง 3').length;
+  const approvedBookings = pendingBookings.filter((booking) => booking.status === 'อนุมัติแล้ว').length;
+  const rejectedBookings = pendingBookings.filter((booking) => booking.status === 'ถูกปฏิเสธ').length;
+
+  // ข้อมูลสำหรับกราฟ
+  const data = {
+    labels: ['ห้องทั้งหมด', 'ห้อง 1', 'ห้อง 2', 'ห้อง 3', 'อนุมัติแล้ว', 'ถูกปฏิเสธ'],
+    datasets: [
+      {
+        label: 'จำนวนการจองห้องทั้งหมด',
+        data: [totalBookings, room1Bookings, room2Bookings, room3Bookings, approvedBookings, rejectedBookings],
+        backgroundColor: ['#996600', '#8d38c9', '#c4996c', '#FFCC33', '#33CC33', '#FF3333'], // สีที่ไม่ซ้ำกัน
+      },
+  
+    ],
+  };
 
     return (
       <div className="w-full h-full p-4">
@@ -309,7 +337,10 @@
           <Button variant="contained" onClick={handleViewBookingsOpen} sx={{ marginBottom: '16px' }}>
             ดูการจองห้องประชุม
           </Button>
-          
+          <br/>
+          <Button variant="contained" onClick={handleSummaryModalOpen}>
+        ผลสรุปการจองห้องประชุม
+      </Button>
         </Box>
         <div className="mb-6">
         <Calendar
@@ -753,6 +784,97 @@
 
           </Grid>
           <Button onClick={handleViewBookingsClose} variant="contained" fullWidth sx={{ marginTop: '16px' }}>
+            ปิด
+          </Button>
+        </Paper>
+      </Modal>
+      
+        {/* Modal สำหรับแสดงกราฟสรุป */}
+      <Modal open={summaryModalOpen} onClose={handleSummaryModalClose}>
+        <Paper sx={{ padding: '16px', maxWidth: '600px', margin: 'auto' }}>
+          <Typography variant="h6" sx={{ marginBottom: '16px' }}>
+            ผลสรุปการจองห้องประชุม
+          </Typography>
+
+          {/* กลุ่ม: ข้อมูลการจองห้อง */}
+          <Typography variant="subtitle1" sx={{ marginBottom: '8px', fontWeight: 'bold' }}>
+            ข้อมูลการจองห้อง
+          </Typography>
+
+          {/* ใช้ Flexbox เพื่อจัดหัวข้อและค่าให้อยู่แถวเดียวกัน พร้อมชิดกัน */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px', gap: '4px' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              การจองห้องทั้งหมด:
+            </Typography>
+            <Typography variant="body1">
+              {totalBookings} ห้อง
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px', gap: '4px' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              ห้อง 1:
+            </Typography>
+            <Typography variant="body1">
+              {room1Bookings} ห้อง
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px', gap: '4px' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              ห้อง 2:
+            </Typography>
+            <Typography variant="body1">
+              {room2Bookings} ห้อง
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px', gap: '4px' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              ห้อง 3:
+            </Typography>
+            <Typography variant="body1">
+              {room3Bookings} ห้อง
+            </Typography>
+          </Box>
+
+          {/* Divider เพื่อแยกกลุ่มข้อมูล */}
+          <Divider sx={{ marginY: '16px' }} />
+
+          {/* กลุ่ม: ข้อมูลสถานะการจอง */}
+          <Typography variant="subtitle1" sx={{ marginBottom: '8px', fontWeight: 'bold' }}>
+            สถานะการจอง
+          </Typography>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px', gap: '4px' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              อนุมัติแล้ว:
+            </Typography>
+            <Typography variant="body1">
+              {approvedBookings} ห้อง
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px', gap: '4px' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              ถูกปฏิเสธ:
+            </Typography>
+            <Typography variant="body1">
+              {rejectedBookings} ห้อง
+            </Typography>
+          </Box>
+
+          {/* Divider เพื่อแยกส่วนกราฟ */}
+          <Divider sx={{ marginY: '16px' }} />
+
+          {/* แสดงกราฟ */}
+          <Typography variant="subtitle1" sx={{ marginBottom: '8px', fontWeight: 'bold' }}>
+            กราฟสรุป:
+          </Typography>
+          <Bar data={data} />
+
+          {/* ปุ่มปิด Modal */}
+          <Button onClick={handleSummaryModalClose} sx={{ marginTop: '16px' }}>
             ปิด
           </Button>
         </Paper>

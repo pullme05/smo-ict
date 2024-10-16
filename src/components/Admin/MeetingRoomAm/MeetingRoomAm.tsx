@@ -1,10 +1,21 @@
   import { useState, useEffect } from 'react';
   import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
   import moment from 'moment-timezone';
-  import { Typography, Box, Modal, Paper, TextField, Button, MenuItem,Divider, Grid, Card } from '@mui/material';
+  import { Typography, Box, Modal, Paper, TextField, Button, MenuItem,Divider, Grid, Card,  } from '@mui/material';
   import axios from 'axios';
   import 'react-big-calendar/lib/css/react-big-calendar.css';
-  
+  import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+  } from 'chart.js';
+  import { Bar } from 'react-chartjs-2';
+
+  ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
   moment.tz.setDefault('Asia/Bangkok');
   const localizer = momentLocalizer(moment);
 
@@ -49,8 +60,8 @@
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [cancellationModalOpen, setCancellationModalOpen] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<CustomEvent | Booking | null>(null);
-
     const [editModalOpen, setEditModalOpen] = useState(false);
+    const [summaryModalOpen, setSummaryModalOpen] = useState(false);
 
 
     const availableRooms = ['ห้อง 1', 'ห้อง 2', 'ห้อง 3'];
@@ -288,8 +299,48 @@
 
     return timeA.diff(timeB);
   });
+  const handleSummaryOpen = () => {
+    setSummaryModalOpen(true);
+  };
 
-  
+  const handleSummaryClose = () => {
+    setSummaryModalOpen(false);
+  };
+  const roomLabels = ['ห้อง 1', 'ห้อง 2', 'ห้อง 3'];
+  const statusColors = {
+    'รอการอนุมัติจากผู้ดูแล': 'orange',
+    'อนุมัติแล้ว': 'green',
+    'ปฏิเสธการจอง': 'red',
+  };
+
+  // Prepare data for the bar chart
+  const chartData = {
+    labels: roomLabels,
+    datasets: [
+      {
+        label: 'รอการอนุมัติจากผู้ดูแล',
+        backgroundColor: statusColors['รอการอนุมัติจากผู้ดูแล'],
+        data: roomLabels.map(
+          (room) => pendingBookings.filter((b) => b.room === room && b.status === 'รอการอนุมัติจากผู้ดูแล').length
+        ),
+      },
+      {
+        label: 'อนุมัติแล้ว',
+        backgroundColor: statusColors['อนุมัติแล้ว'],
+        data: roomLabels.map(
+          (room) => pendingBookings.filter((b) => b.room === room && b.status === 'อนุมัติแล้ว').length
+        ),
+      },
+      {
+        label: 'ปฏิเสธการจอง',
+        backgroundColor: statusColors['ปฏิเสธการจอง'],
+        data: roomLabels.map(
+          (room) => pendingBookings.filter((b) => b.room === room && b.status === 'ปฏิเสธการจอง').length
+        ),
+      },
+    ],
+  };
+
     const times = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
     return (
@@ -309,7 +360,9 @@
           <Button variant="contained" onClick={handleViewBookingsOpen} sx={{ marginBottom: '16px' }}>
             ดูการจองห้องประชุม
           </Button>
-          
+          {/* <Button variant="contained" onClick={handleSummaryOpen} sx={{ marginBottom: '16px' }}>
+            ผลสรุปการจองห้อง
+          </Button> */}
         </Box>
         <div className="mb-6">
         <Calendar
@@ -755,6 +808,25 @@
           <Button onClick={handleViewBookingsClose} variant="contained" fullWidth sx={{ marginTop: '16px' }}>
             ปิด
           </Button>
+        </Paper>
+      </Modal>
+      {/* Modal for summary chart */}
+      <Modal open={summaryModalOpen} onClose={handleSummaryClose}>
+        <Paper
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            padding: '20px',
+            width: '80%',
+            maxWidth: '600px',
+          }}
+        >
+          <Typography variant="h6" align="center" gutterBottom>
+            ผลสรุปการจองห้อง
+          </Typography>
+          <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
         </Paper>
       </Modal>
       </div>

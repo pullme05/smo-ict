@@ -79,8 +79,9 @@ const MeetingRoomUser = () => {
       minute: parseInt(endTime.split(':')[1]),
     });
   
+    // ตรวจสอบการจองที่มีการอนุมัติแล้วหรือรอการอนุมัติจากผู้ดูแล
     return !pendingBookings.some((booking) => {
-      if (booking.room !== room || booking.status !== 'รอการอนุมัติจากผู้ดูแล') return false;
+      if (booking.room !== room || (booking.status !== 'รอการอนุมัติจากผู้ดูแล' && booking.status !== 'อนุมัติแล้ว')) return false;
   
       const existingStart = moment.tz(booking.date, 'Asia/Bangkok').set({
         hour: parseInt(booking.startTime.split(':')[0]),
@@ -91,10 +92,11 @@ const MeetingRoomUser = () => {
         minute: parseInt(booking.endTime.split(':')[1]),
       });
   
-      // แก้ไขเงื่อนไขเพื่อไม่ให้ newStart ตรงกับ existingEnd
+      // เงื่อนไขการซ้อนทับของเวลา
       return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
     });
   }
+  
   
   async function handleFormSubmit() {
     if (studentID.length !== 8 || isNaN(Number(studentID))) {

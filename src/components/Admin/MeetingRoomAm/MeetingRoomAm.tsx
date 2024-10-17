@@ -80,7 +80,7 @@
       selectedDate: Date | null
     ) {
       if (!room || !selectedDate) return false;
-
+    
       const newStart = moment.tz(selectedDate, 'Asia/Bangkok').set({
         hour: parseInt(startTime.split(':')[0]),
         minute: parseInt(startTime.split(':')[1]),
@@ -89,10 +89,11 @@
         hour: parseInt(endTime.split(':')[0]),
         minute: parseInt(endTime.split(':')[1]),
       });
-
+    
       return !pendingBookings.some((booking) => {
-        if (booking.room !== room || booking.status !== 'รอการอนุมัติจากผู้ดูแล') return false;
-
+        // ตรวจสอบเฉพาะการจองที่ห้องเดียวกัน และมีสถานะ "อนุมัติแล้ว"
+        if (booking.room !== room || booking.status !== 'อนุมัติแล้ว') return false;
+    
         const existingStart = moment.tz(booking.date, 'Asia/Bangkok').set({
           hour: parseInt(booking.startTime.split(':')[0]),
           minute: parseInt(booking.startTime.split(':')[1]),
@@ -101,10 +102,12 @@
           hour: parseInt(booking.endTime.split(':')[0]),
           minute: parseInt(booking.endTime.split(':')[1]),
         });
-
+    
+        // ตรวจสอบว่าช่วงเวลาที่เลือกทับซ้อนกับการจองที่อนุมัติแล้วหรือไม่
         return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
       });
     }
+    
 
     async function handleFormSubmit() {
       if (studentID.length !== 8 || isNaN(Number(studentID))) {

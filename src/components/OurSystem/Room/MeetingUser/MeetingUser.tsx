@@ -585,10 +585,19 @@ async function handleNewBookingSubmit() {
                       <Typography variant="subtitle1">{`ห้อง: ${room}`}</Typography>
                       <Divider sx={{ marginBottom: '8px' }} />
                       {availableIntervals.map(({ start, end, isAvailable }) => (
-                        <Typography
+                        <Box
                           key={start}
-                          color={isAvailable ? 'green' : 'red'}
-                        >{`${start} - ${end}: ${isAvailable ? 'ว่าง' : 'ไม่ว่าง'}`}</Typography>
+                          sx={{
+                            backgroundColor: isAvailable ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 0, 0, 0.2)', // สีเขียวจางๆ หรือแดงอ่อนๆ
+                            padding: '8px',
+                            borderRadius: '8px',
+                            textAlign: 'center', // ข้อความอยู่ตรงกลาง
+                            color: 'black', // สีของข้อความ
+                            marginBottom: '8px', // ระยะห่างระหว่างกล่อง
+                          }}
+                        >
+                          {`${start} - ${end}: ${isAvailable ? 'ว่าง' : 'ไม่ว่าง'}`}
+                        </Box>
                       ))}
                     </Box>
                   );
@@ -598,7 +607,7 @@ async function handleNewBookingSubmit() {
           </Grid>
 
           {/* เส้นแบ่งแนวตั้งระหว่างสองคอลัมน์ */}
-          <Grid item xs={12} md={1}>
+          <Grid item xs={12} md={0.1}>
             <Divider orientation="vertical" flexItem sx={{ height: '100%' }} />
           </Grid>
 

@@ -421,6 +421,18 @@ async function handleNewBookingSubmit() {
                   </MenuItem>
                 ))}
               </TextField>
+              <TextField
+                label="วันที่จอง"
+                type="date"
+                value={selectedDate ? moment(selectedDate).format('YYYY-MM-DD') : ''}
+                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                fullWidth
+                sx={{ marginBottom: '16px' }}
+              />
+
               <TextField label="ชื่อผู้จอง" value={studentName} onChange={(e) => setStudentName(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />
               <TextField label="รหัสนิสิต" value={studentID} onChange={(e) => setStudentID(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />
               <TextField label="หมายเลขโทรศัพท์" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />

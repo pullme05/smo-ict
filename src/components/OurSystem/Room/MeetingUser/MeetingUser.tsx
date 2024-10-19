@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment-timezone';
-import { Typography, Box, Modal, Paper, TextField, Button, MenuItem, Divider, Grid } from '@mui/material';
+import { Typography, Box, Modal, Paper, TextField, Button, MenuItem, Divider, Grid, IconButton} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
@@ -51,6 +52,26 @@ const MeetingRoomUser = () => {
   // เพิ่ม state สำหรับ modal แสดงรายละเอียดการจอง
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [bookingDetails, setBookingDetails] = useState<CustomEvent | null>(null);
+  const handleModalClose = () => {
+    setModalOpen(false);
+    // ล้างค่าของฟิลด์ต่าง ๆ
+    setStudentName('');
+    setStudentID('');
+    setStartTime('');
+    setEndTime('');
+    setPurpose('');
+    setPhoneNumber('');
+    setSelectedRoom(null);
+    setSelectedDate(null);
+    setDetailsModalOpen(false);
+  };
+  const handleCancellationModalClose = () => {
+    setCancellationModalOpen(false);
+    // ล้างค่าของฟิลด์ใน modal สำหรับยกเลิกการจอง
+    setCancellationStudentID('');
+    setCancellationPhoneNumber('');
+    setSelectedBooking(null);  // รีเซ็ตการเลือกการจอง
+  };
   useEffect(() => {
     async function fetchPendingBookings() {
       try {
@@ -102,12 +123,12 @@ const MeetingRoomUser = () => {
       alert('รหัสนิสิตต้องมี 8 หลักและเป็นตัวเลขเท่านั้น');
       return;
     }
-
+  
     if (!isTimeSlotAvailable(selectedRoom, startTime, endTime, selectedDate)) {
       alert('เวลาและห้องที่เลือกมีการจองอยู่แล้ว');
       return;
     }
-
+  
     const bookingData: Booking = {
       room: selectedRoom!,
       studentName,
@@ -119,14 +140,16 @@ const MeetingRoomUser = () => {
       date: selectedDate!,
       status: 'รอการอนุมัติจากผู้ดูแล',
     };
-
+  
     try {
       const response = await axios.post('http://localhost:8000/api/bookings/create', bookingData);
-
+  
       if (response.status === 201) {
         alert('ส่งคำขอจองสำเร็จแล้ว รอการอนุมัติจากผู้ดูแล');
         setPendingBookings((prev) => [...prev, bookingData]);
-        setModalOpen(false);
+  
+        // ปิด Modal และล้างค่าของฟิลด์
+        handleModalClose();
       } else {
         alert(response.data.message || 'เกิดข้อผิดพลาด');
       }
@@ -135,7 +158,7 @@ const MeetingRoomUser = () => {
       alert('เกิดข้อผิดพลาดในการจอง');
     }
   }
-
+  
   // เรียกใช้ API ลบการจอง
   async function handleCancelBooking() {
     if (selectedBooking && (cancellationStudentID === selectedBooking.studentID) && (cancellationPhoneNumber === selectedBooking.phoneNumber)) {
@@ -207,15 +230,15 @@ async function handleNewBookingSubmit() {
     return;
   }
 
-  // ลบการจองเดิมที่มีอยู่ก่อนหน้านี้สำหรับห้องและวันที่เดียวกัน
-  const existingBookingsForRoomAndDate = pendingBookings.filter(
-    (booking) => booking.room === selectedRoom && moment(booking.date).isSame(selectedDate, 'day')
+  // ตรวจสอบการจองเดิมที่มีอยู่
+  const existingBookingsForStudent = pendingBookings.filter(
+    (booking) => booking.studentID === studentID
   );
 
   try {
-    // ลบการจองเดิมในระบบหากมีอยู่
+    // ลบการจองเดิมทั้งหมดที่มีรหัสนิสิตเดียวกันออก
     await Promise.all(
-      existingBookingsForRoomAndDate.map(async (booking) => {
+      existingBookingsForStudent.map(async (booking) => {
         await axios.delete(`http://localhost:8000/api/bookings/delete/${booking.studentID}`);
       })
     );
@@ -240,7 +263,7 @@ async function handleNewBookingSubmit() {
 
       // ลบข้อมูลการจองเก่าจาก state และเพิ่มการจองใหม่เข้าไป
       setPendingBookings((prev) => [
-        ...prev.filter(booking => booking.room !== selectedRoom || !moment(booking.date).isSame(selectedDate, 'day')), 
+        ...prev.filter(booking => booking.studentID !== studentID), // ลบการจองเก่าที่เป็นของรหัสนิสิตเดียวกัน
         bookingData
       ]);
 
@@ -250,6 +273,7 @@ async function handleNewBookingSubmit() {
       // ปิด modal อัตโนมัติ
       setModalOpen(false);
       setDetailsModalOpen(false);
+      setCancellationModalOpen(false);
     } else {
       alert(response.data.message || 'เกิดข้อผิดพลาด');
     }
@@ -324,25 +348,27 @@ async function handleNewBookingSubmit() {
           }}
         />
       </div>
-          {/* Modal สำหรับยกเลิกการจองและแสดงรายละเอียด */}
-          <Modal open={cancellationModalOpen} onClose={() => setCancellationModalOpen(false)}>
-            <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
-              <Typography variant="h6">ยกเลิกการจองห้อง {selectedBooking?.room}</Typography>
-              <Typography>นิสิต: {selectedBooking?.studentName}</Typography>
-
-              <TextField label="รหัสนิสิต" value={cancellationStudentID} onChange={(e) => setCancellationStudentID(e.target.value)} fullWidth sx={{ marginTop: '16px' }}/>
-              <TextField label="หมายเลขโทรศัพท์"value={cancellationPhoneNumber} onChange={(e) => setCancellationPhoneNumber(e.target.value)} fullWidth sx={{ marginTop: '16px' }} />
-              <Button variant="outlined" fullWidth sx={{ marginTop: '16px' }} onClick={() => handleViewDetails(selectedBooking!)}>
-              แสดงรายละเอียดการจอง
-              </Button>
-              <Button variant="contained" fullWidth sx={{ marginTop: '16px' }} onClick={handleCancelBooking}>
-                ยืนยันการยกเลิกการจอง
-              </Button>
-            </Paper>
-          </Modal>
-          {/* Modal สำหรับการจองห้องประชุมและแสดงรายละเอียดการจอง */}
-      <Modal open={modalOpen || detailsModalOpen} onClose={() => { setModalOpen(false); setDetailsModalOpen(false); }} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+      {/* Modal สำหรับยกเลิกการจองและแสดงรายละเอียด */}
+      <Modal open={cancellationModalOpen} onClose={handleCancellationModalClose}>
+        <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
+          <Typography variant="h6">ยกเลิกการจองห้อง {selectedBooking?.room}</Typography>
+          <Typography>นิสิต: {selectedBooking?.studentName}</Typography>
+          <TextField label="รหัสนิสิต" value={cancellationStudentID} onChange={(e) => setCancellationStudentID(e.target.value)} fullWidth sx={{ marginTop: '16px' }}/>
+          <TextField label="หมายเลขโทรศัพท์"value={cancellationPhoneNumber} onChange={(e) => setCancellationPhoneNumber(e.target.value)} fullWidth sx={{ marginTop: '16px' }} />
+          <Button variant="outlined" fullWidth sx={{ marginTop: '16px' }} onClick={() => handleViewDetails(selectedBooking!)}>
+            แสดงรายละเอียดการจอง
+          </Button>
+          <Button variant="contained" fullWidth sx={{ marginTop: '16px' }} onClick={handleCancelBooking}>
+            ยืนยันการยกเลิกการจอง
+          </Button>
+        </Paper>
+      </Modal> 
+      {/* Modal สำหรับการจองห้องประชุมและแสดงรายละเอียดการจอง */}
+      <Modal open={ detailsModalOpen} onClose={handleModalClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Paper sx={{ padding: '16px', maxWidth: '900px', margin: 'auto' }}>
+        <IconButton onClick={handleModalClose} sx={{position: 'absolute',top: 8, right: 400, color: '#996600'}}>
+          <CloseIcon />
+        </IconButton>
           <Typography id="modal-modal-title" variant="h6" component="h2">
             {bookingDetails ? `แก้ไขการจองห้อง ${selectedRoom}` : `การจองห้อง ${selectedRoom}`}
           </Typography>

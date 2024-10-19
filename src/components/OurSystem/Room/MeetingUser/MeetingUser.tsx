@@ -88,7 +88,7 @@ const MeetingRoomUser = () => {
     fetchPendingBookings();
   }, []);
 
-  function isTimeSlotAvailable(room: string | null, startTime: string, endTime: string, selectedDate: Date | null) {
+  function isTimeSlotAvailable(room: string | null, startTime: string, endTime: string, selectedDate: Date | null, studentID: string) {
     if (!room || !selectedDate) return false;
   
     const newStart = moment.tz(selectedDate, 'Asia/Bangkok').set({
@@ -104,6 +104,9 @@ const MeetingRoomUser = () => {
     return !pendingBookings.some((booking) => {
       if (booking.room !== room || (booking.status !== 'รอการอนุมัติจากผู้ดูแล' && booking.status !== 'อนุมัติแล้ว')) return false;
   
+      // อนุญาตการจองถ้าการจองที่ทับซ้อนเป็นของนิสิตคนเดียวกัน
+      if (booking.studentID === studentID) return false;
+  
       const existingStart = moment.tz(booking.date, 'Asia/Bangkok').set({
         hour: parseInt(booking.startTime.split(':')[0]),
         minute: parseInt(booking.startTime.split(':')[1]),
@@ -118,16 +121,18 @@ const MeetingRoomUser = () => {
     });
   }
   
+  
   async function handleFormSubmit() {
     if (studentID.length !== 8 || isNaN(Number(studentID))) {
       alert('รหัสนิสิตต้องมี 8 หลักและเป็นตัวเลขเท่านั้น');
       return;
     }
   
-    if (!isTimeSlotAvailable(selectedRoom, startTime, endTime, selectedDate)) {
+    if (!isTimeSlotAvailable(selectedRoom, startTime, endTime, selectedDate, studentID)) {
       alert('เวลาและห้องที่เลือกมีการจองอยู่แล้ว');
       return;
     }
+    
   
     const bookingData: Booking = {
       room: selectedRoom!,
@@ -225,10 +230,11 @@ async function handleNewBookingSubmit() {
     return;
   }
 
-  if (!isTimeSlotAvailable(selectedRoom, startTime, endTime, selectedDate)) {
+  if (!isTimeSlotAvailable(selectedRoom, startTime, endTime, selectedDate, studentID)) {
     alert('เวลาและห้องที่เลือกมีการจองอยู่แล้ว');
     return;
   }
+  
 
   // ตรวจสอบการจองเดิมที่มีอยู่
   const existingBookingsForStudent = pendingBookings.filter(

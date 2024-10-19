@@ -361,10 +361,11 @@ async function handleNewBookingSubmit() {
         <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
           <Typography variant="h6">ยกเลิกการจองห้อง {selectedBooking?.room}</Typography>
           <Typography>นิสิต: {selectedBooking?.studentName}</Typography>
-          <TextField label="รหัสนิสิต" value={cancellationStudentID} onChange={(e) => setCancellationStudentID(e.target.value)} fullWidth sx={{ marginTop: '16px' }}/>
-          <TextField label="หมายเลขโทรศัพท์"value={cancellationPhoneNumber} onChange={(e) => setCancellationPhoneNumber(e.target.value)} fullWidth sx={{ marginTop: '16px' }} />
+          <TextField label="รหัสนิสิต" value={cancellationStudentID || ''} onChange={(e) => setCancellationStudentID(e.target.value)} fullWidth sx={{ marginTop: '16px' }}/>
+          <TextField label="หมายเลขโทรศัพท์" value={cancellationPhoneNumber || ''} onChange={(e) => setCancellationPhoneNumber(e.target.value)} fullWidth sx={{ marginTop: '16px' }} />
           <Button variant="outlined" fullWidth sx={{ marginTop: '16px' }} onClick={() => handleViewDetails(selectedBooking!)}>
-            แสดงรายละเอียดการจอง
+            แสดงรายละเอียดและแก้ไขการจอง
+            {/* แสดงรายละเอียดการจอง */}
           </Button>
           <Button variant="contained" fullWidth sx={{ marginTop: '16px' }} onClick={handleCancelBooking}>
             ยืนยันการยกเลิกการจอง
@@ -387,7 +388,8 @@ async function handleNewBookingSubmit() {
               {bookingDetails && (
                 <Paper sx={{ padding: '16px', border: '1px solid #ddd', backgroundColor: '#f9f9f9' }}>
                   <Typography variant="h6" sx={{ marginBottom: '8px' }}>
-                    ข้อมูลการจองเก่า
+                    ข้อมูลการจองห้อง
+                    {/* ข้อมูลการจองเก่า */}
                   </Typography>
                   <Typography variant="body1">
                     ห้องที่จอง: {bookingDetails.room}
@@ -410,54 +412,75 @@ async function handleNewBookingSubmit() {
                   <Typography variant="body1" sx={{ marginTop: 1 }}>
                     วัตถุประสงค์: {bookingDetails.purpose}
                   </Typography>
+                  <Typography variant="body1" sx={{ marginTop: 1 }}>
+                    สถานะ: {bookingDetails.status}
+                  </Typography>
                 </Paper>
               )}
             </Grid>
-
             {/* คอลัมน์สำหรับกรอกข้อมูลการจองใหม่ */}
             <Grid item xs={12} md={6}>
-              <TextField label="เลือกห้อง" value={selectedRoom ?? ''} onChange={(e) => setSelectedRoom(e.target.value)} select fullWidth sx={{ marginBottom: '16px' }}>
-                {availableRooms.map((room) => (
-                  <MenuItem key={room} value={room}>
-                    {room}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                label="วันที่จอง"
-                type="date"
-                value={selectedDate ? moment(selectedDate).format('YYYY-MM-DD') : ''}
-                onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                fullWidth
-                sx={{ marginBottom: '16px' }}
-              />
+            {/* เช็คสถานะ ถ้าไม่ใช่ "อนุมัติแล้ว" หรือ "ถูกปฏิเสธ" ให้แสดงฟอร์มสำหรับกรอกข้อมูล */}
+            {bookingDetails?.status !== 'อนุมัติแล้ว' && bookingDetails?.status !== 'ถูกปฏิเสธ' && (
+              <div>
+                <TextField
+                  label="เลือกห้อง"
+                  value={selectedRoom ?? ''}
+                  onChange={(e) => setSelectedRoom(e.target.value)}
+                  select
+                  fullWidth
+                  sx={{ marginBottom: '16px' }}
+                >
+                  {availableRooms.map((room) => (
+                    <MenuItem key={room} value={room}>
+                      {room}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  label="วันที่จอง"
+                  type="date"
+                  value={selectedDate ? moment(selectedDate).format('YYYY-MM-DD') : ''}
+                  onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  fullWidth
+                  sx={{ marginBottom: '16px' }}
+                />
+                <TextField label="ชื่อผู้จอง" value={studentName || bookingDetails?.studentName || ''} onChange={(e) => setStudentName(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />
+                <TextField label="รหัสนิสิต" value={studentID || bookingDetails?.studentID || ''} onChange={(e) => setStudentID(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />
+                <TextField label="หมายเลขโทรศัพท์" value={phoneNumber || bookingDetails?.phoneNumber || ''} onChange={(e) => setPhoneNumber(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />
+                <TextField label="วัตถุประสงค์การจอง" value={purpose || bookingDetails?.purpose || ''} onChange={(e) => setPurpose(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />
+                <TextField label="เวลาเริ่ม" value={startTime} onChange={(e) => setStartTime(e.target.value)} select fullWidth sx={{ marginBottom: '16px' }}>
+                  {times.map((time) => (
+                    <MenuItem key={time} value={time}>
+                      {time}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField label="เวลาสิ้นสุด" value={endTime} onChange={(e) => setEndTime(e.target.value)} select fullWidth sx={{ marginBottom: '16px' }}>
+                  {times.map((time) => (
+                    <MenuItem key={time} value={time}>
+                      {time}
+                    </MenuItem>
+                  ))}
+                </TextField>
 
-              <TextField label="ชื่อผู้จอง" value={studentName} onChange={(e) => setStudentName(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />
-              <TextField label="รหัสนิสิต" value={studentID} onChange={(e) => setStudentID(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />
-              <TextField label="หมายเลขโทรศัพท์" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />
-              <TextField label="วัตถุประสงค์การจอง" value={purpose} onChange={(e) => setPurpose(e.target.value)} fullWidth sx={{ marginBottom: '16px' }} />
-              <TextField label="เวลาเริ่ม" value={startTime} onChange={(e) => setStartTime(e.target.value)} select fullWidth sx={{ marginBottom: '16px' }}>
-                {times.map((time) => (
-                  <MenuItem key={time} value={time}>
-                    {time}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField label="เวลาสิ้นสุด" value={endTime} onChange={(e) => setEndTime(e.target.value)} select fullWidth sx={{ marginBottom: '16px' }}>
-                {times.map((time) => (
-                  <MenuItem key={time} value={time}>
-                    {time}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <Button variant="contained" fullWidth sx={{ marginTop: '16px' }} onClick={handleNewBookingSubmit}>
-                ยืนยันการจองและลบการจองเก่า
-              </Button>
-            </Grid>
+                {/* ปิดการใช้งานปุ่มถ้าสถานะไม่ใช่ "รอการอนุมัติจากผู้ดูแล" */}
+                <Button
+                  variant="contained"
+                  fullWidth
+                  sx={{ marginTop: '16px' }}
+                  onClick={handleNewBookingSubmit}
+                  disabled={bookingDetails?.status !== 'รอการอนุมัติจากผู้ดูแล'}
+                >
+                  ยืนยันแก้ไขการจองห้อง
+                  {/* ยืนยันการจองและลบการจองเก่า */}
+                </Button>
+              </div>
+            )}
+          </Grid>
           </Grid>
         </Paper>
       </Modal>

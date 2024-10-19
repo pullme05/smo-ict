@@ -57,6 +57,8 @@
     
 
     useEffect(() => {
+      // กำหนดค่า selectedDate เป็นวันที่ปัจจุบัน
+      setSelectedDate(new Date());
       async function fetchAllBookings() {
         try {
           const response = await axios.get('http://localhost:8000/api/bookings');
@@ -617,15 +619,33 @@
       <Modal open={viewBookingsOpen} onClose={handleViewBookingsClose}>
         <Paper sx={{ padding: '16px', maxWidth: '1200px', maxHeight: '90vh', width: '95%', margin: 'auto', overflowY: 'auto' }}>
           <Typography variant="h6">เวลาว่างและการจองห้องประชุม</Typography>
-
           {/* ใช้ Grid เพื่อแบ่งคอลัมน์ */}
-          <Grid container spacing={2} alignItems="flex-start">
-
-            {/* คอลัมน์สำหรับเวลาว่างของห้องประชุม */}
-            <Grid item xs={12} md={5}>
-              <Box sx={{ marginBottom: '24px' }}>
+          <Grid container spacing={2}>
+          {/* คอลัมน์สำหรับเวลาว่างของห้องประชุม */}
+          <Grid item xs={12} md={4}>
+            <TextField
+              label="เลือกวันที่"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={selectedDate ? moment(selectedDate).format('YYYY-MM-DD') : ''}
+              onChange={(e) => setSelectedDate(new Date(e.target.value))}
+              fullWidth
+              margin="normal"
+            />
+            
+            {/* ถ้ามีการเลือกวันที่แล้วจะแสดงตารางเวลาของห้อง */}
+            {selectedDate && (
+              <>
                 {availableRooms.map((room) => {
-                  const bookingsForRoom = sortedBookings.filter((booking) => booking.room === room);
+                  const bookingsForRoom = sortedBookings.filter(
+                    (booking) => booking.room === room && moment(booking.date).isSame(selectedDate, 'day')
+                  );
+
+                  const unavailableTimes = bookingsForRoom.map((booking) => ({
+                    start: moment(booking.startTime, 'HH:mm'),
+                    end: moment(booking.endTime, 'HH:mm'),
+                  }));
+
                   const times = [
                     { start: '09:00', end: '10:00' },
                     { start: '10:00', end: '11:00' },
@@ -637,59 +657,58 @@
                     { start: '16:00', end: '17:00' },
                   ];
 
-                  const unavailableTimes = bookingsForRoom.map((booking) => ({
-                    start: moment(booking.startTime, 'HH:mm'),
-                    end: moment(booking.endTime, 'HH:mm'),
-                  }));
-
                   const availableIntervals = [];
                   let previousEnd = moment('09:00', 'HH:mm');
+                  
                   times.forEach(({ start, end }) => {
                     const startMoment = moment(start, 'HH:mm');
                     const endMoment = moment(end, 'HH:mm');
+                    
                     const isUnavailable = unavailableTimes.some((booking) => {
                       return booking.start.isBefore(endMoment) && booking.end.isAfter(startMoment);
                     });
+                    
                     if (isUnavailable) {
                       if (previousEnd.isBefore(startMoment)) {
-                        availableIntervals.push({ start: previousEnd.format('HH:mm'), end: startMoment.format('HH:mm'), isAvailable: true });
+                        availableIntervals.push({
+                          start: previousEnd.format('HH:mm'),
+                          end: startMoment.format('HH:mm'),
+                          isAvailable: true
+                        });
                       }
-                      availableIntervals.push({ start: startMoment.format('HH:mm'), end: endMoment.format('HH:mm'), isAvailable: false });
+                      availableIntervals.push({
+                        start: startMoment.format('HH:mm'),
+                        end: endMoment.format('HH:mm'),
+                        isAvailable: false
+                      });
                       previousEnd = endMoment;
                     }
                   });
+                  
                   if (previousEnd.isBefore(moment('17:00', 'HH:mm'))) {
-                    availableIntervals.push({ start: previousEnd.format('HH:mm'), end: '17:00', isAvailable: true });
+                    availableIntervals.push({
+                      start: previousEnd.format('HH:mm'),
+                      end: moment('17:00', 'HH:mm').format('HH:mm'),
+                      isAvailable: true
+                    });
                   }
 
                   return (
                     <Box key={room} sx={{ marginBottom: '16px' }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{`ห้อง: ${room}`}</Typography>
-                      <Grid container spacing={1}>
-                        {availableIntervals.map(({ start, end, isAvailable }) => (
-                          <Grid item xs={12} key={`${start}-${end}`}>
-                            <Box
-                              sx={{
-                                backgroundColor: isAvailable ? '#A5D6A7' : '#EF9A9A',
-                                color: '#000',
-                                padding: '8px',
-                                textAlign: 'center',
-                                borderRadius: '4px',
-                                fontSize: '0.875rem',
-                              }}
-                            >
-                              {`${start} - ${end} ${isAvailable ? 'ว่าง' : 'ไม่ว่าง'}`}
-                            </Box>
-                          </Grid>
-                        ))}
-                      </Grid>
-                      <Divider sx={{ marginTop: '16px', marginBottom: '16px' }} />
+                      <Typography variant="subtitle1">{`ห้อง: ${room}`}</Typography>
+                      <Divider sx={{ marginBottom: '8px' }} />
+                      {availableIntervals.map(({ start, end, isAvailable }) => (
+                        <Typography
+                          key={start}
+                          color={isAvailable ? 'green' : 'red'}
+                        >{`${start} - ${end}: ${isAvailable ? 'ว่าง' : 'ไม่ว่าง'}`}</Typography>
+                      ))}
                     </Box>
                   );
                 })}
-              </Box>
-            </Grid>
-
+              </>
+            )}
+          </Grid>
             {/* Divider เส้นแนวตั้ง */}
             <Divider orientation="vertical" flexItem sx={{ marginLeft: '16px', marginRight: '16px' }} />
 

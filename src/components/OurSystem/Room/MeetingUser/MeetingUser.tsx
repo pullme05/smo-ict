@@ -335,6 +335,14 @@ async function handleNewBookingSubmit() {
             setCancellationModalOpen(true);
           }}
           onSelectSlot={(slotInfo) => {
+            const today = moment().startOf('day'); // วันที่ปัจจุบัน
+            const selected = moment(slotInfo.start).startOf('day'); // วันที่ที่ถูกเลือก
+          
+            if (selected.isBefore(today)) {
+              alert('ไม่สามารถเลือกวันที่ย้อนหลังได้');
+              return;
+            }
+          
             setSelectedDate(slotInfo.start); // ใช้ setSelectedDate เมื่อเลือกวันที่จากปฏิทิน
             setModalOpen(true); // เปิด Modal สำหรับการกรอกข้อมูลจอง
           }}
@@ -354,6 +362,7 @@ async function handleNewBookingSubmit() {
             }
             return { style: { backgroundColor, color, border: '1px solid #FFA500' } };
           }}
+          
         />
       </div>
       {/* Modal สำหรับยกเลิกการจองและแสดงรายละเอียด */}
@@ -418,101 +427,109 @@ async function handleNewBookingSubmit() {
                 </Paper>
               )}
             </Grid>
-           {/* คอลัมน์สำหรับกรอกข้อมูลการจองใหม่ */}
-{bookingDetails?.status === 'รอการอนุมัติจากผู้ดูแล' && (
-  <Grid item xs={12} md={6}>
-    <TextField
-      label="เลือกห้อง"
-      value={selectedRoom ?? ''}
-      onChange={(e) => setSelectedRoom(e.target.value)}
-      select
-      fullWidth
-      sx={{ marginBottom: '16px' }}
-    >
-      {availableRooms.map((room) => (
-        <MenuItem key={room} value={room}>
-          {room}
-        </MenuItem>
-      ))}
-    </TextField>
-    <TextField
-      label="วันที่จอง"
-      type="date"
-      value={selectedDate ? moment(selectedDate).format('YYYY-MM-DD') : ''}
-      onChange={(e) => setSelectedDate(new Date(e.target.value))}
-      InputLabelProps={{
-        shrink: true,
-      }}
-      fullWidth
-      sx={{ marginBottom: '16px' }}
-    />
-    <TextField
-      label="ชื่อผู้จอง"
-      value={studentName}
-      onChange={(e) => setStudentName(e.target.value)}
-      fullWidth
-      sx={{ marginBottom: '16px' }}
-    />
-    <TextField
-      label="รหัสนิสิต"
-      value={studentID}
-      onChange={(e) => setStudentID(e.target.value)}
-      fullWidth
-      sx={{ marginBottom: '16px' }}
-    />
-    <TextField
-      label="หมายเลขโทรศัพท์"
-      value={phoneNumber}
-      onChange={(e) => setPhoneNumber(e.target.value)}
-      fullWidth
-      sx={{ marginBottom: '16px' }}
-    />
-    <TextField
-      label="วัตถุประสงค์การจอง"
-      value={purpose}
-      onChange={(e) => setPurpose(e.target.value)}
-      fullWidth
-      sx={{ marginBottom: '16px' }}
-    />
-    <TextField
-      label="เวลาเริ่ม"
-      value={startTime}
-      onChange={(e) => setStartTime(e.target.value)}
-      select
-      fullWidth
-      sx={{ marginBottom: '16px' }}
-    >
-      {times.map((time) => (
-        <MenuItem key={time} value={time}>
-          {time}
-        </MenuItem>
-      ))}
-    </TextField>
-    <TextField
-      label="เวลาสิ้นสุด"
-      value={endTime}
-      onChange={(e) => setEndTime(e.target.value)}
-      select
-      fullWidth
-      sx={{ marginBottom: '16px' }}
-    >
-      {times.map((time) => (
-        <MenuItem key={time} value={time}>
-          {time}
-        </MenuItem>
-      ))}
-    </TextField>
-    <Button
-      variant="contained"
-      fullWidth
-      sx={{ marginTop: '16px' }}
-      onClick={handleNewBookingSubmit}
-    >
-      ยืนยันแก้ไขการจองห้อง
-    </Button>
-  </Grid>
-)}
-
+            {/* คอลัมน์สำหรับกรอกข้อมูลการจองใหม่ */}
+            {bookingDetails?.status === 'รอการอนุมัติจากผู้ดูแล' && (
+              <Grid item xs={12} md={6}>
+                <TextField
+                  label="เลือกห้อง"
+                  value={selectedRoom ?? ''}
+                  onChange={(e) => setSelectedRoom(e.target.value)}
+                  select
+                  fullWidth
+                  sx={{ marginBottom: '16px' }}
+                >
+                  {availableRooms.map((room) => (
+                    <MenuItem key={room} value={room}>
+                      {room}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  label="วันที่จอง"
+                  type="date"
+                  value={selectedDate ? moment(selectedDate).format('YYYY-MM-DD') : ''}
+                  onChange={(e) => {
+                    const selected = new Date(e.target.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // ตั้งค่าชั่วโมง นาที วินาที เป็น 0 เพื่อเปรียบเทียบเฉพาะวันที่
+                    if (selected >= today) {
+                      setSelectedDate(selected);
+                    } else {
+                      alert('ไม่สามารถจองวันที่ย้อนหลังได้');
+                    }
+                  }}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  fullWidth
+                  sx={{ marginBottom: '16px' }}
+                />
+                <TextField
+                  label="ชื่อผู้จอง"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  fullWidth
+                  sx={{ marginBottom: '16px' }}
+                />
+                <TextField
+                  label="รหัสนิสิต"
+                  value={studentID}
+                  onChange={(e) => setStudentID(e.target.value)}
+                  fullWidth
+                  sx={{ marginBottom: '16px' }}
+                />
+                <TextField
+                  label="หมายเลขโทรศัพท์"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  fullWidth
+                  sx={{ marginBottom: '16px' }}
+                />
+                <TextField
+                  label="วัตถุประสงค์การจอง"
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  fullWidth
+                  sx={{ marginBottom: '16px' }}
+                />
+                <TextField
+                  label="เวลาเริ่ม"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  select
+                  fullWidth
+                  sx={{ marginBottom: '16px' }}
+                >
+                  {times.map((time) => (
+                    <MenuItem key={time} value={time}>
+                      {time}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  label="เวลาสิ้นสุด"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  select
+                  fullWidth
+                  sx={{ marginBottom: '16px' }}
+                >
+                  {times.map((time) => (
+                    <MenuItem key={time} value={time}>
+                      {time}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  sx={{ marginTop: '16px' }}
+                  onClick={handleNewBookingSubmit}
+                >
+                  ยืนยันแก้ไขการจองห้อง
+                </Button>
+              </Grid>
+            )}
           </Grid>
         </Paper>
       </Modal>

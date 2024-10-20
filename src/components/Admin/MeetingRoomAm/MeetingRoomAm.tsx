@@ -228,48 +228,6 @@
     }
   }
 
-  // async function handleEditBooking() {
-  //   if (selectedBooking) {
-  //     if (!selectedBooking.studentID) {
-  //       alert('ไม่พบ Student ID การจองที่ต้องการแก้ไข');
-  //       return;
-  //     }
-
-  //     const updatedBooking = {
-  //       startTime,
-  //       endTime,
-  //       room: selectedRoom || selectedBooking.room,
-  //       // เพิ่มฟิลด์อื่นๆ ที่ต้องการอัปเดตที่นี่
-  //     };
-
-  //     try {
-  //       const studentID = selectedBooking.studentID.toString();  // เปลี่ยน studentID เป็น string ก่อนส่ง (ถ้าจำเป็น)
-  //       const url = `http://localhost:8000/api/bookings/update/${studentID}`;
-  //       console.log('Updating booking with URL:', url);  // Debugging URL
-
-  //       const response = await axios.put(url, updatedBooking);
-        
-  //       if (response.status === 200) {
-  //         alert('แก้ไขข้อมูลการจองสำเร็จ');
-  //         setPendingBookings((prev) =>
-  //           prev.map((booking) =>
-  //             booking.studentID === selectedBooking.studentID ? { ...booking, ...updatedBooking } : booking
-  //           )
-  //         );
-  //         setEditModalOpen(false);
-  //         setCancellationModalOpen(false);
-  //       } else {
-  //         alert('เกิดข้อผิดพลาดในการอัปเดตข้อมูล');
-  //       }
-  //     } catch (error) {
-  //       console.error('Error updating booking:', error);
-  //       alert('เกิดข้อผิดพลาดในการแก้ไขการจอง');
-  //     }
-  //   } else {
-  //     alert('กรุณาเลือกการจองที่ต้องการแก้ไข');
-  //   }
-  // }
-
   const [viewBookingsOpen, setViewBookingsOpen] = useState(false); // เพิ่ม state สำหรับ popup
 
   const handleViewBookingsOpen = () => {
@@ -325,6 +283,16 @@
   
     ],
   };
+
+  // คำนวณรวมชั่วโมงการจองห้องทั้งหมดที่มีสถานะ "อนุมัติแล้ว"
+const totalApprovedHours = pendingBookings
+.filter((booking) => booking.status === 'อนุมัติแล้ว') // คัดกรองเฉพาะที่อนุมัติแล้ว
+.reduce((total, booking) => {
+  const start = moment(booking.startTime, 'HH:mm');
+  const end = moment(booking.endTime, 'HH:mm');
+  const duration = moment.duration(end.diff(start)).asHours(); // คำนวณระยะเวลาเป็นชั่วโมง
+  return total + duration;
+}, 0);
 
     return (
       <div className="w-full h-full p-4">
@@ -555,65 +523,6 @@
           </Paper>
         </Modal>
 
-        {/* Modal สำหรับแก้ไขการจอง */}
-      {/* <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
-        <Paper sx={{ padding: '16px', maxWidth: '500px', margin: 'auto' }}>
-          <Typography variant="h6">แก้ไขการจอง</Typography>
-
-          <TextField
-            label="เลือกห้อง"
-            value={selectedRoom ?? selectedBooking?.room ?? ''}
-            onChange={(e) => setSelectedRoom(e.target.value)}
-            select
-            fullWidth
-            sx={{ marginTop: '16px' }}
-          >
-            {availableRooms.map((room) => (
-              <MenuItem key={room} value={room}>
-                {room}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            label="เวลาเริ่ม"
-            select
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            fullWidth
-            sx={{ marginTop: '16px' }}
-            InputLabelProps={{ shrink: true }}
-          >
-            {times.map((time) => (
-              <MenuItem key={time} value={time}>
-                {time}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            label="เวลาสิ้นสุด"
-            select
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            fullWidth
-            sx={{ marginTop: '16px' }}
-            InputLabelProps={{ shrink: true }}
-          >
-            {times.map((time) => (
-              <MenuItem key={time} value={time}>
-                {time}
-              </MenuItem>
-            ))}
-          </TextField>
-          <Box display="flex" justifyContent="flex-end" mt={2}>
-            <Button variant="contained" color="primary" onClick={handleEditBooking}>
-              บันทึกการแก้ไข
-            </Button>
-          </Box>
-        </Paper>
-      </Modal> */}
-      
       {/* Modal สำหรับแสดงการจองห้องประชุมทั้งหมด */}
       <Modal open={viewBookingsOpen} onClose={handleViewBookingsClose}>
         <Paper sx={{ padding: '16px', maxWidth: '1200px', maxHeight: '90vh', width: '95%', margin: 'auto', overflowY: 'auto' }}>
@@ -753,10 +662,6 @@
                               setSelectedBooking(booking);
                               handleRejectBooking();
                           }}>ปฏิเสธการจอง</Button>
-                          {/* <Button variant="outlined" sx={{ marginRight: '8px' }} onClick={() => {
-                              setSelectedBooking(booking);
-                              setEditModalOpen(true); // เปิด Modal สำหรับแก้ไขการจอง
-                          }}>แก้ไขการจอง</Button> */}
                           <Button variant="outlined" color="secondary" onClick={() => {
                               setSelectedBooking(booking);
                               handleCancelBooking();
@@ -826,6 +731,23 @@
           <Typography variant="h6" sx={{ marginBottom: '16px' }}>
             ผลสรุปการจองห้องประชุม
           </Typography>
+          {/* Divider กั้นส่วนข้อมูลเพิ่มเติม */}
+          <Divider sx={{ marginY: '8px' }} />
+          {/* ข้อมูลเพิ่มเติม */}
+          <Typography variant="subtitle1" sx={{ marginBottom: '8px', fontWeight: 'bold' }}>
+            ข้อมูลรวมชั่วโมงการจองห้อง
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px', gap: '4px' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              รวมชั่วโมงการจองห้องทั้งหมด:
+            </Typography>
+            <Typography variant="body1">
+              {totalApprovedHours} ชั่วโมง
+            </Typography>
+          </Box>
+
+          {/* Divider กั้นส่วนกราฟ */}
+          <Divider sx={{ marginY: '16px' }} />
 
           {/* กลุ่ม: ข้อมูลการจองห้อง */}
           <Typography variant="subtitle1" sx={{ marginBottom: '8px', fontWeight: 'bold' }}>

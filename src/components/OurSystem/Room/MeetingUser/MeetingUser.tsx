@@ -364,8 +364,8 @@ async function handleNewBookingSubmit() {
           <TextField label="รหัสนิสิต" value={cancellationStudentID || ''} onChange={(e) => setCancellationStudentID(e.target.value)} fullWidth sx={{ marginTop: '16px' }}/>
           <TextField label="หมายเลขโทรศัพท์" value={cancellationPhoneNumber || ''} onChange={(e) => setCancellationPhoneNumber(e.target.value)} fullWidth sx={{ marginTop: '16px' }} />
           <Button variant="outlined" fullWidth sx={{ marginTop: '16px' }} onClick={() => handleViewDetails(selectedBooking!)}>
-            แสดงรายละเอียดและแก้ไขการจอง
-            {/* แสดงรายละเอียดการจอง */}
+          แสดงรายละเอียดและแก้ไขการจอง
+          {/* แสดงรายละเอียดการจอง */}
           </Button>
           <Button variant="contained" fullWidth sx={{ marginTop: '16px' }} onClick={handleCancelBooking}>
             ยืนยันการยกเลิกการจอง
@@ -420,7 +420,7 @@ async function handleNewBookingSubmit() {
             </Grid>
             {/* คอลัมน์สำหรับกรอกข้อมูลการจองใหม่ */}
             <Grid item xs={12} md={6}>
-            {/* เช็คสถานะ ถ้าไม่ใช่ "อนุมัติแล้ว" หรือ "ถูกปฏิเสธ" ให้แสดงฟอร์มสำหรับกรอกข้อมูล */}
+              {/* เช็คสถานะ ถ้าไม่ใช่ "อนุมัติแล้ว" หรือ "ถูกปฏิเสธ" ให้แสดงฟอร์มสำหรับกรอกข้อมูล */}
             {bookingDetails?.status !== 'อนุมัติแล้ว' && bookingDetails?.status !== 'ถูกปฏิเสธ' && (
               <div>
                 <TextField
@@ -466,7 +466,6 @@ async function handleNewBookingSubmit() {
                     </MenuItem>
                   ))}
                 </TextField>
-
                 {/* ปิดการใช้งานปุ่มถ้าสถานะไม่ใช่ "รอการอนุมัติจากผู้ดูแล" */}
                 <Button
                   variant="contained"

@@ -285,14 +285,42 @@
   };
 
   // คำนวณรวมชั่วโมงการจองห้องทั้งหมดที่มีสถานะ "อนุมัติแล้ว"
-const totalApprovedHours = pendingBookings
-.filter((booking) => booking.status === 'อนุมัติแล้ว') // คัดกรองเฉพาะที่อนุมัติแล้ว
-.reduce((total, booking) => {
-  const start = moment(booking.startTime, 'HH:mm');
-  const end = moment(booking.endTime, 'HH:mm');
-  const duration = moment.duration(end.diff(start)).asHours(); // คำนวณระยะเวลาเป็นชั่วโมง
-  return total + duration;
-}, 0);
+  const totalApprovedHours = pendingBookings
+  .filter((booking) => booking.status === 'อนุมัติแล้ว') // คัดกรองเฉพาะที่อนุมัติแล้ว
+  .reduce((total, booking) => {
+    const start = moment(booking.startTime, 'HH:mm');
+    const end = moment(booking.endTime, 'HH:mm');
+    const duration = moment.duration(end.diff(start)).asHours(); // คำนวณระยะเวลาเป็นชั่วโมง
+    return total + duration;
+  }, 0);
+
+// คำนวณรวมชั่วโมงการจองห้องที่มีสถานะ "อนุมัติแล้ว" แยกตามห้อง
+const room1Hours = pendingBookings
+  .filter((booking) => booking.room === 'ห้อง 1' && booking.status === 'อนุมัติแล้ว')
+  .reduce((total, booking) => {
+    const start = moment(booking.startTime, 'HH:mm');
+    const end = moment(booking.endTime, 'HH:mm');
+    const duration = moment.duration(end.diff(start)).asHours();
+    return total + duration;
+  }, 0);
+
+const room2Hours = pendingBookings
+  .filter((booking) => booking.room === 'ห้อง 2' && booking.status === 'อนุมัติแล้ว')
+  .reduce((total, booking) => {
+    const start = moment(booking.startTime, 'HH:mm');
+    const end = moment(booking.endTime, 'HH:mm');
+    const duration = moment.duration(end.diff(start)).asHours();
+    return total + duration;
+  }, 0);
+
+const room3Hours = pendingBookings
+  .filter((booking) => booking.room === 'ห้อง 3' && booking.status === 'อนุมัติแล้ว')
+  .reduce((total, booking) => {
+    const start = moment(booking.startTime, 'HH:mm');
+    const end = moment(booking.endTime, 'HH:mm');
+    const duration = moment.duration(end.diff(start)).asHours();
+    return total + duration;
+  }, 0);
 
     return (
       <div className="w-full h-full p-4">
@@ -745,7 +773,33 @@ const totalApprovedHours = pendingBookings
               {totalApprovedHours} ชั่วโมง
             </Typography>
           </Box>
+          {/* แสดงข้อมูลรวมชั่วโมงการจองแยกตามห้อง */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px', gap: '4px' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              ห้อง 1:
+            </Typography>
+            <Typography variant="body1">
+              {room1Hours} ชั่วโมง
+            </Typography>
+          </Box>
 
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px', gap: '4px' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              ห้อง 2:
+            </Typography>
+            <Typography variant="body1">
+              {room2Hours} ชั่วโมง
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px', gap: '4px' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              ห้อง 3:
+            </Typography>
+            <Typography variant="body1">
+              {room3Hours} ชั่วโมง
+            </Typography>
+          </Box>
           {/* Divider กั้นส่วนกราฟ */}
           <Divider sx={{ marginY: '16px' }} />
 

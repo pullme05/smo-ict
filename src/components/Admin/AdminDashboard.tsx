@@ -8,7 +8,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
-
+import moment from 'moment';
+import { Divider} from '@mui/material';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -58,6 +59,36 @@ const AdminDashboard = () => {
       alert('เกิดข้อผิดพลาดในการดึงข้อมูลการจอง');
     }
   };
+  // คำนวณรวมชั่วโมงการจองห้องที่มีสถานะ "อนุมัติแล้ว" แยกตามห้อง
+const room1Hours = pendingBookings
+.filter((booking) => booking.room === 'ห้อง 1' && booking.status === 'อนุมัติแล้ว')
+.reduce((total, booking) => {
+  const start = moment(booking.startTime, 'HH:mm');
+  const end = moment(booking.endTime, 'HH:mm');
+  const duration = moment.duration(end.diff(start)).asHours();
+  return total + duration;
+}, 0);
+
+const room2Hours = pendingBookings
+.filter((booking) => booking.room === 'ห้อง 2' && booking.status === 'อนุมัติแล้ว')
+.reduce((total, booking) => {
+  const start = moment(booking.startTime, 'HH:mm');
+  const end = moment(booking.endTime, 'HH:mm');
+  const duration = moment.duration(end.diff(start)).asHours();
+  return total + duration;
+}, 0);
+
+const room3Hours = pendingBookings
+.filter((booking) => booking.room === 'ห้อง 3' && booking.status === 'อนุมัติแล้ว')
+.reduce((total, booking) => {
+  const start = moment(booking.startTime, 'HH:mm');
+  const end = moment(booking.endTime, 'HH:mm');
+  const duration = moment.duration(end.diff(start)).asHours();
+  return total + duration;
+}, 0);
+
+// คำนวณรวมชั่วโมงการจองทั้งหมดที่มีสถานะ "อนุมัติแล้ว"
+const totalApprovedHours = room1Hours + room2Hours + room3Hours;
 
   const totalBookings = pendingBookings.length;
   const room1Bookings = pendingBookings.filter((booking) => booking.room === 'ห้อง 1').length;
@@ -268,39 +299,54 @@ const AdminDashboard = () => {
         </div>
 
         {/* กราฟสรุปการจองห้องประชุม */} 
-        <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-4xl">
-          <h2 className="text-2xl font-bold mb-4">สรุปการจองห้องประชุม</h2>
-          <div className="flex items-center justify-between">
-            {/* กราฟ */}
-            <div className="w-3/5">
-              <Bar data={data} options={options} className="w-full h-64" />
-            </div>
+<div className="bg-white shadow-md rounded-lg p-6 w-full max-w-4xl">
+  <h2 className="text-2xl font-bold mb-4">สรุปการจองห้องประชุม</h2>
+  <div className="flex items-center justify-between">
+    {/* กราฟ */}
+    <div className="w-3/5">
+      <Bar data={data} options={options} className="w-full h-64" />
+    </div>
 
-            {/* ข้อความ */}
-            <div className="w-2/5 ml-6 bg-gray-50 border border-gray-200 shadow-lg rounded-lg p-4">
-              <div className="space-y-3">
-                <p className="text-gray-700 font-semibold">
-                  <span className="text-[#996600] font-bold">จำนวนการจองห้องทั้งหมด:</span> {totalBookings}
-                </p>
-                <p className="text-gray-700 font-semibold">
-                  <span className="text-[#996600] font-bold">ห้อง 1:</span> {room1Bookings} การจอง
-                </p>
-                <p className="text-gray-700 font-semibold">
-                  <span className="text-[#996600] font-bold">ห้อง 2:</span> {room2Bookings} การจอง
-                </p>
-                <p className="text-gray-700 font-semibold">
-                  <span className="text-[#996600] font-bold">ห้อง 3:</span> {room3Bookings} การจอง
-                </p>
-                <p className="text-gray-700 font-semibold">
-                  <span className="text-[#996600] font-bold">อนุมัติแล้ว:</span> {approvedBookings} การจอง
-                </p>
-                <p className="text-gray-700 font-semibold">
-                  <span className="text-[#996600] font-bold">ถูกปฏิเสธ:</span> {rejectedBookings} การจอง
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+    {/* ข้อความ */}
+    <div className="w-2/5 ml-6 bg-gray-50 border border-gray-200 shadow-lg rounded-lg p-4">
+      <div className="space-y-3">
+        <p className="text-gray-700 font-semibold">
+          <span className="text-[#996600] font-bold">จำนวนการจองห้องทั้งหมด:</span> {totalBookings}
+        </p>
+        <p className="text-gray-700 font-semibold">
+          <span className="text-[#996600] font-bold">ห้อง 1:</span> {room1Bookings} การจอง
+        </p>
+        <p className="text-gray-700 font-semibold">
+          <span className="text-[#996600] font-bold">ห้อง 2:</span> {room2Bookings} การจอง
+        </p>
+        <p className="text-gray-700 font-semibold">
+          <span className="text-[#996600] font-bold">ห้อง 3:</span> {room3Bookings} การจอง
+        </p>
+        <p className="text-gray-700 font-semibold">
+          <span className="text-[#996600] font-bold">อนุมัติแล้ว:</span> {approvedBookings} การจอง
+        </p>
+        <p className="text-gray-700 font-semibold">
+          <span className="text-[#996600] font-bold">ถูกปฏิเสธ:</span> {rejectedBookings} การจอง
+        </p>
+        <Divider sx={{ marginY: '8px' }} />
+        {/* แสดงผลรวมชั่วโมงการจองแยกตามห้อง */}
+        <p className="text-gray-700 font-semibold mt-4">
+          <span className="text-[#996600] font-bold">รวมชั่วโมงการจองทั้งหมด:</span> {totalApprovedHours} ชั่วโมง
+        </p>
+        <p className="text-gray-700 font-semibold">
+          <span className="text-[#996600] font-bold">ห้อง 1:</span> {room1Hours} ชั่วโมง
+        </p>
+        <p className="text-gray-700 font-semibold">
+          <span className="text-[#996600] font-bold">ห้อง 2:</span> {room2Hours} ชั่วโมง
+        </p>
+        <p className="text-gray-700 font-semibold">
+          <span className="text-[#996600] font-bold">ห้อง 3:</span> {room3Hours} ชั่วโมง
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
 
       </main>
     </div>
